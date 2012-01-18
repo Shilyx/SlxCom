@@ -1,0 +1,116 @@
+#define INITGUID
+#include <Guiddef.h>
+#include <Windows.h>
+#include <shlwapi.h>
+#include "SlxWork.h"
+#include "SlxComFactory.h"
+
+#pragma comment(lib, "RpcRt4.lib")
+#pragma comment(lib, "Shlwapi.lib")
+
+#define APPNAME TEXT("SlxAddin")
+
+// {191B1456-2DC2-41a7-A3FA-AC4D017889DA}
+DEFINE_GUID(GUID_SLXCOM, 0x191b1456, 0x2dc2, 0x41a7, 0xa3, 0xfa, 0xac, 0x4d, 0x1, 0x78, 0x89, 0xda);
+
+HINSTANCE g_hinstDll = NULL;
+
+
+BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+{
+    if(dwReason == DLL_PROCESS_ATTACH)
+    {
+        g_hinstDll = hInstance;
+
+        DisableThreadLibraryCalls(hInstance);
+        SlxWork(hInstance);
+    }
+    else if(dwReason == DLL_PROCESS_DETACH)
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+STDAPI DllCanUnloadNow(void)
+{
+    return S_FALSE;
+}
+
+STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
+{
+    *ppv = NULL;
+
+    if(rclsid == GUID_SLXCOM)
+    {
+        CSlxComFactory *pFactory = new CSlxComFactory;
+
+        if(pFactory == NULL)
+        {
+            return E_OUTOFMEMORY;
+        }
+
+        return pFactory->QueryInterface(riid, ppv);
+    }
+
+    return CLASS_E_CLASSNOTAVAILABLE;
+}
+
+STDAPI DllRegisterServer(void)
+{
+    TCHAR *szGuid = NULL;
+
+    if(RPC_S_OK == UuidToString(&GUID_SLXCOM, &szGuid))
+    {
+        TCHAR szRegPath[1000];
+        TCHAR szGuidWithQuota[100];
+        TCHAR szDllPath[MAX_PATH];
+
+        GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
+
+        wnsprintf(szGuidWithQuota, sizeof(szGuidWithQuota) / sizeof(TCHAR), TEXT("{%s}"), szGuid);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\%s"),
+            APPNAME);
+        SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("CLSID\\%s\\InprocServer32"),
+            szGuidWithQuota);
+        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
+        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, TEXT("ThreadingModel"), REG_SZ, TEXT("Apartment"), 20);
+
+        RpcStringFree(&szGuid);
+    }
+
+    return S_OK;
+}
+
+STDAPI DllUnregisterServer(void)
+{
+    TCHAR *szGuid = NULL;
+
+    if(RPC_S_OK == UuidToString(&GUID_SLXCOM, &szGuid))
+    {
+        TCHAR szRegPath[1000];
+        TCHAR szGuidWithQuota[100];
+
+        wnsprintf(szGuidWithQuota, sizeof(szGuidWithQuota) / sizeof(TCHAR), TEXT("{%s}"), szGuid);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\%s"),
+            APPNAME);
+        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("CLSID\\%s"),
+            szGuidWithQuota);
+        SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+
+        RpcStringFree(&szGuid);
+    }
+
+    return S_OK;
+}
