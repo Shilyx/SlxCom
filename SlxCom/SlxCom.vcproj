@@ -117,7 +117,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				TreatWChar_tAsBuiltInType="false"
 				UsePrecompiledHeader="0"
@@ -136,6 +136,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
+				GenerateManifest="false"
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -191,7 +192,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SlxWork.cpp"
+				RelativePath=".\SlxComWork.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComWork_lvm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComWork_sd.cpp"
 				>
 			</File>
 		</Filter>
@@ -209,7 +218,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SlxWork.h"
+				RelativePath=".\SlxComWork.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComWork_lvm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComWork_sd.h"
 				>
 			</File>
 		</Filter>

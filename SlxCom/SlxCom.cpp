@@ -2,7 +2,7 @@
 #include <Guiddef.h>
 #include <Windows.h>
 #include <shlwapi.h>
-#include "SlxWork.h"
+#include "SlxComWork.h"
 #include "SlxComFactory.h"
 
 #pragma comment(lib, "RpcRt4.lib")

@@ -1,17 +1,18 @@
-#include "SlxWork.h"
+#include "SlxComWork_lvm.h"
+#include <Windows.h>
 #include <CommCtrl.h>
 #include <shlwapi.h>
 
 #pragma comment(lib, "ComCtl32.lib")
 
 LPCTSTR szClassName = TEXT("_______Slx___RnMgr___65");
-WNDPROC lpOldProc = NULL;
+static WNDPROC lpOldEditProc = NULL;
 
 LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     if(uMsg == LVM_GETEDITCONTROL)
     {
-        HWND hEdit = (HWND)CallWindowProc(lpOldProc, hwnd, uMsg, wParam, lParam);
+        HWND hEdit = (HWND)CallWindowProc(lpOldEditProc, hwnd, uMsg, wParam, lParam);
 
         int nLength = SendMessage(hEdit, WM_GETTEXTLENGTH, 0, 0);
 
@@ -40,12 +41,12 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         return (LRESULT)hEdit;
     }
 
-    return CallWindowProc(lpOldProc, hwnd, uMsg, wParam, lParam);
+    return CallWindowProc(lpOldEditProc, hwnd, uMsg, wParam, lParam);
 }
 
 BOOL LvmInit(HINSTANCE hInstance)
 {
-    if(lpOldProc == NULL)
+    if(lpOldEditProc == NULL)
     {
         WNDCLASSEX wcex = {sizeof(wcex)};
 
@@ -58,7 +59,7 @@ BOOL LvmInit(HINSTANCE hInstance)
 
         InitCommonControls();
 
-//         wcex.hInstance = hInstance;
+        //         wcex.hInstance = hInstance;
         wcex.lpszClassName = szClassName;
         wcex.lpfnWndProc = DefWindowProc;
 
@@ -74,9 +75,9 @@ BOOL LvmInit(HINSTANCE hInstance)
 
             if(IsWindow(hList))
             {
-                lpOldProc = (WNDPROC)GetClassLongPtr(hList, GCLP_WNDPROC);
+                lpOldEditProc = (WNDPROC)GetClassLongPtr(hList, GCLP_WNDPROC);
 
-               SetClassLongPtr(hList, GCLP_WNDPROC, (LONG_PTR)NewEditWindowProc);
+                SetClassLongPtr(hList, GCLP_WNDPROC, (LONG_PTR)NewEditWindowProc);
 
 //                 TCHAR szText[1000];
 //                 wsprintf(szText, TEXT("ÀÏ£º%x ÐÂ£º%x"), lpOldProc, GetClassLongPtr(hList, GCLP_WNDPROC));
@@ -88,37 +89,4 @@ BOOL LvmInit(HINSTANCE hInstance)
     }
 
     return FALSE;
-}
-
-BOOL StartHookShowDesktop()
-{
-    TCHAR szExePath[MAX_PATH];
-    TCHAR szExplorerPath[MAX_PATH];
-
-    GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
-
-    GetSystemDirectory(szExplorerPath, MAX_PATH);
-    PathAppend(szExplorerPath, TEXT("..\\Explorer.exe"));
-
-    if(lstrcmpi(szExplorerPath, szExePath) == 0)
-    {
-
-    }
-
-    return TRUE;
-}
-
-BOOL SlxWork(HINSTANCE hinstDll)
-{
-    OSVERSIONINFO osi = {sizeof(osi)};
-
-    GetVersionEx(&osi);
-
-    if(osi.dwMajorVersion <= 5)
-    {
-        StartHookShowDesktop();
-        LvmInit(hinstDll);
-    }
-
-    return TRUE;
 }

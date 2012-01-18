@@ -1,5 +1,5 @@
-#ifndef _SLX_WORK_H
-#define _SLX_WORK_H
+#ifndef _SLX_COM_WORK_H
+#define _SLX_COM_WORK_H
 
 #include <Windows.h>
 
