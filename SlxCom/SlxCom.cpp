@@ -77,6 +77,11 @@ STDAPI DllRegisterServer(void)
         SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
 
         wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
             TEXT("CLSID\\%s\\InprocServer32"),
             szGuidWithQuota);
         SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
@@ -101,6 +106,11 @@ STDAPI DllUnregisterServer(void)
 
         wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
             TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\%s"),
+            APPNAME);
+        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
             APPNAME);
         SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
 
