@@ -60,7 +60,7 @@ STDAPI DllRegisterServer(void)
 {
     TCHAR *szGuid = NULL;
 
-    if(RPC_S_OK == UuidToString(&GUID_SLXCOM, &szGuid))
+    if(RPC_S_OK == UuidToString((GUID *)&GUID_SLXCOM, &szGuid))
     {
         TCHAR szRegPath[1000];
         TCHAR szGuidWithQuota[100];
@@ -96,7 +96,7 @@ STDAPI DllUnregisterServer(void)
 {
     TCHAR *szGuid = NULL;
 
-    if(RPC_S_OK == UuidToString(&GUID_SLXCOM, &szGuid))
+    if(RPC_S_OK == UuidToString((GUID *)&GUID_SLXCOM, &szGuid))
     {
         TCHAR szRegPath[1000];
         TCHAR szGuidWithQuota[100];

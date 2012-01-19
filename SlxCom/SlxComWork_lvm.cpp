@@ -1,7 +1,5 @@
 #include "SlxComWork_lvm.h"
-#include <Windows.h>
 #include <CommCtrl.h>
-#include <shlwapi.h>
 
 #pragma comment(lib, "ComCtl32.lib")
 
