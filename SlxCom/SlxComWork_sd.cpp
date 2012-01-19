@@ -6,7 +6,32 @@ static WNDPROC lpOldWndProc = NULL;
 
 LRESULT WINAPI NewWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if(uMsg == WM_LBUTTONDOWN)
+    if(uMsg == WM_PAINT)
+    {
+        LRESULT lResult = CallWindowProc(lpOldWndProc, hwnd, uMsg, wParam, lParam);
+
+        HDC hDc = GetDC(hwnd);
+
+        if(hDc != NULL)
+        {
+            RECT rect;
+            HPEN hPen = CreatePen(PS_SOLID, 20, RGB(36, 93, 219));
+            HPEN hTempPen = (HPEN)SelectObject(hDc, hPen);
+
+            GetClientRect(hwnd, &rect);
+
+            MoveToEx(hDc, rect.right - 10, 0, NULL);
+            LineTo(hDc, rect.right - 10, rect.bottom);
+
+            SelectObject(hDc, hTempPen);
+            DeleteObject(hPen);
+
+            ReleaseDC(hwnd, hDc);
+        }
+
+        return lResult;
+    }
+    else if(uMsg == WM_LBUTTONDOWN)
     {
         RECT rect;
         int x = LOWORD(lParam);
