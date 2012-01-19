@@ -102,6 +102,8 @@ SOURCE=.\SlxCom.def
 # Begin Source File
 
 SOURCE=.\SlxCom.rc
+# ADD BASE RSC /l 0x804
+# ADD RSC /l 0x804 /d "VC6"
 # End Source File
 # Begin Source File
 
@@ -160,5 +162,9 @@ SOURCE=.\SlxComWork_sd.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Source File
+
+SOURCE=.\WindowsXP.manifest
+# End Source File
 # End Target
 # End Project
