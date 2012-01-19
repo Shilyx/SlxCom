@@ -5,7 +5,7 @@
 
 #pragma comment(lib, "ComCtl32.lib")
 
-LPCTSTR szClassName = TEXT("_______Slx___RnMgr___65");
+LPCTSTR szClassName = TEXT("_______Slx___RnMgr___65_1");
 static WNDPROC lpOldEditProc = NULL;
 
 LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -50,7 +50,7 @@ BOOL LvmInit(HINSTANCE hInstance)
     {
         WNDCLASSEX wcex = {sizeof(wcex)};
 
-        TCHAR szText[300] = TEXT("Slx::RnMgr::LvmInit Called By ");
+        TCHAR szText[300] = TEXT("SlxCom::LvmInit Called By ");
 
         GetModuleFileName(GetModuleHandle(NULL), szText + lstrlen(szText), MAX_PATH);
         lstrcat(szText, TEXT("\r\n"));
@@ -59,7 +59,7 @@ BOOL LvmInit(HINSTANCE hInstance)
 
         InitCommonControls();
 
-        //         wcex.hInstance = hInstance;
+        wcex.hInstance = hInstance;
         wcex.lpszClassName = szClassName;
         wcex.lpfnWndProc = DefWindowProc;
 
@@ -79,9 +79,9 @@ BOOL LvmInit(HINSTANCE hInstance)
 
                 SetClassLongPtr(hList, GCLP_WNDPROC, (LONG_PTR)NewEditWindowProc);
 
-//                 TCHAR szText[1000];
-//                 wsprintf(szText, TEXT("老：%x 新：%x"), lpOldProc, GetClassLongPtr(hList, GCLP_WNDPROC));
-//                 OutputDebugString(szText);
+                TCHAR szText[1000];
+                wsprintf(szText, TEXT("SlxCom::老：%x 新：%x"), lpOldEditProc, GetClassLongPtr(hList, GCLP_WNDPROC));
+                OutputDebugString(szText);
             }
 
             DestroyWindow(hWindow);

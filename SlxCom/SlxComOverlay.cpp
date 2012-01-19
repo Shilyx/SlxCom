@@ -7,19 +7,23 @@ CSlxComOverlay::CSlxComOverlay()
 
 STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
 {
-    *ppv = NULL;
-
-    if(riid == IID_IUnknown || riid == IID_IShellIconOverlayIdentifier)
+    if(riid == IID_IShellIconOverlayIdentifier)
     {
-        *ppv = this;
-        AddRef();
-
-        return S_OK;
+        *ppv = static_cast<IShellIconOverlayIdentifier *>(this);
+    }
+    else if(riid == IID_IUnknown)
+    {
+        *ppv = static_cast<IShellIconOverlayIdentifier *>(this);
     }
     else
     {
+        *ppv = 0;
         return E_NOINTERFACE;
     }
+
+    reinterpret_cast<IUnknown *>(*ppv)->AddRef();
+
+    return S_OK;
 }
 
 STDMETHODIMP_(ULONG) CSlxComOverlay::AddRef()
