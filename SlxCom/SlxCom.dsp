@@ -101,6 +101,10 @@ SOURCE=.\SlxCom.def
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxCom.rc
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComContextMenu.cpp
 # End Source File
 # Begin Source File
