@@ -1,5 +1,6 @@
 #include "SlxComFactory.h"
 #include "SlxComOverlay.h"
+#include "SlxComContextMenu.h"
 
 CSlxComFactory::CSlxComFactory()
 {
@@ -50,21 +51,46 @@ STDMETHODIMP CSlxComFactory::CreateInstance(IUnknown * pUnkOuter, REFIID riid, v
         return CLASS_E_NOAGGREGATION;
     }
 
-    CSlxComOverlay *pOverlay = new CSlxComOverlay;
-
-    if(pOverlay == NULL)
+    if(riid == IID_IShellIconOverlayIdentifier)
     {
-        return E_OUTOFMEMORY;
+        CSlxComOverlay *pOverlay = new CSlxComOverlay;
+
+        if(pOverlay == NULL)
+        {
+            return E_OUTOFMEMORY;
+        }
+
+        HRESULT hr = pOverlay->QueryInterface(riid, ppv);
+
+        if(FAILED(hr))
+        {
+            delete pOverlay;
+        }
+
+        return hr;
     }
-
-    HRESULT hr = pOverlay->QueryInterface(riid, ppv);
-
-    if(FAILED(hr))
+    else if(riid == IID_IShellExtInit || riid == IID_IContextMenu)
     {
-        delete pOverlay;
-    }
+        CSlxComContextMenu *pContextMenu = new CSlxComContextMenu;
 
-    return hr;
+        if(pContextMenu == NULL)
+        {
+            return E_OUTOFMEMORY;
+        }
+
+        HRESULT hr = pContextMenu->QueryInterface(riid, ppv);
+
+        if(FAILED(hr))
+        {
+            delete pContextMenu;
+        }
+
+        return hr;
+    }
+    else
+    {
+        return E_NOINTERFACE;
+    }
 }
 
 STDMETHODIMP CSlxComFactory::LockServer(BOOL fLock)
