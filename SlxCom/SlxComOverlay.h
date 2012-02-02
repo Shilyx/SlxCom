@@ -19,6 +19,11 @@ public:
     STDMETHOD(GetOverlayInfo)(LPWSTR pwszIconFile, int cchMax, int *pIndex, DWORD *pdwFlags);
     STDMETHOD(GetPriority)(int *pPriority);
 
+public:
+    static BOOL GenericIconFile();
+    static TCHAR m_szIconFilePath[MAX_PATH];
+    static DWORD m_dwIcoFileSize;
+
 protected:
     volatile DWORD m_dwRefCount;
 };

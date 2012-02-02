@@ -1,4 +1,11 @@
 #include "SlxComOverlay.h"
+#include "resource.h"
+#include "SlxComTools.h"
+#include <shlwapi.h>
+
+extern HINSTANCE g_hinstDll;
+TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
+DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
 CSlxComOverlay::CSlxComOverlay()
 {
@@ -46,15 +53,82 @@ STDMETHODIMP_(ULONG) CSlxComOverlay::Release()
 //IShellIconOverlayIdentifier Method
 STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
+    if(IsFileSigned(pwszPath))
+    {
+        return S_OK;
+    }
+
     return S_FALSE;
 }
 
 STDMETHODIMP CSlxComOverlay::GetOverlayInfo(LPWSTR pwszIconFile, int cchMax, int *pIndex, DWORD *pdwFlags)
 {
+    WIN32_FILE_ATTRIBUTE_DATA wfad;
+    DWORD dwIconFileAttribute = GetFileAttributesEx(m_szIconFilePath, GetFileExInfoStandard, &wfad);
+
+    if(dwIconFileAttribute == INVALID_FILE_ATTRIBUTES || wfad.nFileSizeLow != m_dwIcoFileSize)
+    {
+        GenericIconFile();
+    }
+
+    lstrcpyn(pwszIconFile, m_szIconFilePath, cchMax);
+
+    *pdwFlags = ISIOI_ICONFILE;
+
     return S_OK;
 }
 
 STDMETHODIMP CSlxComOverlay::GetPriority(int *pPriority)
 {
+    if(pPriority != NULL)
+    {
+        *pPriority = 0;
+    }
+
     return S_OK;
+}
+
+BOOL CSlxComOverlay::GenericIconFile()
+{
+    TCHAR szPath[MAX_PATH];
+    BOOL bSucceed = FALSE;
+    DWORD dwResSize = 0;
+
+    GetTempPath(MAX_PATH, szPath);
+    PathAppend(szPath, TEXT("\\__SignMark_20120202.ico"));
+
+    HANDLE hFile = CreateFile(szPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        HRSRC hRsrc = FindResource(g_hinstDll, MAKEINTRESOURCE(IDR_ICON), TEXT("RT_FILE"));
+
+        if(hRsrc != NULL)
+        {
+            HGLOBAL hGlobal = LoadResource(g_hinstDll, hRsrc);
+
+            if(hGlobal != NULL)
+            {
+                LPCSTR lpBuffer = (LPCSTR)LockResource(hGlobal);
+                dwResSize = SizeofResource(g_hinstDll, hRsrc);
+
+                if(lpBuffer != NULL && dwResSize > 0)
+                {
+                    DWORD dwBytesWritten = 0;
+
+                    bSucceed = WriteFile(hFile, lpBuffer, dwResSize, &dwBytesWritten, NULL);
+                }
+            }
+        }
+
+        CloseHandle(hFile);
+    }
+
+    if(bSucceed)
+    {
+        lstrcpyn(m_szIconFilePath, szPath, MAX_PATH);
+        m_dwIcoFileSize = dwResSize;
+    }
+
+    return bSucceed;
 }
