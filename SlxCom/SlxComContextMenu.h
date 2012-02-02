@@ -3,7 +3,20 @@
 
 #include <ShlObj.h>
 
-typedef TCHAR PATH[MAX_PATH];
+class FileInfo
+{
+public:
+    BOOL bIsDll;
+    BOOL bIsEncorated;
+    TCHAR szPath[MAX_PATH];
+
+    FileInfo()
+    {
+        bIsDll = FALSE;
+        bIsEncorated = FALSE;
+        lstrcpyn(szPath, TEXT(""), sizeof(szPath) / sizeof(TCHAR));
+    }
+};
 
 class CSlxComContextMenu : public IContextMenu, public IShellExtInit
 {
@@ -25,7 +38,7 @@ public:
 
 protected:
     volatile DWORD m_dwRefCount;
-    PATH *m_pszFiles;
+    FileInfo *m_pFiles;
     UINT m_uFileCount;
 };
 

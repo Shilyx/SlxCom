@@ -4,9 +4,9 @@ CSlxComContextMenu::CSlxComContextMenu()
 {
     m_dwRefCount = 0;
 
-    m_pszFiles = new PATH[1];
+    m_pFiles = new FileInfo[1];
     m_uFileCount = 1;
-    lstrcpy(m_pszFiles[0], TEXT("1:\\"));
+    lstrcpy(m_pFiles[0].szPath, TEXT("1:\\"));
 }
 
 STDMETHODIMP CSlxComContextMenu::QueryInterface(REFIID riid, void **ppv)
@@ -62,7 +62,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
         }
         else
         {
-            if(SHGetPathFromIDList(pidlFolder, m_pszFiles[0]))
+            if(SHGetPathFromIDList(pidlFolder, m_pFiles[0].szPath))
             {
                 m_uFileCount = 1;
 
@@ -92,14 +92,14 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 
                 if(uNumFiles > 0)
                 {
-                    delete []m_pszFiles;
+                    delete []m_pFiles;
 
-                    m_pszFiles = new PATH[uNumFiles];
+                    m_pFiles = new FileInfo[uNumFiles];
                     m_uFileCount = uNumFiles;
 
                     for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
                     {
-                        DragQueryFile(hDrop, uIndex, m_pszFiles[uIndex], MAX_PATH);
+                        DragQueryFile(hDrop, uIndex, m_pFiles[uIndex].szPath, MAX_PATH);
                     }
 
                     hResult = S_OK;
