@@ -1,4 +1,5 @@
 #include "SlxComContextMenu.h"
+#include <shlwapi.h>
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -62,9 +63,16 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
         }
         else
         {
-            if(SHGetPathFromIDList(pidlFolder, m_pFiles[0].szPath))
+            TCHAR szPath[MAX_PATH];
+
+            if(SHGetPathFromIDList(pidlFolder, szPath))
             {
                 m_uFileCount = 1;
+
+                delete []m_pFiles;
+
+                m_pFiles = new FileInfo[m_uFileCount];
+                lstrcpyn(m_pFiles[0].szPath, szPath, MAX_PATH);
 
                 return S_OK;
             }
@@ -100,6 +108,13 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
                     for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
                     {
                         DragQueryFile(hDrop, uIndex, m_pFiles[uIndex].szPath, MAX_PATH);
+
+                        LPCTSTR lpExtension = PathFindExtension(m_pFiles[uIndex].szPath);
+
+                        if(lstrcmpi(lpExtension, TEXT(".dll")) == 0 || lstrcmpi(lpExtension, TEXT(".ocx")) == 0)
+                        {
+                            m_pFiles[uIndex].bIsDll = TRUE;
+                        }
                     }
 
                     hResult = S_OK;
@@ -116,6 +131,8 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
 {
+
+
     return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
 }
 

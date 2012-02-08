@@ -9,7 +9,6 @@ BOOL IsFileSigned(LPCTSTR lpFilePath)
     GUID guidAction = WINTRUST_ACTION_GENERIC_VERIFY_V2;
     WINTRUST_FILE_INFO sWintrustFileInfo;
     WINTRUST_DATA      sWintrustData;
-    HRESULT            hr;
 
     memset((void*)&sWintrustFileInfo, 0x00, sizeof(WINTRUST_FILE_INFO));
     memset((void*)&sWintrustData, 0x00, sizeof(WINTRUST_DATA));
