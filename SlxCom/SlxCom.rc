@@ -90,10 +90,19 @@ END
 // RT_FILE
 //
 
+IDR_ICON                RT_FILE                 "res\\Mark.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_INSTALL             BITMAP                  "res\\Install.bmp"
+IDB_UNINSTALL           BITMAP                  "res\\Uninstall.bmp"
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
-IDR_ICON	RT_FILE	  "res\\Mark.ico"
+
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

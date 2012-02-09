@@ -11,8 +11,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     if(uMsg == LVM_GETEDITCONTROL)
     {
         HWND hEdit = (HWND)CallWindowProc(lpOldEditProc, hwnd, uMsg, wParam, lParam);
-
-        int nLength = SendMessage(hEdit, WM_GETTEXTLENGTH, 0, 0);
+        LONG_PTR nLength = SendMessage(hEdit, WM_GETTEXTLENGTH, 0, 0);
 
         if(nLength > 0 && nLength < MAX_PATH)
         {
@@ -20,7 +19,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
             if(GetWindowText(hEdit, szText, MAX_PATH) == nLength)
             {
-                int nIndex = nLength;
+                LONG_PTR nIndex = nLength;
 
                 while(nIndex > 0)
                 {
