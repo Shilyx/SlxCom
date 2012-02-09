@@ -8,12 +8,14 @@ class FileInfo
 public:
     BOOL bIsDll;
     BOOL bIsEncorated;
+    BOOL bRegEventSucceed;
     TCHAR szPath[MAX_PATH];
 
     FileInfo()
     {
         bIsDll = FALSE;
         bIsEncorated = FALSE;
+        bRegEventSucceed = FALSE;
         lstrcpyn(szPath, TEXT(""), sizeof(szPath) / sizeof(TCHAR));
     }
 };
