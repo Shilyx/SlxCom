@@ -4,6 +4,7 @@
 #include <shlwapi.h>
 #include "SlxComWork.h"
 #include "SlxComFactory.h"
+#include "resource.h"
 
 #pragma comment(lib, "RpcRt4.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -14,12 +15,16 @@
 DEFINE_GUID(GUID_SLXCOM, 0x191b1456, 0x2dc2, 0x41a7, 0xa3, 0xfa, 0xac, 0x4d, 0x1, 0x78, 0x89, 0xda);
 
 HINSTANCE g_hinstDll = NULL;
+HBITMAP g_hInstallBmp = NULL;
+HBITMAP g_hUninstallBmp = NULL;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
     {
         g_hinstDll = hInstance;
+        g_hInstallBmp = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
+        g_hUninstallBmp = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);
