@@ -91,6 +91,7 @@ END
 //
 
 IDR_ICON                RT_FILE                 "res\\Mark.ico"
+IDR_DEFAULTJPG          RT_FILE                 "res\\Default.jpg"
 
 /////////////////////////////////////////////////////////////////////////////
 //
