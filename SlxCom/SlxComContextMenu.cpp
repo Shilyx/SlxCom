@@ -3,6 +3,7 @@
 
 extern HBITMAP g_hInstallBmp;
 extern HBITMAP g_hUninstallBmp;
+extern HBITMAP g_hCombineBmp;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -122,6 +123,14 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
                             {
                                 m_pFiles[uIndex].bIsDll = TRUE;
                             }
+                            else if(lstrcmpi(lpExtension, TEXT(".jpg")) == 0 || lstrcmpi(lpExtension, TEXT(".jpeg")) == 0)
+                            {
+                                m_pFiles[uIndex].bIsJpg = TRUE;
+                            }
+                            else if(lstrcmpi(lpExtension, TEXT(".rar")) == 0)
+                            {
+                                m_pFiles[uIndex].bIsRar = TRUE;
+                            }
                         }
                     }
 
@@ -138,12 +147,13 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 
 #define ID_REGISTER     1
 #define ID_UNREGISTER   2
-#define ID_3            3
+#define ID_COMBINE      3
 #define ID_4            4
 #define ID_5            5
 #define ID_6            6
 #define ID_7            7
 #define ID_8            8
+#define IDCOUNT         9
 
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
@@ -153,6 +163,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
     }
 
+    //Dll Register
     UINT uFileIndex;
     BOOL bExistDll = FALSE;
 
@@ -172,13 +183,36 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
 
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("注册组件(&R)"));
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNREGISTER, TEXT("取消注册组件(&U)"));
-
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);
+
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNREGISTER, TEXT("取消注册组件(&U)"));
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNREGISTER, MF_BYCOMMAND, g_hUninstallBmp, g_hUninstallBmp);
     }
 
-    return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, uMenuIndex + 1);
+    //File Combine
+    if(TRUE)
+    {
+        BOOL bCouldCombine = FALSE;
+
+        if(m_uFileCount == 1)
+        {
+            bCouldCombine = m_pFiles[0].bIsRar;
+        }
+        else if(m_uFileCount == 2)
+        {
+            bCouldCombine = m_pFiles[0].bIsJpg && m_pFiles[1].bIsRar || m_pFiles[0].bIsRar && m_pFiles[1].bIsJpg;
+        }
+
+        if(bCouldCombine)
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
+
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, TEXT("文件合成(&C)"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
+        }
+    }
+
+    return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, IDCOUNT);
 }
 
 STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax)
@@ -192,6 +226,17 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_UNREGISTER)
     {
         lpText = "取消注册组件。";
+    }
+    else if(idCmd == ID_COMBINE)
+    {
+        if(m_uFileCount == 1)
+        {
+            lpText = "将选定的rar文件附加到默认jpg文件之后。";
+        }
+        else
+        {
+            lpText = "将选定的rar文件附加到选定的jpg文件之后。";
+        }
     }
 
     if(uFlags & GCS_UNICODE)
@@ -338,6 +383,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         }
 
         break;
+    }
+
+    case ID_COMBINE:
+    {
+        MessageBox(NULL, NULL, NULL, MB_TOPMOST);
     }
 
     default:

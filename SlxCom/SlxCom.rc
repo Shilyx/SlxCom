@@ -99,6 +99,7 @@ IDR_ICON                RT_FILE                 "res\\Mark.ico"
 
 IDB_INSTALL             BITMAP                  "res\\Install.bmp"
 IDB_UNINSTALL           BITMAP                  "res\\Uninstall.bmp"
+IDB_COMBINE             BITMAP                  "res\\Combine.bmp"
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 

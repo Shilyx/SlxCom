@@ -4,5 +4,6 @@
 #include <Windows.h>
 
 BOOL IsFileSigned(LPCTSTR lpFilePath);
+BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int nLength);
 
 #endif

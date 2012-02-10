@@ -17,6 +17,7 @@ DEFINE_GUID(GUID_SLXCOM, 0x191b1456, 0x2dc2, 0x41a7, 0xa3, 0xfa, 0xac, 0x4d, 0x1
 HINSTANCE g_hinstDll = NULL;
 HBITMAP g_hInstallBmp = NULL;
 HBITMAP g_hUninstallBmp = NULL;
+HBITMAP g_hCombineBmp = NULL;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
@@ -25,6 +26,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_hinstDll = hInstance;
         g_hInstallBmp = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
         g_hUninstallBmp = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
+        g_hCombineBmp = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COMBINE));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

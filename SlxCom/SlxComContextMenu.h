@@ -7,6 +7,8 @@ class FileInfo
 {
 public:
     BOOL bIsDll;
+    BOOL bIsJpg;
+    BOOL bIsRar;
     BOOL bIsEncorated;
     BOOL bRegEventSucceed;
     TCHAR szPath[MAX_PATH];
@@ -14,6 +16,8 @@ public:
     FileInfo()
     {
         bIsDll = FALSE;
+        bIsJpg = FALSE;
+        bIsRar = FALSE;
         bIsEncorated = FALSE;
         bRegEventSucceed = FALSE;
         lstrcpyn(szPath, TEXT(""), sizeof(szPath) / sizeof(TCHAR));

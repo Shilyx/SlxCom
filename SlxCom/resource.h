@@ -9,6 +9,7 @@
 #define IDR_FILE                        105
 #define IDB_INSTALL                     106
 #define IDB_UNINSTALL                   107
+#define IDB_COMBINE                     108
 
 // Next default values for new objects
 // 
