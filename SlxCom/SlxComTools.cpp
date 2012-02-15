@@ -2,13 +2,10 @@
 #include <wintrust.h>
 #include <Softpub.h>
 #include <shlwapi.h>
-#include <GdiPlus.h>
 #include <shlobj.h>
+#include "resource.h"
 
-#pragma comment(lib, "GdiPlus.lib")
 #pragma comment(lib, "Wintrust.lib")
-
-using namespace Gdiplus;
 
 extern HINSTANCE g_hinstDll;
 
@@ -35,88 +32,39 @@ BOOL IsFileSigned(LPCTSTR lpFilePath)
     return S_OK == WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &guidAction, &sWintrustData);
 }
 
-Status CallGdiplusStartup()
+BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath)
 {
-    GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
+    BOOL bSucceed = FALSE;
+    DWORD dwResSize = 0;
 
-    return GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-}
+    HANDLE hFile = CreateFile(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-static BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID *pClsid)
-{
-    UINT uNum = 0;
-    UINT uIndex = 0;
-    UINT uSize = 0;
-    HANDLE hHeap = NULL;
-    ImageCodecInfo *pImageCodecInfo = NULL;
-
-    GetImageEncodersSize(&uNum, &uSize);
-
-    if(uSize != 0)
+    if(hFile != INVALID_HANDLE_VALUE)
     {
-        hHeap = GetProcessHeap();
-        pImageCodecInfo = (ImageCodecInfo *)HeapAlloc(hHeap, 0, uSize);
+        HRSRC hRsrc = FindResource(g_hinstDll, lpResName, lpResType);
 
-        if(pImageCodecInfo != NULL)
+        if(hRsrc != NULL)
         {
-            GetImageEncoders(uNum, uSize, pImageCodecInfo);
+            HGLOBAL hGlobal = LoadResource(g_hinstDll, hRsrc);
 
-            for(; uIndex < uNum; uIndex += 1)
+            if(hGlobal != NULL)
             {
-                if(lstrcmpW(pImageCodecInfo[uIndex].MimeType, lpFormat) == 0)
-                {
-                    *pClsid = pImageCodecInfo[uIndex].Clsid;
+                LPCSTR lpBuffer = (LPCSTR)LockResource(hGlobal);
+                dwResSize = SizeofResource(g_hinstDll, hRsrc);
 
-                    break;
+                if(lpBuffer != NULL && dwResSize > 0)
+                {
+                    DWORD dwBytesWritten = 0;
+
+                    bSucceed = WriteFile(hFile, lpBuffer, dwResSize, &dwBytesWritten, NULL);
                 }
             }
-
-            HeapFree(hHeap, 0, pImageCodecInfo);
         }
+
+        CloseHandle(hFile);
     }
 
-    return uIndex < uNum;
-}
-
-BOOL GetTempJpgPath(LPCTSTR lpDescription, LPTSTR lpTempJpgPath, int nLength)
-{
-    static Status __unused = CallGdiplusStartup();
-
-    Bitmap bmp(416, 355, PixelFormat32bppRGB);
-    Graphics graphics(&bmp);
-    SolidBrush solidBrush(Color::Blue); 
-    FontFamily fontFamily(L"楷体_GB2312");
-    Font font(&fontFamily, 16, FontStyleRegular, UnitPoint);
-
-    StringFormat stringFormat;
-    stringFormat.SetFormatFlags(StringFormatFlagsNoFitBlackBox);
-    stringFormat.SetAlignment(StringAlignmentCenter);
-
-    graphics.DrawString(L"AAAA", 4, &font, RectF(30, 30, 150, 200), &stringFormat, &solidBrush);
-
-    {
-        {
-            CLSID clsidJpeg;
-            EncoderParameters encoderParameters;
-            LONG quality = 80;
-
-            {
-                GetEncoderClsid(L"image/jpeg", &clsidJpeg);
-
-                encoderParameters.Count = 1;
-                encoderParameters.Parameter[0].Guid = EncoderQuality;
-                encoderParameters.Parameter[0].Type = EncoderParameterValueTypeLong;
-                encoderParameters.Parameter[0].NumberOfValues = 1;
-
-                encoderParameters.Parameter[0].Value = &quality;
-
-                bmp.Save(L"C:\\a.jpg", &clsidJpeg, &encoderParameters);
-            }
-        }
-    }
-
-    return TRUE;
+    return bSucceed;
 }
 
 BOOL GetResultPath(LPCTSTR lpRarPath, LPTSTR lpResultPath, int nLength)
@@ -134,7 +82,7 @@ BOOL GetResultPath(LPCTSTR lpRarPath, LPTSTR lpResultPath, int nLength)
     return FALSE;
 }
 
-BOOL Combine(LPCTSTR lpFile1, LPCTSTR lpFile2, LPCTSTR lpFileNew)
+BOOL DoCombine(LPCTSTR lpFile1, LPCTSTR lpFile2, LPCTSTR lpFileNew)
 {
     IStream *pStream1 = NULL;
     IStream *pStream2 = NULL;
@@ -174,7 +122,6 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
 {
     //Get jpg file path
     TCHAR szJpgPath[MAX_PATH];
-    BOOL bShouldDeleteJpg = FALSE;
 
     if(GetFileAttributes(lpJpgPath) == INVALID_FILE_ATTRIBUTES)
     {
@@ -183,8 +130,7 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
 
         if(GetFileAttributes(szJpgPath) == INVALID_FILE_ATTRIBUTES)
         {
-            GetTempJpgPath(PathFindFileName(lpRarPath), szJpgPath, MAX_PATH);
-            bShouldDeleteJpg = TRUE;
+            SaveResourceToFile(TEXT("RT_FILE"), MAKEINTRESOURCE(IDR_DEFAULTJPG), szJpgPath);
         }
     }
     else
@@ -194,37 +140,17 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
 
     if(GetFileAttributes(szJpgPath) != INVALID_FILE_ATTRIBUTES)
     {
-        //Generate result path
         if(GetResultPath(lpRarPath, lpResultPath, nLength))
         {
-            Combine(szJpgPath, lpRarPath, lpResultPath);
+            return DoCombine(szJpgPath, lpRarPath, lpResultPath);
         }
     }
 
-    if(bShouldDeleteJpg)
-    {
-        DeleteFile(szJpgPath);
-    }
-
-    return TRUE;
+    return FALSE;
 }
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-//     for(int nIndex = 0; nIndex < 10; nIndex +=1)
-//     {
-//         TCHAR szPath[MAX_PATH];
-// 
-//         if(PathMakeUniqueName(szPath, MAX_PATH, TEXT("C:\\n\\新建abcv.rar.txt"), NULL, NULL))
-//         {
-//             HANDLE hFile = CreateFile(szPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-//             CloseHandle(hFile);
-// 
-//             PathUndecorate(szPath);
-//             MessageBox(hwndStub, szPath, NULL, MB_TOPMOST);
-//         }
-//     }
-
     TCHAR szResultPath[MAX_PATH];
     CombineFile(TEXT("D:\\桌面\\StatusStr.rar"), NULL, szResultPath, MAX_PATH);
 
