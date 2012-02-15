@@ -91,44 +91,24 @@ STDMETHODIMP CSlxComOverlay::GetPriority(int *pPriority)
 BOOL CSlxComOverlay::GenericIconFile()
 {
     TCHAR szPath[MAX_PATH];
-    BOOL bSucceed = FALSE;
-    DWORD dwResSize = 0;
+    WIN32_FILE_ATTRIBUTE_DATA wfaa;
 
     GetTempPath(MAX_PATH, szPath);
     PathAppend(szPath, TEXT("\\__SignMark_20120202.ico"));
 
-    HANDLE hFile = CreateFile(szPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-    if(hFile != INVALID_HANDLE_VALUE)
+    if(SaveResourceToFile(TEXT("RT_FILE"), MAKEINTRESOURCE(IDR_ICON), szPath))
     {
-        HRSRC hRsrc = FindResource(g_hinstDll, MAKEINTRESOURCE(IDR_ICON), TEXT("RT_FILE"));
-
-        if(hRsrc != NULL)
+        if(GetFileAttributesEx(szPath, GetFileExInfoStandard, &wfaa))
         {
-            HGLOBAL hGlobal = LoadResource(g_hinstDll, hRsrc);
-
-            if(hGlobal != NULL)
+            if(wfaa.nFileSizeHigh == 0)
             {
-                LPCSTR lpBuffer = (LPCSTR)LockResource(hGlobal);
-                dwResSize = SizeofResource(g_hinstDll, hRsrc);
+                lstrcpyn(m_szIconFilePath, szPath, MAX_PATH);
+                m_dwIcoFileSize = wfaa.nFileSizeLow;
 
-                if(lpBuffer != NULL && dwResSize > 0)
-                {
-                    DWORD dwBytesWritten = 0;
-
-                    bSucceed = WriteFile(hFile, lpBuffer, dwResSize, &dwBytesWritten, NULL);
-                }
+                return TRUE;
             }
         }
-
-        CloseHandle(hFile);
     }
 
-    if(bSucceed)
-    {
-        lstrcpyn(m_szIconFilePath, szPath, MAX_PATH);
-        m_dwIcoFileSize = dwResSize;
-    }
-
-    return bSucceed;
+    return FALSE;
 }
