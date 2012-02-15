@@ -415,14 +415,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\bitmap1.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\bitmap2.bmp"
-				>
-			</File>
-			<File
 				RelativePath=".\res\Combine.bmp"
 				>
 			</File>
@@ -432,14 +424,6 @@
 			</File>
 			<File
 				RelativePath=".\res\Mark.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\rt_file1.bin"
-				>
-			</File>
-			<File
-				RelativePath=".\rt_file2.bin"
 				>
 			</File>
 			<File
