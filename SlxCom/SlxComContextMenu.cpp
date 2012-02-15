@@ -1,5 +1,6 @@
 #include "SlxComContextMenu.h"
 #include <shlwapi.h>
+#include "SlxComTools.h"
 
 extern HBITMAP g_hInstallBmp;
 extern HBITMAP g_hUninstallBmp;
@@ -387,7 +388,31 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_COMBINE:
     {
-        MessageBox(NULL, NULL, NULL, MB_TOPMOST);
+        BOOL bSucceed = FALSE;
+        TCHAR szResultPath[MAX_PATH];
+
+        if(m_uFileCount == 1)
+        {
+            bSucceed = CombineFile(m_pFiles[0].szPath, NULL, szResultPath, MAX_PATH);
+        }
+        else if(m_uFileCount == 2)
+        {
+            if(m_pFiles[0].bIsRar)
+            {
+                bSucceed = CombineFile(m_pFiles[0].szPath, m_pFiles[1].szPath, szResultPath, MAX_PATH);
+            }
+            else
+            {
+                bSucceed = CombineFile(m_pFiles[1].szPath, m_pFiles[0].szPath, szResultPath, MAX_PATH);
+            }
+        }
+
+        if(!bSucceed)
+        {
+            MessageBox(pici->hwnd, TEXT("合成文件出错"), NULL, MB_ICONERROR | MB_TOPMOST);
+        }
+
+        break;
     }
 
     default:
