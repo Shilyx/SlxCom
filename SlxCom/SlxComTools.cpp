@@ -156,6 +156,76 @@ UINT GetDropEffectFormat()
     return uDropEffect;
 }
 
+LPCTSTR GetClipboardFiles(BOOL *bCopy)
+{
+    TCHAR *szFiles = NULL;
+
+    if(bCopy != NULL)
+    {
+        if(OpenClipboard(NULL))
+        {
+            if(IsClipboardFormatAvailable(GetDropEffectFormat()) && IsClipboardFormatAvailable(CF_HDROP))
+            {
+                HGLOBAL hGlobalEffect = GetClipboardData(GetDropEffectFormat());
+                HGLOBAL hGlobalDrop = GetClipboardData(CF_HDROP);
+
+                if(hGlobalEffect != NULL && hGlobalDrop != NULL)
+                {
+                    LPCVOID lpBuffer = (LPCVOID)GlobalLock(hGlobalEffect);
+
+                    if(lpBuffer != NULL)
+                    {
+                        DWORD dwEffect = *(DWORD *)lpBuffer;
+
+                        if(dwEffect & DROPEFFECT_COPY)
+                        {
+                            *bCopy = TRUE;
+                        }
+                        else if(dwEffect & DROPEFFECT_MOVE)
+                        {
+                            *bCopy = FALSE;
+                        }
+                        else
+                        {
+                        }
+
+                        GlobalUnlock(hGlobalEffect);
+                    }
+
+                    HDROP hDrop = (HDROP)GlobalLock(hGlobalDrop);
+
+                    if(hDrop != NULL)
+                    {
+                        UINT uCount = DragQueryFile(hDrop, 0xffffffff, NULL, 0);
+
+                        if(uCount > 0)
+                        {
+                            UINT uOffset = 0;
+                            szFiles = new TCHAR[MAX_PATH * uCount];
+
+                            if(szFiles != NULL)
+                            {
+                                ZeroMemory(szFiles, MAX_PATH * uCount);
+
+                                for(UINT uIndex = 0; uIndex < uCount; uIndex += 1)
+                                {
+                                    uOffset += DragQueryFile(hDrop, uIndex, szFiles + uOffset, MAX_PATH) + 1;
+                                }
+                            }
+                        }
+
+                        GlobalUnlock(hGlobalDrop);
+                    }
+                }
+            }
+
+            CloseClipboard();
+        }
+    }
+
+    return szFiles;
+}
+
 BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy)
 {
     DWORD dwBufferSize = 0;
@@ -232,7 +302,10 @@ BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy)
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    RegisterClipboardFile(TEXT("C:\\kkk2.txt\0d:\\kkk2.txt\0\0"), TRUE);
+//     RegisterClipboardFile(TEXT("C:\\kkk2.txt\0d:\\kkk2.txt\0\0"), TRUE);
 
+    BOOL bIsCopy = FALSE;
+
+    LPCTSTR lpFiles = GetClipboardFiles(&bIsCopy);
     MessageBox(hwndStub, NULL, NULL, MB_TOPMOST);
 }
