@@ -415,7 +415,23 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
+				RelativePath=".\res\AddToCopy.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\AddToCut.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\Combine.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\CopyFullPath.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\Default.jpg"
 				>
 			</File>
 			<File

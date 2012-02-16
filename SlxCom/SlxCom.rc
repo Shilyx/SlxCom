@@ -101,6 +101,9 @@ IDR_DEFAULTJPG          RT_FILE                 "res\\Default.jpg"
 IDB_INSTALL             BITMAP                  "res\\Install.bmp"
 IDB_UNINSTALL           BITMAP                  "res\\Uninstall.bmp"
 IDB_COMBINE             BITMAP                  "res\\Combine.bmp"
+IDB_COPYFULLPATH        BITMAP                  "res\\CopyFullPath.bmp"
+IDB_ADDTOCOPY           BITMAP                  "res\\AddToCopy.bmp"
+IDB_ADDTOCUT            BITMAP                  "res\\AddToCut.bmp"
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
