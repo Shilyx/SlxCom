@@ -149,10 +149,90 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
     return FALSE;
 }
 
+UINT GetDropEffectFormat()
+{
+    static UINT uDropEffect = RegisterClipboardFormat(TEXT("Preferred DropEffect"));
+
+    return uDropEffect;
+}
+
+BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy)
+{
+    DWORD dwBufferSize = 0;
+
+    while(true)
+    {
+        if(lpFileList[dwBufferSize] == TEXT('\0') && lpFileList[dwBufferSize + 1] == TEXT('\0'))
+        {
+            dwBufferSize += 2;
+            break;
+        }
+
+        dwBufferSize += 1;
+    }
+
+    dwBufferSize *= sizeof(TCHAR);
+    dwBufferSize += sizeof(DROPFILES);
+
+    char *lpBufferAll = new char[dwBufferSize];
+
+    if(lpBufferAll != NULL)
+    {
+        DROPFILES *pDropFiles = (DROPFILES *)lpBufferAll;
+
+        pDropFiles->fNC = FALSE;
+        pDropFiles->pt.x = 0;
+        pDropFiles->pt.y = 0;
+        pDropFiles->fWide = TRUE;
+        pDropFiles->pFiles = sizeof(DROPFILES);
+
+        memcpy(lpBufferAll + sizeof(DROPFILES), lpFileList, dwBufferSize - sizeof(DROPFILES));
+
+        HGLOBAL hGblFiles = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, dwBufferSize);
+
+        if(hGblFiles != NULL)
+        {
+            LPSTR lpGblData = (char *)GlobalLock(hGblFiles);
+
+            if(lpGblData != NULL)
+            {
+                memcpy(lpGblData, lpBufferAll, dwBufferSize);
+                GlobalUnlock(hGblFiles);
+            }
+        }
+
+        HGLOBAL hGblEffect = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, sizeof(DWORD));
+
+        if(hGblEffect != NULL)
+        {
+            DWORD *pEffect = (DWORD *)GlobalLock(hGblEffect);
+
+            if(pEffect != NULL)
+            {
+                *pEffect = bCopy ? DROPEFFECT_COPY : DROPEFFECT_MOVE;
+                GlobalUnlock(hGblEffect);
+            }
+        }
+
+        if(OpenClipboard(NULL))
+        {
+            EmptyClipboard();
+
+            SetClipboardData(CF_HDROP, hGblFiles);
+            SetClipboardData(GetDropEffectFormat(), hGblEffect);
+
+            CloseClipboard();
+        }
+
+        delete []lpBufferAll;
+    }
+
+    return TRUE;
+}
+
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    TCHAR szResultPath[MAX_PATH];
-    CombineFile(TEXT("D:\\×ÀÃæ\\StatusStr.rar"), NULL, szResultPath, MAX_PATH);
+    RegisterClipboardFile(TEXT("C:\\kkk2.txt\0d:\\kkk2.txt\0\0"), TRUE);
 
     MessageBox(hwndStub, NULL, NULL, MB_TOPMOST);
 }

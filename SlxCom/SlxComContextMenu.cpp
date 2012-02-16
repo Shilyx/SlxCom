@@ -5,6 +5,9 @@
 extern HBITMAP g_hInstallBmp;
 extern HBITMAP g_hUninstallBmp;
 extern HBITMAP g_hCombineBmp;
+extern HBITMAP g_hCopyFullPathBmp;
+extern HBITMAP g_hAddToCopyBmp;
+extern HBITMAP g_hAddToCutBmp;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -149,9 +152,9 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_REGISTER     1
 #define ID_UNREGISTER   2
 #define ID_COMBINE      3
-#define ID_4            4
-#define ID_5            5
-#define ID_6            6
+#define ID_COPYFULLPATH 4
+#define ID_ADDTOCOPY    5
+#define ID_ADDTOCUT     6
 #define ID_7            7
 #define ID_8            8
 #define IDCOUNT         9
@@ -159,13 +162,24 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
 {
+    UINT uMenuIndex = 0;
+    UINT uFileIndex;
+
     if(m_uFileCount == 0)
     {
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
     }
 
+    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
+
+    //CopyFilePath
+    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整文件路径"));
+    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
+
+    //add copy or cut files
+
+
     //Dll Register
-    UINT uFileIndex;
     BOOL bExistDll = FALSE;
 
     for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
@@ -177,12 +191,8 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
-    UINT uMenuIndex = 0;
-
     if(bExistDll)
     {
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
-
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("注册组件(&R)"));
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);
 
@@ -206,8 +216,6 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
         if(bCouldCombine)
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
-
             InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, TEXT("文件合成(&C)"));
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
         }
