@@ -170,6 +170,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
     }
 
+    //clipboard functions
     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
 
     //CopyFilePath
@@ -177,7 +178,25 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
 
     //add copy or cut files
+    DWORD dwEffect = 0;
+    LPCTSTR lpCbFiles = GetClipboardFiles(&dwEffect);
 
+    if(lpCbFiles == NULL)
+    {
+        dwEffect = DROPEFFECT_COPY | DROPEFFECT_MOVE;
+    }
+
+    if(dwEffect & DROPEFFECT_COPY)
+    {
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_ADDTOCOPY, TEXT("添加到复制列表"));
+        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_ADDTOCOPY, MF_BYCOMMAND, g_hAddToCopyBmp, g_hAddToCopyBmp);
+    }
+
+    if(dwEffect & DROPEFFECT_MOVE)
+    {
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_ADDTOCUT, TEXT("添加到剪切列表"));
+        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_ADDTOCUT, MF_BYCOMMAND, g_hAddToCutBmp, g_hAddToCutBmp);
+    }
 
     //Dll Register
     BOOL bExistDll = FALSE;
@@ -246,6 +265,18 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
         {
             lpText = "将选定的rar文件附加到选定的jpg文件之后。";
         }
+    }
+    else if(idCmd == ID_COPYFULLPATH)
+    {
+        lpText = "复制文件的完整路径到剪贴板。";
+    }
+    else if(idCmd == ID_ADDTOCOPY)
+    {
+        lpText = "将文件添加到已复制文件列表。";
+    }
+    else if(idCmd == ID_ADDTOCUT)
+    {
+        lpText = "将文件添加到已剪切文件列表。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -418,6 +449,49 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         if(!bSucceed)
         {
             MessageBox(pici->hwnd, TEXT("合成文件出错"), NULL, MB_ICONERROR | MB_TOPMOST);
+        }
+
+        break;
+    }
+
+    case ID_ADDTOCOPY:
+    {
+        MessageBox(pici->hwnd, TEXT("ID_ADDTOCOPY"), NULL, MB_TOPMOST);
+        break;
+    }
+
+    case ID_ADDTOCUT:
+    {
+        MessageBox(pici->hwnd, TEXT("ID_ADDTOCUT"), NULL, MB_TOPMOST);
+        break;
+    }
+
+    case ID_COPYFULLPATH:
+    {
+        if(m_uFileCount == 1)
+        {
+            SetClipboardText(m_pFiles[0].szPath);
+        }
+        else if(m_uFileCount > 1)
+        {
+            TCHAR *szText = new TCHAR[MAX_PATH * m_uFileCount];
+
+            if(szText != NULL)
+            {
+                UINT uFileIndex = 0;
+
+                szText[0] = TEXT('\0');
+
+                for(; uFileIndex < m_uFileCount; uFileIndex += 1)
+                {
+                    lstrcat(szText, m_pFiles[uFileIndex].szPath);
+                    lstrcat(szText, TEXT("\r\n"));
+                }
+
+                SetClipboardText(szText);
+
+                delete []szText;
+            }
         }
 
         break;
