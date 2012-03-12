@@ -181,9 +181,9 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     DWORD dwEffect = 0;
     LPCTSTR lpCbFiles = GetClipboardFiles(&dwEffect);
 
-    if(lpCbFiles == NULL)
+    if(lpCbFiles != NULL)
     {
-        dwEffect = DROPEFFECT_COPY | DROPEFFECT_MOVE;
+        delete [](TCHAR *)lpCbFiles;
     }
 
     if(dwEffect & DROPEFFECT_COPY)
@@ -191,8 +191,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_ADDTOCOPY, TEXT("添加到复制列表"));
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_ADDTOCOPY, MF_BYCOMMAND, g_hAddToCopyBmp, g_hAddToCopyBmp);
     }
-
-    if(dwEffect & DROPEFFECT_MOVE)
+    else if(dwEffect & DROPEFFECT_MOVE)
     {
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_ADDTOCUT, TEXT("添加到剪切列表"));
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_ADDTOCUT, MF_BYCOMMAND, g_hAddToCutBmp, g_hAddToCutBmp);
@@ -455,13 +454,18 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     }
 
     case ID_ADDTOCOPY:
-    {
-        MessageBox(pici->hwnd, TEXT("ID_ADDTOCOPY"), NULL, MB_TOPMOST);
-        break;
-    }
-
     case ID_ADDTOCUT:
     {
+        DWORD dwEffect = 0;
+        UINT uFileCount = 0;
+        LPCTSTR lpFiles = GetClipboardFiles(&dwEffect, &uFileCount);
+        TCHAR *szFiles = NULL;
+
+        if(lpFiles != NULL)
+        {
+
+        }
+
         MessageBox(pici->hwnd, TEXT("ID_ADDTOCUT"), NULL, MB_TOPMOST);
         break;
     }

@@ -156,9 +156,14 @@ UINT GetDropEffectFormat()
     return uDropEffect;
 }
 
-LPCTSTR GetClipboardFiles(DWORD *pdwEffect)
+LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount)
 {
     TCHAR *szFiles = NULL;
+
+    if(puFileCount != NULL)
+    {
+        *puFileCount = 0;
+    }
 
     if(pdwEffect != NULL)
     {
@@ -189,6 +194,11 @@ LPCTSTR GetClipboardFiles(DWORD *pdwEffect)
                         if(hDrop != NULL)
                         {
                             UINT uCount = DragQueryFile(hDrop, 0xffffffff, NULL, 0);
+
+                            if(puFileCount != NULL)
+                            {
+                                *puFileCount = uCount;
+                            }
 
                             if(uCount > 0)
                             {
