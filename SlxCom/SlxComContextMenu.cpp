@@ -8,6 +8,8 @@ extern HBITMAP g_hCombineBmp;
 extern HBITMAP g_hCopyFullPathBmp;
 extern HBITMAP g_hAddToCopyBmp;
 extern HBITMAP g_hAddToCutBmp;
+extern HBITMAP g_hTryRunBmp;
+extern HBITMAP g_hTryRunWithArgumentsBmp;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -149,15 +151,15 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
     }
 }
 
-#define ID_REGISTER     1
-#define ID_UNREGISTER   2
-#define ID_COMBINE      3
-#define ID_COPYFULLPATH 4
-#define ID_ADDTOCOPY    5
-#define ID_ADDTOCUT     6
-#define ID_7            7
-#define ID_8            8
-#define IDCOUNT         9
+#define ID_REGISTER             1
+#define ID_UNREGISTER           2
+#define ID_COMBINE              3
+#define ID_COPYFULLPATH         4
+#define ID_ADDTOCOPY            5
+#define ID_ADDTOCUT             6
+#define ID_TRYRUN               7
+#define ID_TRYRUNWITHARGUMENTS  8
+#define IDCOUNT                 9
 
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
@@ -236,6 +238,24 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         {
             InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, TEXT("文件合成(&C)"));
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
+        }
+    }
+
+    //Try to run
+    if(m_uFileCount == 1)
+    {
+        DWORD dwFileAttribute = GetFileAttributes(m_pFiles[0].szPath);
+
+        if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
+        {
+            if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
+            {
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("尝试运行"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_TRYRUN, MF_BYCOMMAND, g_hTryRunBmp, g_hTryRunBmp);
+
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("尝试运行（带参）"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_TRYRUNWITHARGUMENTS, MF_BYCOMMAND, g_hTryRunWithArgumentsBmp, g_hTryRunWithArgumentsBmp);
+            }
         }
     }
 
@@ -497,6 +517,48 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 delete []szText;
             }
         }
+
+        break;
+    }
+
+    case ID_TRYRUN:
+    {
+        TCHAR szCommandLine[MAX_PATH + 100];
+
+        wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCAHR), TEXT("\"%s\""), m_pFiles[0].szPath);
+
+        if(!RunCommand(szCommandLine))
+        {
+            TCHAR szErrorMessage[MAX_PATH + 300];
+
+            wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
+                GetLastError(), szCommandLine);
+
+            MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+        }
+
+        break;
+    }
+
+    case ID_TRYRUNWITHARGUMENTS:
+    {
+//         TCHAR szCmdPath[MAX_PATH];
+//         TCHAR szCommandLine[MAX_PATH * 2 + 100];
+// 
+//         GetSystemDirectory(szCmdPath);
+//         PathAppend(szCmdPath, TEXT("\\cmd.exe"));
+// 
+//         wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCAHR), TEXT("\"%s\" /k \"%s\" "), m_pFiles[0].szPath);
+// 
+//         if(!RunCommand(szCommandLine))
+//         {
+//             TCHAR szErrorMessage[MAX_PATH + 300];
+// 
+//             wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
+//                 GetLastError(), szCommandLine);
+// 
+//             MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+//         }
 
         break;
     }

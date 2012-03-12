@@ -11,6 +11,8 @@
 #define IDB_COPYFULLPATH                110
 #define IDB_ADDTOCOPY                   111
 #define IDB_ADDTOCUT                    112
+#define IDB_TRYRUN                      113
+#define IDB_TRYRUNWITHARGUMENTS         114
 
 // Next default values for new objects
 // 

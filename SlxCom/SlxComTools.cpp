@@ -341,6 +341,24 @@ BOOL SetClipboardText(LPCTSTR lpText)
     return bResult;
 }
 
+BOOL RunCommand(LPTSTR lpCommandLine)
+{
+    STARTUPINFO si = {sizeof(si)};
+    PROCESS_INFORMATION pi;
+
+    si.wShowWindow = SW_SHOW;
+
+    if(CreateProcess(NULL, lpCommandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+    {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
 //     RegisterClipboardFile(TEXT("C:\\kkk2.txt\0d:\\kkk2.txt\0\0"), TRUE);

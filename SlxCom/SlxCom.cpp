@@ -21,18 +21,22 @@ HBITMAP g_hCombineBmp = NULL;
 HBITMAP g_hCopyFullPathBmp = NULL;
 HBITMAP g_hAddToCopyBmp = NULL;
 HBITMAP g_hAddToCutBmp = NULL;
+HBITMAP g_hTryRunBmp = NULL;
+HBITMAP g_hTryRunWithArgumentsBmp = NULL;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
     {
-        g_hinstDll          = hInstance;
-        g_hInstallBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
-        g_hUninstallBmp     = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
-        g_hCombineBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COMBINE));
-        g_hCopyFullPathBmp  = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COPYFULLPATH));
-        g_hAddToCopyBmp     = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCOPY));
-        g_hAddToCutBmp      = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCUT));
+        g_hinstDll                  = hInstance;
+        g_hInstallBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
+        g_hUninstallBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
+        g_hCombineBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COMBINE));
+        g_hCopyFullPathBmp          = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COPYFULLPATH));
+        g_hAddToCopyBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCOPY));
+        g_hAddToCutBmp              = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCUT));
+        g_hTryRunBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUN));
+        g_hTryRunWithArgumentsBmp   = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUNWITHARGUMENTS));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

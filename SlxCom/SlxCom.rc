@@ -104,6 +104,8 @@ IDB_COMBINE             BITMAP                  "res\\Combine.bmp"
 IDB_COPYFULLPATH        BITMAP                  "res\\CopyFullPath.bmp"
 IDB_ADDTOCOPY           BITMAP                  "res\\AddToCopy.bmp"
 IDB_ADDTOCUT            BITMAP                  "res\\AddToCut.bmp"
+IDB_TRYRUN              BITMAP                  "res\\TryRun.bmp"
+IDB_TRYRUNWITHARGUMENTS BITMAP                  "res\\TryRunWithArguments.bmp"
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
