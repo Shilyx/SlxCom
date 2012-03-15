@@ -426,6 +426,14 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
             EndDialog(hwndDlg, FALSE);
         }
         break;
+
+    case WM_CTLCOLORSTATIC:
+    case WM_CTLCOLORDLG:
+        SetBkMode((HDC)wParam, TRANSPARENT);
+        return (BOOL)GetStockObject(WHITE_BRUSH);
+
+    default:
+        break;
     }
 
     return FALSE;
