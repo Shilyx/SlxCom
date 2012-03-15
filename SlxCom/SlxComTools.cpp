@@ -359,9 +359,118 @@ BOOL RunCommand(LPTSTR lpCommandLine)
     return FALSE;
 }
 
+BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+    case WM_INITDIALOG:
+        SetDlgItemText(hwndDlg, IDC_FILE, (LPCTSTR)lParam);
+        return FALSE;
+
+    case WM_SYSCOMMAND:
+        if(wParam == SC_CLOSE)
+        {
+            EndDialog(hwndDlg, FALSE);
+        }
+        break;
+
+    case WM_COMMAND:
+        if(LOWORD(wParam) == IDC_RUN)
+        {
+            BOOL bSucceed = FALSE;
+            int nLength = 0;
+            int nOffset = 0;
+
+            nLength += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXTLENGTH, 0, 0);
+            nLength += SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXTLENGTH, 0, 0);
+            nLength += 200;
+
+            TCHAR *szCommand = new TCHAR[nLength];
+
+            if(szCommand != NULL)
+            {
+                lstrcpy(szCommand, TEXT("\""));
+                nOffset += 1;
+
+                nOffset += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+
+                lstrcat(szCommand, TEXT("\" "));
+                nOffset += 2;
+
+                SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+
+                bSucceed = RunCommand(szCommand);
+
+                delete []szCommand;
+            }
+
+            if(bSucceed)
+            {
+                EndDialog(hwndDlg, TRUE);
+            }
+            else
+            {
+                TCHAR szErrorMessage[200];
+
+                wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu"), GetLastError());
+
+                MessageBox(hwndDlg, szErrorMessage, NULL, MB_ICONERROR);
+
+                SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETSEL, 0, -1);
+                SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETREADONLY, FALSE, 0);
+                SetFocus(GetDlgItem(hwndDlg, IDC_FILE));
+            }
+        }
+        else if(LOWORD(wParam) == IDC_CANCEL)
+        {
+            EndDialog(hwndDlg, FALSE);
+        }
+        break;
+    }
+
+    return FALSE;
+}
+
+BOOL RunCommandWithArguments(LPCTSTR lpFile)
+{
+    return DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
+}
+
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
+    RunCommandWithArguments(TEXT("D:\\桌面\\AccExplorer32.exe.得到2"));
+
 //     RegisterClipboardFile(TEXT("C:\\kkk2.txt\0d:\\kkk2.txt\0\0"), TRUE);
 
-    SetClipboardText(TEXT("aaaaaaaa啊RegisterClvoid WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)UE);啊啊aaa"));
+//     SetClipboardText(TEXT("aaaaaaaa啊RegisterClvoid WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)UE);啊啊aaa"));
+
+//     OPENFILENAME ofn;       // common dialog box structure
+//     TCHAR szFile[260];       // buffer for file name
+//     HANDLE hf;              // file handle
+// 
+//     // Initialize OPENFILENAME
+//     ZeroMemory(&ofn, sizeof(ofn));
+//     ofn.lStructSize = sizeof(ofn);
+//     ofn.hwndOwner = hwndStub;
+//     ofn.lpstrFile = szFile;
+//     //
+//     // Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
+//     // use the contents of szFile to initialize itself.
+//     //
+//     ofn.lpstrFile[0] = '\0';
+//     ofn.nMaxFile = sizeof(szFile);
+//     ofn.lpstrFilter = TEXT("All\0*.*\0Text\0*.TXT\0");
+//     ofn.nFilterIndex = 1;
+//     ofn.lpstrFileTitle = NULL;
+//     ofn.nMaxFileTitle = 0;
+//     ofn.lpstrInitialDir = NULL;
+//     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+// 
+//     // Display the Open dialog box. 
+// 
+//     if (GetOpenFileName(&ofn)==TRUE) 
+//         hf = CreateFile(ofn.lpstrFile, GENERIC_READ,
+//         0, (LPSECURITY_ATTRIBUTES) NULL,
+//         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+//         (HANDLE) NULL);
 }

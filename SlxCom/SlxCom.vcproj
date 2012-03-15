@@ -451,7 +451,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\TryRun.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\tryrun1.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\TryRunWithArguments.bmp"
 				>
 			</File>
 			<File

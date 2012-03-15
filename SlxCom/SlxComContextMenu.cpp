@@ -525,7 +525,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     {
         TCHAR szCommandLine[MAX_PATH + 100];
 
-        wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCAHR), TEXT("\"%s\""), m_pFiles[0].szPath);
+        wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("\"%s\""), m_pFiles[0].szPath);
 
         if(!RunCommand(szCommandLine))
         {
@@ -542,23 +542,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_TRYRUNWITHARGUMENTS:
     {
-//         TCHAR szCmdPath[MAX_PATH];
-//         TCHAR szCommandLine[MAX_PATH * 2 + 100];
-// 
-//         GetSystemDirectory(szCmdPath);
-//         PathAppend(szCmdPath, TEXT("\\cmd.exe"));
-// 
-//         wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCAHR), TEXT("\"%s\" /k \"%s\" "), m_pFiles[0].szPath);
-// 
-//         if(!RunCommand(szCommandLine))
-//         {
-//             TCHAR szErrorMessage[MAX_PATH + 300];
-// 
-//             wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
-//                 GetLastError(), szCommandLine);
-// 
-//             MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
-//         }
+        RunCommandWithArguments(m_pFiles[0].szPath);
 
         break;
     }
