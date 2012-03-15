@@ -297,6 +297,14 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     {
         lpText = "将文件添加到已剪切文件列表。";
     }
+    else if(idCmd == ID_TRYRUN)
+    {
+        lpText = "尝试将文件作为可执行文件运行。";
+    }
+    else if(idCmd == ID_TRYRUNWITHARGUMENTS)
+    {
+        lpText = "尝试将文件作为可执行文件运行，并附带命令行参数。";
+    }
 
     if(uFlags & GCS_UNICODE)
     {
@@ -527,14 +535,17 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
         wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("\"%s\""), m_pFiles[0].szPath);
 
-        if(!RunCommand(szCommandLine))
+        if(IDYES == MessageBox(pici->hwnd, TEXT("确定要尝试将此文件作为可执行文件运行吗？"), TEXT("请确认"), MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
         {
-            TCHAR szErrorMessage[MAX_PATH + 300];
+            if(!RunCommand(szCommandLine))
+            {
+                TCHAR szErrorMessage[MAX_PATH + 300];
 
-            wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
-                GetLastError(), szCommandLine);
+                wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
+                    GetLastError(), szCommandLine);
 
-            MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+                MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+            }
         }
 
         break;

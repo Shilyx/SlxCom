@@ -377,48 +377,56 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
     case WM_COMMAND:
         if(LOWORD(wParam) == IDC_RUN)
         {
-            BOOL bSucceed = FALSE;
-            int nLength = 0;
-            int nOffset = 0;
-
-            nLength += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXTLENGTH, 0, 0);
-            nLength += SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXTLENGTH, 0, 0);
-            nLength += 200;
-
-            TCHAR *szCommand = new TCHAR[nLength];
-
-            if(szCommand != NULL)
+            if(IDYES == MessageBox(hwndDlg, TEXT("确定要尝试将此文件作为可执行文件运行吗？"), TEXT("请确认"), MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
             {
-                lstrcpy(szCommand, TEXT("\""));
-                nOffset += 1;
+                BOOL bSucceed = FALSE;
+                int nLength = 0;
+                int nOffset = 0;
 
-                nOffset += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+                nLength += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXTLENGTH, 0, 0);
+                nLength += SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXTLENGTH, 0, 0);
+                nLength += 200;
 
-                lstrcat(szCommand, TEXT("\" "));
-                nOffset += 2;
+                TCHAR *szCommand = new TCHAR[nLength];
 
-                SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+                if(szCommand != NULL)
+                {
+                    lstrcpy(szCommand, TEXT("\""));
+                    nOffset += 1;
 
-                bSucceed = RunCommand(szCommand);
+                    nOffset += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
 
-                delete []szCommand;
-            }
+                    lstrcat(szCommand, TEXT("\" "));
+                    nOffset += 2;
 
-            if(bSucceed)
-            {
-                EndDialog(hwndDlg, TRUE);
+                    SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+
+                    bSucceed = RunCommand(szCommand);
+
+                    delete []szCommand;
+                }
+
+                if(bSucceed)
+                {
+                    EndDialog(hwndDlg, TRUE);
+                }
+                else
+                {
+                    TCHAR szErrorMessage[200];
+
+                    wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu"), GetLastError());
+
+                    MessageBox(hwndDlg, szErrorMessage, NULL, MB_ICONERROR);
+
+                    SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETSEL, 0, -1);
+                    SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETREADONLY, FALSE, 0);
+                    SetFocus(GetDlgItem(hwndDlg, IDC_FILE));
+                }
             }
             else
             {
-                TCHAR szErrorMessage[200];
-
-                wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu"), GetLastError());
-
-                MessageBox(hwndDlg, szErrorMessage, NULL, MB_ICONERROR);
-
-                SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETSEL, 0, -1);
-                SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETREADONLY, FALSE, 0);
-                SetFocus(GetDlgItem(hwndDlg, IDC_FILE));
+                SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, EM_SETSEL, 0, -1);
+                SetFocus(GetDlgItem(hwndDlg, IDC_ARGUMENTS));
             }
         }
         else if(LOWORD(wParam) == IDC_CANCEL)
