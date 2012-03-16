@@ -370,7 +370,7 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
     case WM_SYSCOMMAND:
         if(wParam == SC_CLOSE)
         {
-            EndDialog(hwndDlg, FALSE);
+            EndDialog(hwndDlg, 0);
         }
         break;
 
@@ -380,8 +380,8 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
             if(IDYES == MessageBox(hwndDlg, TEXT("确定要尝试将此文件作为可执行文件运行吗？"), TEXT("请确认"), MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
             {
                 BOOL bSucceed = FALSE;
-                int nLength = 0;
-                int nOffset = 0;
+                INT_PTR nLength = 0;
+                INT_PTR nOffset = 0;
 
                 nLength += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXTLENGTH, 0, 0);
                 nLength += SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXTLENGTH, 0, 0);
@@ -408,7 +408,7 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
 
                 if(bSucceed)
                 {
-                    EndDialog(hwndDlg, TRUE);
+                    EndDialog(hwndDlg, 1);
                 }
                 else
                 {
@@ -431,7 +431,7 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
         }
         else if(LOWORD(wParam) == IDC_CANCEL)
         {
-            EndDialog(hwndDlg, FALSE);
+            EndDialog(hwndDlg, 0);
         }
         break;
 
@@ -449,7 +449,7 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
 
 BOOL RunCommandWithArguments(LPCTSTR lpFile)
 {
-    return DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
+    return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, (DLGPROC)RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)

@@ -61,7 +61,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
 
     PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
-    int nTimerId = SetTimer(NULL, 0, 700, NULL);
+    INT_PTR nTimerId = SetTimer(NULL, 0, 700, NULL);
 
     while(TRUE)
     {
