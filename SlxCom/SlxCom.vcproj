@@ -370,6 +370,10 @@
 				RelativePath=".\SlxComWork_sd.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\SlxStringStatusCache.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -406,6 +410,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComWork_sd.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxStringStatusCache.h"
 				>
 			</File>
 		</Filter>
