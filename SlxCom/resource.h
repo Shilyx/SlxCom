@@ -14,10 +14,10 @@
 #define IDB_TRYRUN                      113
 #define IDD_RUNWITHARGUMENTS            113
 #define IDB_TRYRUNWITHARGUMENTS         114
+#define IDB_RUNCMDHERE                  115
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
-#define IDC_BUTTON2                     1004
 #define IDC_CANCEL                      1004
 
 // Next default values for new objects

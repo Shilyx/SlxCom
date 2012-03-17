@@ -23,6 +23,7 @@ HBITMAP g_hAddToCopyBmp = NULL;
 HBITMAP g_hAddToCutBmp = NULL;
 HBITMAP g_hTryRunBmp = NULL;
 HBITMAP g_hTryRunWithArgumentsBmp = NULL;
+HBITMAP g_hRunCmdHereBmp = NULL;
 BOOL g_isExplorer = FALSE;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
@@ -43,6 +44,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_hAddToCutBmp              = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCUT));
         g_hTryRunBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUN));
         g_hTryRunWithArgumentsBmp   = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUNWITHARGUMENTS));
+        g_hRunCmdHereBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_RUNCMDHERE));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);
@@ -104,6 +106,21 @@ STDAPI DllRegisterServer(void)
         SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
 
         wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
             TEXT("CLSID\\%s\\InprocServer32"),
             szGuidWithQuota);
         SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
@@ -133,6 +150,21 @@ STDAPI DllUnregisterServer(void)
 
         wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
             TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
+            APPNAME);
+        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+
+        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+            TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
             APPNAME);
         SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
 

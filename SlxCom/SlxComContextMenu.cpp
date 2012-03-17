@@ -10,6 +10,7 @@ extern HBITMAP g_hAddToCopyBmp;
 extern HBITMAP g_hAddToCutBmp;
 extern HBITMAP g_hTryRunBmp;
 extern HBITMAP g_hTryRunWithArgumentsBmp;
+extern HBITMAP g_hRunCmdHereBmp;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -159,7 +160,17 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_ADDTOCUT             6
 #define ID_TRYRUN               7
 #define ID_TRYRUNWITHARGUMENTS  8
-#define IDCOUNT                 9
+#define ID_RUNCMDHERE           9
+#define ID_10                   10
+#define ID_11                   11
+#define ID_12                   12
+#define ID_13                   13
+#define ID_14                   14
+#define ID_15                   15
+#define ID_16                   16
+#define ID_17                   17
+#define ID_18                   18
+#define IDCOUNT                 19
 
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
@@ -241,13 +252,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
-    //Try to run
     if(m_uFileCount == 1)
     {
         DWORD dwFileAttribute = GetFileAttributes(m_pFiles[0].szPath);
 
         if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
         {
+            //Try to run
             if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
             {
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("尝试运行"));
@@ -255,6 +266,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("尝试运行（带参）"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_TRYRUNWITHARGUMENTS, MF_BYCOMMAND, g_hTryRunWithArgumentsBmp, g_hTryRunWithArgumentsBmp);
+            }
+
+            //RunCmdHere
+            if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
+            {
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
             }
         }
     }
@@ -304,6 +322,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_TRYRUNWITHARGUMENTS)
     {
         lpText = "尝试将文件作为可执行文件运行，并附带命令行参数。";
+    }
+    else if(idCmd == ID_RUNCMDHERE)
+    {
+        lpText = "在当前目录启动命令行。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -554,6 +576,17 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_TRYRUNWITHARGUMENTS:
     {
         RunCommandWithArguments(m_pFiles[0].szPath);
+
+        break;
+    }
+
+    case ID_RUNCMDHERE:
+    {
+        TCHAR szCommand[MAX_PATH] = TEXT("");
+
+        GetEnvironmentVariable(TEXT("ComSpec"), szCommand, MAX_PATH);
+
+        RunCommand(szCommand, m_pFiles[0].szPath);
 
         break;
     }

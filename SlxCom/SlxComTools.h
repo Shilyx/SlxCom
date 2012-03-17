@@ -8,7 +8,7 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
 BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath);
 LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
 BOOL SetClipboardText(LPCTSTR lpText);
-BOOL RunCommand(LPTSTR lpCommandLine);
+BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCTSTR lpFile);
 
 #endif

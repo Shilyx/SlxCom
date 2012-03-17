@@ -455,6 +455,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\RunCmdHere.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxCom.rc"
 				>
 			</File>
