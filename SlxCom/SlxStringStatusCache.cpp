@@ -107,7 +107,7 @@ DWORD __stdcall SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
 
                     if(mapAllStrings.size() > SSC_MAXSIZE)
                     {
-                        DWORD dwCount = mapAllStrings.size() - SSC_MAXSIZE;
+                        DWORD dwCount = (DWORD)mapAllStrings.size() - SSC_MAXSIZE;
                         multimap<DWORD, tstring>::iterator it = mapAllStrings.begin();
 
                         for(dwIndex = 0; dwIndex < dwCount; dwIndex += 1, it++)
