@@ -8,8 +8,8 @@ using namespace std;
 
 #pragma comment(lib, "Shlwapi.lib")
 
-#define SSC_MAXSIZE     20
-#define SSC_CLEANTOSIZE 10
+#define SSC_MAXSIZE     20000
+#define SSC_CLEANTOSIZE 10000
 
 #ifdef UNICODE
 typedef wstring tstring;
@@ -19,15 +19,8 @@ typedef  string tstring;
 
 SlxStringStatusCache::SlxStringStatusCache(LPCTSTR lpRegPath, BOOL bAutoClean)
 {
-    HKEY hBaseKey = NULL;
-
     m_bAutoClean = bAutoClean;
     m_hThreadClean = NULL;
-
-    if(ERROR_SUCCESS == RegCreateKeyEx(HKEY_CURRENT_USER, lpRegPath, 0, NULL, REG_OPTION_NON_VOLATILE, 0, NULL, &hBaseKey, NULL))
-    {
-        RegCloseKey(hBaseKey);
-    }
 
     RegCreateKeyEx(HKEY_CURRENT_USER, lpRegPath, 0, NULL, REG_OPTION_VOLATILE, KEY_QUERY_VALUE | KEY_SET_VALUE, NULL, &m_hRegKey, NULL);
 }
@@ -178,6 +171,13 @@ BOOL SlxStringStatusCache::CheckCache(LPCTSTR lpString, StringStatus *pssValue)
         {
             *pssValue = (StringStatus)(dwRegData & SS_MASK);
 
+#ifdef _DEBUG
+            TCHAR szDebugText[1000];
+
+            wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!命中%s\r\n"), lpString);
+            OutputDebugString(szDebugText);
+#endif
+
             return UpdateCache(lpString, *pssValue);
         }
     }
@@ -199,11 +199,22 @@ BOOL SlxStringStatusCache::AddCache(LPCTSTR lpString, StringStatus ssValue)
 
                 if(hCopyedKey != NULL)
                 {
+#ifdef _DEBUG
+                    OutputDebugString(TEXT("SlxCom!开始清理\r\n"));
+#endif
+
                     m_hThreadClean = CreateThread(NULL, 0, AutoCleanThread, (LPVOID)hCopyedKey, 0, NULL);
                 }
             }
         }
     }
+
+#ifdef _DEBUG
+    TCHAR szDebugText[1000];
+
+    wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!添加%s\r\n"), lpString);
+    OutputDebugString(szDebugText);
+#endif
 
     return UpdateCache(lpString, ssValue);
 }

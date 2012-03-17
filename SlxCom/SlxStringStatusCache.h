@@ -30,7 +30,6 @@ class SlxStringStatusCache
 protected:
     HANDLE m_hThreadClean;
     BOOL m_bAutoClean;
-//     TCHAR m_szRegPath[1000];
     HKEY m_hRegKey;
 
     DWORD GetCacheSize() const;

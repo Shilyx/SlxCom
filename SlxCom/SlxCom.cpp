@@ -23,11 +23,17 @@ HBITMAP g_hAddToCopyBmp = NULL;
 HBITMAP g_hAddToCutBmp = NULL;
 HBITMAP g_hTryRunBmp = NULL;
 HBITMAP g_hTryRunWithArgumentsBmp = NULL;
+BOOL g_isExplorer = FALSE;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
     {
+        TCHAR szExePath[MAX_PATH] = TEXT("");
+
+        GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
+        g_isExplorer = lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
+
         g_hinstDll                  = hInstance;
         g_hInstallBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
         g_hUninstallBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));

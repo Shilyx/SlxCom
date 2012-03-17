@@ -4,10 +4,11 @@
 #include <shlwapi.h>
 
 extern HINSTANCE g_hinstDll;
+extern BOOL g_isExplorer;
 TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
-CSlxComOverlay::CSlxComOverlay()
+CSlxComOverlay::CSlxComOverlay() : m_cache(TEXT("Software\\Slx\\StringStatusCache"), g_isExplorer)
 {
     m_dwRefCount = 0;
 }
@@ -53,9 +54,54 @@ STDMETHODIMP_(ULONG) CSlxComOverlay::Release()
 //IShellIconOverlayIdentifier Method
 STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
-    if(IsFileSigned(pwszPath))
+    WIN32_FILE_ATTRIBUTE_DATA wfad;
+
+    if(GetFileAttributesEx(pwszPath, GetFileExInfoStandard, &wfad))
     {
-        return S_OK;
+        if((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+        {
+            TCHAR szString[MAX_PATH + 100];
+            ULARGE_INTEGER uliSize = {0};
+            StringStatus ssValue;
+
+            uliSize.HighPart = wfad.nFileSizeHigh;
+            uliSize.LowPart = wfad.nFileSizeLow;
+
+            wnsprintf(szString, sizeof(szString) / sizeof(TCHAR), TEXT("%s[%I64u]%I64u,%I64u"),
+                pwszPath,
+                uliSize.QuadPart,
+                *(unsigned __int64 *)&wfad.ftCreationTime,
+                *(unsigned __int64 *)&wfad.ftLastWriteTime);
+
+            if(m_cache.CheckCache(szString, &ssValue))
+            {
+                if(ssValue == SS_1)
+                {
+                    return S_OK;
+                }
+                else if(ssValue == SS_2)
+                {
+                    return S_FALSE;
+                }
+                else
+                {
+
+                }
+            }
+
+            if(IsFileSigned(pwszPath))
+            {
+                m_cache.AddCache(szString, SS_1);
+
+                return S_OK;
+            }
+            else
+            {
+                m_cache.AddCache(szString, SS_2);
+
+                return S_FALSE;
+            }
+        }
     }
 
     return S_FALSE;

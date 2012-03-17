@@ -3,6 +3,7 @@
 
 #include <unknwn.h>
 #include <shlobj.h>
+#include "SlxStringStatusCache.h"
 
 class CSlxComOverlay : public IShellIconOverlayIdentifier
 {
@@ -26,6 +27,7 @@ public:
 
 protected:
     volatile DWORD m_dwRefCount;
+    SlxStringStatusCache m_cache;
 };
 
 #endif
