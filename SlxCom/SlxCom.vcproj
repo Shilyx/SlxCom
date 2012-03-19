@@ -455,6 +455,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\OpenWithNotepad.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\RunCmdHere.bmp"
 				>
 			</File>

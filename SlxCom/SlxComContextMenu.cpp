@@ -11,6 +11,7 @@ extern HBITMAP g_hAddToCutBmp;
 extern HBITMAP g_hTryRunBmp;
 extern HBITMAP g_hTryRunWithArgumentsBmp;
 extern HBITMAP g_hRunCmdHereBmp;
+extern HBITMAP g_hOpenWithNotepadBmp;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -161,7 +162,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_TRYRUN               7
 #define ID_TRYRUNWITHARGUMENTS  8
 #define ID_RUNCMDHERE           9
-#define ID_10                   10
+#define ID_OPENWITHNOTEPAD      10
 #define ID_11                   11
 #define ID_12                   12
 #define ID_13                   13
@@ -258,19 +259,23 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
         if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
         {
-            //Try to run
             if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
             {
+                //Try to run
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("尝试运行"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_TRYRUN, MF_BYCOMMAND, g_hTryRunBmp, g_hTryRunBmp);
 
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("尝试运行（带参）"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_TRYRUNWITHARGUMENTS, MF_BYCOMMAND, g_hTryRunWithArgumentsBmp, g_hTryRunWithArgumentsBmp);
+
+                //OpenWithNotepad
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_OPENWITHNOTEPAD, TEXT("用记事本打开"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_OPENWITHNOTEPAD, MF_BYCOMMAND, g_hOpenWithNotepadBmp, g_hOpenWithNotepadBmp);
             }
 
-            //RunCmdHere
             if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
             {
+                //RunCmdHere
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
             }
@@ -326,6 +331,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_RUNCMDHERE)
     {
         lpText = "在当前目录启动命令行。";
+    }
+    else if(idCmd == ID_OPENWITHNOTEPAD)
+    {
+        lpText = "在记事本打开当前文件。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -587,6 +596,36 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         GetEnvironmentVariable(TEXT("ComSpec"), szCommand, MAX_PATH);
 
         RunCommand(szCommand, m_pFiles[0].szPath);
+
+        break;
+    }
+
+    case ID_OPENWITHNOTEPAD:
+    {
+        TCHAR szCommandLine[MAX_PATH * 2] = TEXT("");
+
+        GetSystemDirectory(szCommandLine, MAX_PATH);
+        PathAppend(szCommandLine, TEXT("\\notepad.exe"));
+
+        if(GetFileAttributes(szCommandLine) == INVALID_FILE_ATTRIBUTES)
+        {
+            GetWindowsDirectory(szCommandLine, MAX_PATH);
+            PathAppend(szCommandLine, TEXT("\\notepad.exe"));
+        }
+
+        lstrcat(szCommandLine, TEXT(" \""));
+        lstrcat(szCommandLine, m_pFiles[0].szPath);
+        lstrcat(szCommandLine, TEXT("\""));
+
+        if(!RunCommand(szCommandLine))
+        {
+            TCHAR szErrorMessage[MAX_PATH + 300];
+
+            wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
+                GetLastError(), szCommandLine);
+
+            MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+        }
 
         break;
     }

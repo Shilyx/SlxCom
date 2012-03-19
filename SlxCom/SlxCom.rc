@@ -107,6 +107,7 @@ IDB_ADDTOCUT            BITMAP                  "res\\AddToCut.bmp"
 IDB_TRYRUN              BITMAP                  "res\\TryRun.bmp"
 IDB_TRYRUNWITHARGUMENTS BITMAP                  "res\\TryRunWithArguments.bmp"
 IDB_RUNCMDHERE          BITMAP                  "res\\RunCmdHere.bmp"
+IDB_OPENWITHNOTEPAD     BITMAP                  "res\\OpenWithNotepad.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
