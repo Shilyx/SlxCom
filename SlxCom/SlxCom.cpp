@@ -25,6 +25,7 @@ HBITMAP g_hTryRunBmp = NULL;
 HBITMAP g_hTryRunWithArgumentsBmp = NULL;
 HBITMAP g_hRunCmdHereBmp = NULL;
 HBITMAP g_hOpenWithNotepadBmp = NULL;
+HBITMAP g_hKillExplorerBmp = NULL;
 BOOL g_isExplorer = FALSE;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
@@ -47,6 +48,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_hTryRunWithArgumentsBmp   = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUNWITHARGUMENTS));
         g_hRunCmdHereBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_RUNCMDHERE));
         g_hOpenWithNotepadBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_OPENWITHNOTEPAD));
+        g_hKillExplorerBmp          = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_KILLEXPLORER));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

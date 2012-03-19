@@ -108,6 +108,7 @@ IDB_TRYRUN              BITMAP                  "res\\TryRun.bmp"
 IDB_TRYRUNWITHARGUMENTS BITMAP                  "res\\TryRunWithArguments.bmp"
 IDB_RUNCMDHERE          BITMAP                  "res\\RunCmdHere.bmp"
 IDB_OPENWITHNOTEPAD     BITMAP                  "res\\OpenWithNotepad.bmp"
+IDB_KILLEXPLORER        BITMAP                  "res\\KillExplorer.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

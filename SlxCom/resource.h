@@ -15,8 +15,8 @@
 #define IDD_RUNWITHARGUMENTS            113
 #define IDB_TRYRUNWITHARGUMENTS         114
 #define IDB_RUNCMDHERE                  115
-#define IDB_COPYFULLPATH1               116
 #define IDB_OPENWITHNOTEPAD             116
+#define IDB_KILLEXPLORER                117
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003

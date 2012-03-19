@@ -12,6 +12,8 @@ extern HBITMAP g_hTryRunBmp;
 extern HBITMAP g_hTryRunWithArgumentsBmp;
 extern HBITMAP g_hRunCmdHereBmp;
 extern HBITMAP g_hOpenWithNotepadBmp;
+extern HBITMAP g_hKillExplorerBmp;
+extern BOOL g_isExplorer;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -163,7 +165,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_TRYRUNWITHARGUMENTS  8
 #define ID_RUNCMDHERE           9
 #define ID_OPENWITHNOTEPAD      10
-#define ID_11                   11
+#define ID_KILLEXPLORER         11
 #define ID_12                   12
 #define ID_13                   13
 #define ID_14                   14
@@ -282,6 +284,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
+    if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+    {
+        //结束Explorer
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_KILLEXPLORER, TEXT("结束Explorer进程"));
+        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_KILLEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
+    }
+
     return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, IDCOUNT);
 }
 
@@ -335,6 +344,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_OPENWITHNOTEPAD)
     {
         lpText = "在记事本打开当前文件。";
+    }
+    else if(idCmd == ID_KILLEXPLORER)
+    {
+        lpText = "结束Explorer。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -626,6 +639,13 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
             MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
         }
+
+        break;
+    }
+
+    case ID_KILLEXPLORER:
+    {
+        TerminateProcess(GetCurrentProcess(), 0);
 
         break;
     }

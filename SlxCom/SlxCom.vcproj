@@ -451,6 +451,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\KillExplorer.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\Mark.ico"
 				>
 			</File>
