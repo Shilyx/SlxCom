@@ -187,7 +187,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
 
     //CopyFilePath
-    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整文件路径"));
+    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整路径"));
     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
 
     //add copy or cut files
@@ -305,7 +305,7 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     }
     else if(idCmd == ID_COPYFULLPATH)
     {
-        lpText = "复制文件的完整路径到剪贴板。";
+        lpText = "复制选中的文件或文件夹的完整路径到剪贴板。";
     }
     else if(idCmd == ID_ADDTOCOPY)
     {
