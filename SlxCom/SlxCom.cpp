@@ -100,7 +100,7 @@ STDAPI DllRegisterServer(void)
         wnsprintf(szGuidWithQuota, sizeof(szGuidWithQuota) / sizeof(TCHAR), TEXT("{%s}"), szGuid);
 
         wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\00_%s"),
+            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
             APPNAME);
         SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
 
@@ -148,7 +148,7 @@ STDAPI DllUnregisterServer(void)
         wnsprintf(szGuidWithQuota, sizeof(szGuidWithQuota) / sizeof(TCHAR), TEXT("{%s}"), szGuid);
 
         wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\00_%s"),
+            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
             APPNAME);
         SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
 
