@@ -9,6 +9,21 @@
 
 extern HINSTANCE g_hinstDll;
 
+DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData)
+{
+    HKEY hKey = NULL;
+    DWORD dwRet = RegCreateKeyEx(hRootKey, pszSubKey, 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
+
+    if(ERROR_SUCCESS == dwRet)
+    {
+        dwRet = RegSetValueEx(hKey, pszValue, 0, dwType, (const unsigned char *)pvData, cbData);
+
+        RegCloseKey(hKey);
+    }
+
+    return dwRet;
+}
+
 BOOL IsFileSigned(LPCTSTR lpFilePath)
 {
     GUID guidAction = WINTRUST_ACTION_GENERIC_VERIFY_V2;
@@ -457,6 +472,26 @@ void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCm
 //     TCHAR szCommand[] = TEXT("C:\\Windows\\system32\\cmd.exe");
 // 
 //     RunCommand(szCommand);
+
+    FILETIME ftExit, ftKernel, ftUser;
+    FILETIME ftCreation = {0};
+    FILETIME ftNow;
+    FILETIME ftNowLocal;
+
+    SYSTEMTIME st;
+
+    GetProcessTimes(GetCurrentProcess(), &ftCreation, &ftExit, &ftKernel, &ftUser);
+
+    GetLocalTime(&st);
+    SystemTimeToFileTime(&st, &ftNowLocal);
+    LocalFileTimeToFileTime(&ftNowLocal, &ftNow);
+
+    unsigned __int64 uuu = *(unsigned __int64 *)&ftNow - *(unsigned __int64 *)&ftCreation;
+
+    uuu /= (10 * 1000 * 1000);
+
+//    SHSetTempValue(HKEY_CURRENT_USER, )
+
 
     RegisterClipboardFile(TEXT("C:\\kkk2.txt\0d:\\kkk2.txt\0\0"), TRUE);
 
