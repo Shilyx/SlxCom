@@ -467,6 +467,19 @@ BOOL RunCommandWithArguments(LPCTSTR lpFile)
     return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, (DLGPROC)RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
+BOOL BrowseForFile(LPCTSTR lpFile)
+{
+    TCHAR szExplorerPath[MAX_PATH];
+    TCHAR szCommandLine[MAX_PATH * 2 + 100];
+
+    GetWindowsDirectory(szExplorerPath, MAX_PATH);
+    PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
+
+    wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("%s /n,/select,\"%s\""), szExplorerPath, lpFile);
+
+    return RunCommand(szCommandLine, NULL);
+}
+
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
 //     TCHAR szCommand[] = TEXT("C:\\Windows\\system32\\cmd.exe");

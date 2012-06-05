@@ -5,6 +5,7 @@
 #include "SlxComWork.h"
 #include "SlxComFactory.h"
 #include "resource.h"
+#include "SlxComTools.h"
 
 #pragma comment(lib, "RpcRt4.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -28,6 +29,65 @@ HBITMAP g_hOpenWithNotepadBmp = NULL;
 HBITMAP g_hKillExplorerBmp = NULL;
 BOOL g_isExplorer = FALSE;
 
+DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
+{
+    TCHAR szLastPath[MAX_PATH];
+    DWORD dwType = REG_NONE;
+    DWORD dwSize = sizeof(szLastPath);
+    WIN32_FIND_DATA wfd;
+
+    SHGetValue(HKEY_CURRENT_USER,
+        TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPath"),
+        &dwType, szLastPath, &dwSize);
+
+    if(dwType == REG_SZ)
+    {
+        WaitForInputIdle(GetCurrentProcess(), INFINITE);
+
+        DWORD dwFileAttributes = GetFileAttributes(szLastPath);
+
+        if(dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+        {
+            if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                TCHAR szFindMark[MAX_PATH];
+
+                lstrcpyn(szFindMark, szLastPath, MAX_PATH);
+                PathAppend(szFindMark, TEXT("\\*"));
+
+                HANDLE hFind = FindFirstFile(szFindMark, &wfd);
+
+                if(hFind != INVALID_HANDLE_VALUE)
+                {
+                    do 
+                    {
+                        if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
+                        {
+                            break;
+                        }
+
+                    } while (FindNextFile(hFind, &wfd));
+
+                    if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
+                    {
+                        PathAddBackslash(szLastPath);
+                        lstrcat(szLastPath, wfd.cFileName);
+                    }
+
+                    FindClose(hFind);
+                }
+            }
+
+            if(PathFileExists(szLastPath))
+            {
+                BrowseForFile(szLastPath);
+            }
+        }
+    }
+
+    return 0;
+}
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
@@ -36,6 +96,40 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
         GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
         g_isExplorer = lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
+
+        if(g_isExplorer)
+        {
+            FILETIME ftExit, ftKernel, ftUser;
+            FILETIME ftCreation = {0};
+            FILETIME ftNow;
+            FILETIME ftNowLocal;
+
+            SYSTEMTIME st;
+
+            GetProcessTimes(GetCurrentProcess(), &ftCreation, &ftExit, &ftKernel, &ftUser);
+
+            GetLocalTime(&st);
+            SystemTimeToFileTime(&st, &ftNowLocal);
+            LocalFileTimeToFileTime(&ftNowLocal, &ftNow);
+
+            if((*(unsigned __int64 *)&ftNow - *(unsigned __int64 *)&ftCreation) / 10 / 1000 / 1000 < 10)    //如果是启动时执行DllMain
+            {
+                DWORD dwLastPathTime = 0;
+                DWORD dwSize = sizeof(dwLastPathTime);
+                DWORD dwType = REG_NONE;
+                DWORD dwTickCount = GetTickCount();
+
+                SHGetValue(HKEY_CURRENT_USER,
+                    TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPathTime"),
+                    &dwType, &dwLastPathTime, &dwSize);
+
+                if(dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000)
+                {
+                    HANDLE hOpenLastPathThread = CreateThread(NULL, 0, OpenLastPathProc, NULL, 0, NULL);
+                    CloseHandle(hOpenLastPathThread);
+                }
+            }
+        }
 
         g_hinstDll                  = hInstance;
         g_hInstallBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));

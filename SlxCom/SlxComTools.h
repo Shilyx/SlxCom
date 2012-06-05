@@ -11,5 +11,6 @@ LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
 BOOL SetClipboardText(LPCTSTR lpText);
 BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCTSTR lpFile);
+BOOL BrowseForFile(LPCTSTR lpFile);
 
 #endif
