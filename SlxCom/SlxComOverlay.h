@@ -27,7 +27,7 @@ public:
 
 protected:
     volatile DWORD m_dwRefCount;
-    SlxStringStatusCache m_cache;
+    static SlxStringStatusCache m_cache;
 };
 
 #endif

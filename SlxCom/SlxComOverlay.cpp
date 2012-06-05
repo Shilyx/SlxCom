@@ -4,11 +4,12 @@
 #include <shlwapi.h>
 
 extern HINSTANCE g_hinstDll;
-extern BOOL g_isExplorer;
 TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
-CSlxComOverlay::CSlxComOverlay() : m_cache(TEXT("Software\\Slx\\StringStatusCache"), g_isExplorer)
+SlxStringStatusCache CSlxComOverlay::m_cache(TEXT("Software\\Slx\\StringStatusCache"), IsExplorer());
+
+CSlxComOverlay::CSlxComOverlay()
 {
     m_dwRefCount = 0;
 }

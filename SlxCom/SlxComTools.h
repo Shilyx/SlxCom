@@ -12,5 +12,6 @@ BOOL SetClipboardText(LPCTSTR lpText);
 BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCTSTR lpFile);
 BOOL BrowseForFile(LPCTSTR lpFile);
+BOOL IsExplorer();
 
 #endif

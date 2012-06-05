@@ -673,3 +673,11 @@ void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCm
         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
         (HANDLE) NULL);
 }
+
+BOOL IsExplorer()
+{
+    TCHAR szExePath[MAX_PATH] = TEXT("");
+
+    GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
+    return lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
+}

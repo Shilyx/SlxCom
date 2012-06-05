@@ -13,7 +13,6 @@ extern HBITMAP g_hTryRunWithArgumentsBmp;
 extern HBITMAP g_hRunCmdHereBmp;
 extern HBITMAP g_hOpenWithNotepadBmp;
 extern HBITMAP g_hKillExplorerBmp;
-extern BOOL g_isExplorer;
 
 CSlxComContextMenu::CSlxComContextMenu()
 {

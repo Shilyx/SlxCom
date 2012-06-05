@@ -27,7 +27,6 @@ HBITMAP g_hTryRunWithArgumentsBmp = NULL;
 HBITMAP g_hRunCmdHereBmp = NULL;
 HBITMAP g_hOpenWithNotepadBmp = NULL;
 HBITMAP g_hKillExplorerBmp = NULL;
-BOOL g_isExplorer = FALSE;
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
@@ -92,12 +91,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
     {
-        TCHAR szExePath[MAX_PATH] = TEXT("");
-
-        GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
-        g_isExplorer = lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
-
-        if(g_isExplorer)
+        if(IsExplorer())
         {
             FILETIME ftExit, ftKernel, ftUser;
             FILETIME ftCreation = {0};
