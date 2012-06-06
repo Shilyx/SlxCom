@@ -128,6 +128,19 @@ BEGIN
     LTEXT           "附加参数：",IDC_STATIC,7,37,41,8,0,WS_EX_RIGHT
 END
 
+IDD_CONFIG_DIALOG DIALOGEX 0, 0, 258, 90
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOPMOST
+CAPTION "Dialog"
+FONT 9, "宋体", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,145,69,50,14
+    PUSHBUTTON      "取消",IDCANCEL,201,69,50,14
+    GROUPBOX        "数字签名图标",IDC_STATIC,7,7,244,55
+    CONTROL         "为带有可信数字签名的程序显示特殊图标",IDC_ENABLE_OVERLAYICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,23,177,10
+    CONTROL         "异步显示特殊图标（可有效提升系统反应速度）",IDC_ASYNC_OVERLAYICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,35,41,195,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -144,9 +157,26 @@ BEGIN
         TOPMARGIN, 10
         BOTTOMMARGIN, 71
     END
+
+    IDD_CONFIG_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 251
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CONFIG_ICON         ICON                    "res\\Main.ico"
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 

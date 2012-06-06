@@ -7,7 +7,7 @@
 
 #pragma comment(lib, "Wintrust.lib")
 
-extern HINSTANCE g_hinstDll;
+extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
 DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData)
 {

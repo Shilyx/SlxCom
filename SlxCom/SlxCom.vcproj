@@ -343,6 +343,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComConfig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComContextMenu.cpp"
 				>
 			</File>
@@ -447,11 +451,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\icon1.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\res\Install.bmp"
 				>
 			</File>
 			<File
 				RelativePath=".\res\KillExplorer.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\Main.ico"
 				>
 			</File>
 			<File

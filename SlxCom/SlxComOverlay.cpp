@@ -3,7 +3,7 @@
 #include "SlxComTools.h"
 #include <shlwapi.h>
 
-extern HINSTANCE g_hinstDll;
+extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
