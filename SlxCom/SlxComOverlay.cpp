@@ -7,6 +7,9 @@ extern HINSTANCE g_hinstDll;
 TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
+volatile
+HANDLE CSlxComOverlay::m_hTaskEvent = NULL;
+TCHAR  CSlxComOverlay::m_szTaskRegPath[1000] = TEXT("");
 SlxStringStatusCache CSlxComOverlay::m_cache(TEXT("Software\\Slx\\StringStatusCache"), IsExplorer());
 
 CSlxComOverlay::CSlxComOverlay()
@@ -18,6 +21,18 @@ STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
 {
     if(riid == IID_IShellIconOverlayIdentifier)
     {
+        HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+        if(InterlockedCompareExchange((volatile LONG *)&m_hTaskEvent, (LONG)hEvent, NULL) != NULL)
+        {
+            wnsprintf(m_szTaskRegPath, sizeof(m_szTaskRegPath) / sizeof(TCHAR), TEXT("Software\\Slx\\Tasks\\%lu"), GetCurrentProcessId());
+
+            HANDLE hThread = CreateThread(NULL, 0, CheckTaskProc, NULL, 0, NULL);
+            CloseHandle(hThread);
+
+            CloseHandle(hEvent);
+        }
+
         *ppv = static_cast<IShellIconOverlayIdentifier *>(this);
     }
     else if(riid == IID_IUnknown)
@@ -55,54 +70,32 @@ STDMETHODIMP_(ULONG) CSlxComOverlay::Release()
 //IShellIconOverlayIdentifier Method
 STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
-    WIN32_FILE_ATTRIBUTE_DATA wfad;
+    TCHAR szString[MAX_PATH + 100];
 
-    if(GetFileAttributesEx(pwszPath, GetFileExInfoStandard, &wfad))
+    if(BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(TCHAR)))
     {
-        if((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+        StringStatus ssValue = SS_0;
+
+        if(m_cache.CheckCache(szString, &ssValue))
         {
-            TCHAR szString[MAX_PATH + 100];
-            ULARGE_INTEGER uliSize = {0};
-            StringStatus ssValue;
-
-            uliSize.HighPart = wfad.nFileSizeHigh;
-            uliSize.LowPart = wfad.nFileSizeLow;
-
-            wnsprintf(szString, sizeof(szString) / sizeof(TCHAR), TEXT("%s[%I64u]%I64u,%I64u"),
-                pwszPath,
-                uliSize.QuadPart,
-                *(unsigned __int64 *)&wfad.ftCreationTime,
-                *(unsigned __int64 *)&wfad.ftLastWriteTime);
-
-            if(m_cache.CheckCache(szString, &ssValue))
+            if(ssValue == SS_1)
             {
-                if(ssValue == SS_1)
-                {
-                    return S_OK;
-                }
-                else if(ssValue == SS_2)
-                {
-                    return S_FALSE;
-                }
-                else
-                {
-
-                }
-            }
-
-            if(IsFileSigned(pwszPath))
-            {
-                m_cache.AddCache(szString, SS_1);
-
                 return S_OK;
+            }
+            else if(ssValue == SS_2)
+            {
+                return S_FALSE;
             }
             else
             {
-                m_cache.AddCache(szString, SS_2);
 
-                return S_FALSE;
             }
         }
+
+        SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
+        SetEvent(m_hTaskEvent);
+
+        return S_FALSE;
     }
 
     return S_FALSE;
@@ -158,4 +151,87 @@ BOOL CSlxComOverlay::GenericIconFile()
     }
 
     return FALSE;
+}
+
+BOOL CSlxComOverlay::BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize)
+{
+    WIN32_FILE_ATTRIBUTE_DATA wfad;
+
+    if(GetFileAttributesEx(lpFilePath, GetFileExInfoStandard, &wfad))
+    {
+        if((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+        {
+            ULARGE_INTEGER uliSize = {0};
+
+            uliSize.HighPart = wfad.nFileSizeHigh;
+            uliSize.LowPart = wfad.nFileSizeLow;
+
+            wnsprintf(lpMark, nSize, TEXT("%s[%I64u]%I64u,%I64u"),
+                lpFilePath,
+                uliSize.QuadPart,
+                *(unsigned __int64 *)&wfad.ftCreationTime,
+                *(unsigned __int64 *)&wfad.ftLastWriteTime);
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+DWORD __stdcall CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
+{
+    while(TRUE)
+    {
+        DWORD dwWaitResult = WaitForSingleObject(m_hTaskEvent, INFINITE);
+
+        if(dwWaitResult == WAIT_OBJECT_0)
+        {
+            HKEY hKey = NULL;
+
+            if(ERROR_SUCCESS == RegOpenKeyEx(HKEY_CURRENT_USER, m_szTaskRegPath, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey))
+            {
+                while(TRUE)
+                {
+                    TCHAR szFilePath[MAX_PATH] = TEXT("");
+                    DWORD dwFilePathSize = sizeof(szFilePath);
+                    TCHAR szValueName[MAX_PATH + 100] = TEXT("");
+                    DWORD dwValueNameSize = sizeof(szValueName) / sizeof(TCHAR);
+                    DWORD dwRegType = REG_NONE;
+
+                    if(ERROR_SUCCESS == RegEnumValue(hKey, 0, szValueName, &dwValueNameSize, NULL, &dwRegType, (LPBYTE)szFilePath, &dwFilePathSize))
+                    {
+                        if(dwRegType == REG_SZ)
+                        {
+                            if(PathFileExists(szFilePath))
+                            {
+                                if(IsFileSigned(szFilePath))
+                                {
+                                    m_cache.AddCache(szValueName, SS_1);
+                                }
+                                else
+                                {
+                                    m_cache.AddCache(szValueName, SS_2);
+                                }
+                            }
+                        }
+
+                        RegDeleteValue(hKey, szValueName);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                RegCloseKey(hKey);
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return 0;
 }

@@ -28,6 +28,15 @@ public:
 protected:
     volatile DWORD m_dwRefCount;
     static SlxStringStatusCache m_cache;
+
+protected:
+    static volatile HANDLE m_hTaskEvent;
+    static TCHAR m_szTaskRegPath[1000];
+
+    static DWORD __stdcall CheckTaskProc(LPVOID lpParam);
+
+protected:
+    BOOL BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize);
 };
 
 #endif
