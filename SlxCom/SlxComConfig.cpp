@@ -57,51 +57,48 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
 {
     switch(uMessage)
     {
-        case WM_COMMAND:
+    case WM_COMMAND:
+        switch(LOWORD(wParam))
         {
-            switch(LOWORD(wParam))
-            {
-                case IDC_ENABLE_OVERLAYICON:
-                {
-                    RefreshControls(hwndDlg);
+        case IDC_ENABLE_OVERLAYICON:
+            RefreshControls(hwndDlg);
+            break;
 
-                    break;
-                }
+        case IDC_ASYNC_OVERLAYICON:
+            break;
 
-                case IDC_ASYNC_OVERLAYICON:
-                    break;
+        case IDOK:
+            SaveOption(hwndDlg);
+            EndDialog(hwndDlg, 0);
+            break;
 
-                case IDOK:
-                    SaveOption(hwndDlg);
-                    EndDialog(hwndDlg, 0);
-                    break;
+        case IDCANCEL:
+            EndDialog(hwndDlg, 0);
+            break;
 
-                case IDCANCEL:
-                    EndDialog(hwndDlg, 0);
-                    break;
-            }
-
+        default:
             break;
         }
 
-        case WM_SYSCOMMAND:
-        {
-            if(wParam == SC_CLOSE)
-            {
-                EndDialog(hwndDlg, 0);
-            }
+        break;
 
-            break;
+    case WM_SYSCOMMAND:
+        if(wParam == SC_CLOSE)
+        {
+            EndDialog(hwndDlg, 0);
         }
 
-        case WM_INITDIALOG:
-        {
-            SetClassLongPtr(hwndDlg, GCLP_HICON, (LONG_PTR)LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON)));
+        break;
 
-            LoadOption(hwndDlg);
+    case WM_INITDIALOG:
+        SetClassLongPtr(hwndDlg, GCLP_HICON, (LONG_PTR)LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON)));
 
-            break;
-        }
+        LoadOption(hwndDlg);
+
+        break;
+
+    default:
+        break;
     }
 
     return FALSE;
@@ -109,5 +106,5 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
 
 void WINAPI SlxComConfig(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_CONFIG_DIALOG), hwndStub, SlxComConfigDlgProc, NULL);
+    DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_CONFIG_DIALOG), hwndStub, (DLGPROC)SlxComConfigDlgProc, NULL);
 }

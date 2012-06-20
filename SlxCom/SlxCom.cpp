@@ -119,6 +119,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
                 if(dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000)
                 {
+                    SHDeleteValue(HKEY_CURRENT_USER,
+                        TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
+                        TEXT("SlxLastPathTime"));
+
                     HANDLE hOpenLastPathThread = CreateThread(NULL, 0, OpenLastPathProc, NULL, 0, NULL);
                     CloseHandle(hOpenLastPathThread);
                 }
