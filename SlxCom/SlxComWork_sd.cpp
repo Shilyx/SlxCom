@@ -76,6 +76,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
         {
             if(!IsWindow(hTrayNotifyWnd))
             {
+                //设定托盘承载窗口的新窗口过程
                 HWND hParentWnd = FindWindowEx(NULL, NULL, TEXT("Shell_TrayWnd"), NULL);
                 HWND hChildWindow = NULL;
 
@@ -103,6 +104,39 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
                     hTrayNotifyWnd = hChildWindow;
 
                     lpOldWndProc = (WNDPROC)SetWindowLongPtr(hTrayNotifyWnd, GWLP_WNDPROC, (LONG_PTR)NewWndProc);
+                }
+            }
+            else
+            {
+                //调整“开始”按钮的大小
+                HWND hParent = GetParent(hTrayNotifyWnd);
+
+                if(IsWindow(hParent))
+                {
+                    HWND hStart = FindWindowEx(hParent, NULL, TEXT("Button"), NULL);
+
+                    if(IsWindow(hStart))
+                    {
+                        RECT rectParent, rectStart;
+
+                        GetWindowRect(hParent, &rectParent);
+                        GetWindowRect(hStart, &rectStart);
+
+                        ScreenToClient(hParent, (LPPOINT)&rectStart + 0);
+                        ScreenToClient(hParent, (LPPOINT)&rectStart + 1);
+
+                        if(rectStart.bottom - rectStart.top != rectParent.bottom - rectParent.top)
+                        {
+                            MoveWindow(
+                                hStart,
+                                rectStart.left,
+                                rectStart.top,
+                                rectStart.right - rectStart.left,
+                                rectParent.bottom - rectParent.top,
+                                TRUE
+                                );
+                        }
+                    }
                 }
             }
         }
