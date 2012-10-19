@@ -3,11 +3,124 @@
 #include <Softpub.h>
 #include <shlwapi.h>
 #include <shlobj.h>
+#include <WinTrust.h>
 #include "resource.h"
 
 #pragma comment(lib, "Wintrust.lib")
 
+typedef HANDLE HCATADMIN;
+typedef HANDLE HCATINFO;
+
+typedef BOOL (WINAPI* PFN_CryptCATAdminAcquireContext)(
+    HCATADMIN* phCatAdmin,
+    const GUID* pgSubsystem,
+    DWORD dwFlags
+    );
+
+typedef BOOL (WINAPI* PFN_CryptCATAdminReleaseContext)(
+    HCATADMIN hCatAdmin,
+    DWORD dwFlags
+    );
+
+typedef BOOL (WINAPI* PFN_CryptCATAdminCalcHashFromFileHandle)(
+    HANDLE hFile,
+    DWORD* pcbHash,
+    BYTE* pbHash,
+    DWORD dwFlags
+    );
+
+typedef HCATINFO (WINAPI* PFN_CryptCATAdminEnumCatalogFromHash)(
+    HCATADMIN hCatAdmin,
+    BYTE* pbHash,
+    DWORD cbHash,
+    DWORD dwFlags,
+    HCATINFO* phPrevCatInfo
+    );
+
+typedef BOOL (WINAPI* PFN_CryptCATAdminReleaseCatalogContext)(
+    HCATADMIN hCatAdmin,
+    HCATINFO hCatInfo,
+    DWORD dwFlags
+    );
+
+typedef LONG (WINAPI* PFN_WinVerifyTrust)(
+    HWND hWnd,
+    GUID* pgActionID,
+    WINTRUST_DATA* pWinTrustData
+    );
+
+static PFN_CryptCATAdminAcquireContext          g_pfnCryptCATAdminAcquireContext            = NULL;
+static PFN_CryptCATAdminReleaseContext          g_pfnCryptCATAdminReleaseContext            = NULL;
+static PFN_CryptCATAdminCalcHashFromFileHandle  g_pfnCryptCATAdminCalcHashFromFileHandle    = NULL;
+static PFN_CryptCATAdminEnumCatalogFromHash     g_pfnCryptCATAdminEnumCatalogFromHash       = NULL;
+static PFN_CryptCATAdminReleaseCatalogContext   g_pfnCryptCATAdminReleaseCatalogContext     = NULL;
+static PFN_WinVerifyTrust                       g_pfnWinVerifyTrust                         = NULL;
+
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
+
+BOOL LoadWinTrustDll()
+{
+    static BOOL bResult = FALSE;
+
+    if(bResult)
+    {
+        return bResult;
+    }
+
+    HMODULE hModule = GetModuleHandle(SP_POLICY_PROVIDER_DLL_NAME);
+
+    if(hModule == NULL)
+    {
+        hModule = LoadLibrary(SP_POLICY_PROVIDER_DLL_NAME);
+    }
+
+    if(hModule != NULL)
+    {
+        do 
+        {
+            (FARPROC&)g_pfnCryptCATAdminAcquireContext = GetProcAddress(hModule, "CryptCATAdminAcquireContext");
+            if(g_pfnCryptCATAdminAcquireContext == NULL)
+            {
+                break;
+            }
+
+            (FARPROC&)g_pfnCryptCATAdminReleaseContext = GetProcAddress(hModule, "CryptCATAdminReleaseContext");
+            if(g_pfnCryptCATAdminReleaseContext == NULL)
+            {
+                break;
+            }
+
+            (FARPROC&)g_pfnCryptCATAdminCalcHashFromFileHandle = GetProcAddress(hModule, "CryptCATAdminCalcHashFromFileHandle");
+            if(g_pfnCryptCATAdminCalcHashFromFileHandle == NULL)
+            {
+                break;
+            }
+
+            (FARPROC&)g_pfnCryptCATAdminEnumCatalogFromHash = GetProcAddress(hModule, "CryptCATAdminEnumCatalogFromHash");
+            if(g_pfnCryptCATAdminEnumCatalogFromHash == NULL)
+            {
+                break;
+            }
+
+            (FARPROC&)g_pfnCryptCATAdminReleaseCatalogContext = GetProcAddress(hModule, "CryptCATAdminReleaseCatalogContext");
+            if(g_pfnCryptCATAdminReleaseCatalogContext == NULL)
+            {
+                break;
+            }
+
+            (FARPROC&)g_pfnWinVerifyTrust = GetProcAddress(hModule, "WinVerifyTrust");
+            if(g_pfnWinVerifyTrust == NULL)
+            {
+                break;
+            }
+
+            bResult = TRUE;
+
+        } while (FALSE);
+    }
+
+    return bResult;
+}
 
 DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData)
 {
@@ -24,7 +137,7 @@ DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD d
     return dwRet;
 }
 
-BOOL IsFileSigned(LPCTSTR lpFilePath)
+BOOL IsFileSignedBySelf(LPCTSTR lpFilePath)
 {
     GUID guidAction = WINTRUST_ACTION_GENERIC_VERIFY_V2;
     WINTRUST_FILE_INFO sWintrustFileInfo;
@@ -45,6 +158,67 @@ BOOL IsFileSigned(LPCTSTR lpFilePath)
     sWintrustData.dwStateAction       = WTD_STATEACTION_VERIFY;
 
     return S_OK == WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &guidAction, &sWintrustData);
+}
+
+BOOL IsFileSignedByCatlog(LPCTSTR lpFilePath)
+{
+    BOOL bResult = FALSE;
+
+    if(LoadWinTrustDll())
+    {
+        HANDLE hFile = CreateFile(
+            lpFilePath,
+            GENERIC_READ,
+            FILE_SHARE_READ,
+            NULL,
+            OPEN_EXISTING,
+            0,
+            NULL
+            );
+
+        if(hFile != INVALID_HANDLE_VALUE)
+        {
+            HANDLE hCatHandle = NULL;
+
+            g_pfnCryptCATAdminAcquireContext(&hCatHandle, NULL, 0);
+
+            if(hCatHandle != NULL)
+            {
+                __try
+                {
+                    BYTE btHash[100];
+                    DWORD dwHashSize = sizeof(btHash);
+
+                    if(g_pfnCryptCATAdminCalcHashFromFileHandle(hFile, &dwHashSize, btHash, 0))
+                    {
+                        HANDLE hCatalogContext = g_pfnCryptCATAdminEnumCatalogFromHash(hCatHandle, btHash, dwHashSize, 0, NULL);
+
+                        if(hCatalogContext != NULL)
+                        {
+                            g_pfnCryptCATAdminReleaseCatalogContext(hCatHandle, hCatalogContext, 0);
+
+                            bResult = TRUE;
+                        }
+                    }
+                }
+                __except(EXCEPTION_EXECUTE_HANDLER)
+                {
+
+                }
+
+                g_pfnCryptCATAdminReleaseContext(hCatHandle, 0);
+            }
+
+            CloseHandle(hFile);
+        }
+    }
+
+    return bResult;
+}
+
+BOOL IsFileSigned(LPCTSTR lpFilePath)
+{
+    return IsFileSignedBySelf(lpFilePath) || IsFileSignedByCatlog(lpFilePath);
 }
 
 BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath)
