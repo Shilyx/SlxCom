@@ -160,23 +160,48 @@ BOOL IsFileSignedBySelf(LPCTSTR lpFilePath)
     return S_OK == WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &guidAction, &sWintrustData);
 }
 
+BOOL GetFileHash(LPCTSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
+{
+    BOOL bResult = FALSE;
+    HANDLE hFile = CreateFile(
+        lpFilePath,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL
+        );
+
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        __try
+        {
+            if(g_pfnCryptCATAdminCalcHashFromFileHandle(hFile, pcbSize, btHash, 0))
+            {
+                bResult = TRUE;
+            }
+        }
+        __except(EXCEPTION_EXECUTE_HANDLER)
+        {
+        }
+
+        CloseHandle(hFile);
+    }
+
+    return bResult;
+}
+
 BOOL IsFileSignedByCatlog(LPCTSTR lpFilePath)
 {
     BOOL bResult = FALSE;
 
     if(LoadWinTrustDll())
     {
-        HANDLE hFile = CreateFile(
-            lpFilePath,
-            GENERIC_READ,
-            FILE_SHARE_READ,
-            NULL,
-            OPEN_EXISTING,
-            0,
-            NULL
-            );
+        BYTE btHash[100];
+        DWORD dwHashSize = sizeof(btHash);
 
-        if(hFile != INVALID_HANDLE_VALUE)
+        if(GetFileHash(lpFilePath, btHash, &dwHashSize))
         {
             HANDLE hCatHandle = NULL;
 
@@ -186,30 +211,21 @@ BOOL IsFileSignedByCatlog(LPCTSTR lpFilePath)
             {
                 __try
                 {
-                    BYTE btHash[100];
-                    DWORD dwHashSize = sizeof(btHash);
+                    HANDLE hCatalogContext = g_pfnCryptCATAdminEnumCatalogFromHash(hCatHandle, btHash, dwHashSize, 0, NULL);
 
-                    if(g_pfnCryptCATAdminCalcHashFromFileHandle(hFile, &dwHashSize, btHash, 0))
+                    if(hCatalogContext != NULL)
                     {
-                        HANDLE hCatalogContext = g_pfnCryptCATAdminEnumCatalogFromHash(hCatHandle, btHash, dwHashSize, 0, NULL);
+                        g_pfnCryptCATAdminReleaseCatalogContext(hCatHandle, hCatalogContext, 0);
 
-                        if(hCatalogContext != NULL)
-                        {
-                            g_pfnCryptCATAdminReleaseCatalogContext(hCatHandle, hCatalogContext, 0);
-
-                            bResult = TRUE;
-                        }
+                        bResult = TRUE;
                     }
                 }
                 __except(EXCEPTION_EXECUTE_HANDLER)
                 {
-
                 }
 
                 g_pfnCryptCATAdminReleaseContext(hCatHandle, 0);
             }
-
-            CloseHandle(hFile);
         }
     }
 
@@ -789,6 +805,18 @@ void WINAPI ResetExplorer(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdL
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
+    TCHAR szFilePath[MAX_PATH];
+
+    wnsprintf(szFilePath, sizeof(szFilePath) / sizeof(TCHAR), TEXT("%hs"), lpszCmdLine);
+
+    if(IsFileSigned(szFilePath))
+    {
+        MessageBox(hwndStub, TEXT("已签名"), TEXT("信息"), MB_TOPMOST | MB_ICONINFORMATION);
+    }
+    else
+    {
+        MessageBox(hwndStub, TEXT("未签名"), TEXT("信息"), MB_TOPMOST | MB_ICONINFORMATION);
+    }
 }
 
 BOOL IsExplorer()
