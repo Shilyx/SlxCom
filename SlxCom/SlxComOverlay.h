@@ -36,7 +36,7 @@ protected:
     static DWORD __stdcall CheckTaskProc(LPVOID lpParam);
 
 protected:
-    BOOL BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize);
+    BOOL BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize = NULL);
 };
 
 #endif

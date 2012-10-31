@@ -3,6 +3,8 @@
 #include "SlxComTools.h"
 #include <shlwapi.h>
 
+#define MAX_FILESIZE        (500 * 1024 * 1024)     //自动校验数字签名功能的文件大小限制，500M
+
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
@@ -71,8 +73,9 @@ STDMETHODIMP_(ULONG) CSlxComOverlay::Release()
 STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
     TCHAR szString[MAX_PATH + 100];
+    ULARGE_INTEGER uliFileSize = {0};
 
-    if(BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(TCHAR)))
+    if(BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(TCHAR), &uliFileSize))
     {
         StringStatus ssValue = SS_0;
 
@@ -92,8 +95,12 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
             }
         }
 
-        SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
-        SetEvent(m_hTaskEvent);
+        //仅校验大小不超过限制的文件的数字签名
+        if(uliFileSize.QuadPart <= MAX_FILESIZE)
+        {
+            SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
+            SetEvent(m_hTaskEvent);
+        }
 
         return S_FALSE;
     }
@@ -153,7 +160,7 @@ BOOL CSlxComOverlay::GenericIconFile()
     return FALSE;
 }
 
-BOOL CSlxComOverlay::BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize)
+BOOL CSlxComOverlay::BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize)
 {
     WIN32_FILE_ATTRIBUTE_DATA wfad;
 
@@ -171,6 +178,11 @@ BOOL CSlxComOverlay::BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int 
                 uliSize.QuadPart,
                 *(unsigned __int64 *)&wfad.ftCreationTime,
                 *(unsigned __int64 *)&wfad.ftLastWriteTime);
+
+            if(puliFileSize != NULL)
+            {
+                *puliFileSize = uliSize;
+            }
 
             return TRUE;
         }
