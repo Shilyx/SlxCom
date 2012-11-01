@@ -1,3 +1,4 @@
+#define _WIN32_WINNT 0x500
 #include "SlxComContextMenu.h"
 #include <shlwapi.h>
 #include <CommCtrl.h>
@@ -724,7 +725,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 {
                     if(m_pFiles[dwIndex].bIsFile)
                     {
-                        pMapPaths->insert(make_pair(m_pFiles[dwIndex].szPath, HWND(NULL)));
+                        pMapPaths->insert(make_pair(tstring(m_pFiles[dwIndex].szPath), HWND(NULL)));
                     }
                 }
 
@@ -826,8 +827,15 @@ DWORD __stdcall CSlxComContextMenu::ManualCheckSignatureThreadProc(LPVOID lpPara
 
 BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    BOOL bDlgProcResult = FALSE;
+
     if(uMsg == WM_INITDIALOG)
     {
+        HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
+
+        //设置全选风格
+        ListView_SetExtendedListViewStyleEx(hFileList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+
         //填充列表
         LVCOLUMN col = {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT};
 
@@ -835,15 +843,15 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
 
         col.cx = 35;
         col.pszText = TEXT("#");
-        ListView_InsertColumn(GetDlgItem(hwndDlg, IDC_FILELIST), LVH_INDEX, &col);
+        ListView_InsertColumn(hFileList, LVH_INDEX, &col);
 
         col.cx = 345;
         col.pszText = TEXT("路径");
-        ListView_InsertColumn(GetDlgItem(hwndDlg, IDC_FILELIST), LVH_PATH, &col);
+        ListView_InsertColumn(hFileList, LVH_PATH, &col);
 
         col.cx = 50;
         col.pszText = TEXT("结果");
-        ListView_InsertColumn(GetDlgItem(hwndDlg, IDC_FILELIST), LVH_RESULT, &col);
+        ListView_InsertColumn(hFileList, LVH_RESULT, &col);
 
         //开始启动校验过程
         map<tstring, HWND> *pMapPaths = (map<tstring, HWND> *)lParam;
@@ -864,13 +872,13 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 item.pszText = szText;
 
                 wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), dwIndex + 1);
-                ListView_InsertItem(GetDlgItem(hwndDlg, IDC_FILELIST), &item);
+                ListView_InsertItem(hFileList, &item);
 
                 lstrcpyn(szText, it->first.c_str(), sizeof(szText) / sizeof(TCHAR));
-                ListView_SetItemText(GetDlgItem(hwndDlg, IDC_FILELIST), dwIndex, LVH_PATH, szText);
+                ListView_SetItemText(hFileList, dwIndex, LVH_PATH, szText);
 
                 lstrcpyn(szText, TEXT(""), sizeof(szText) / sizeof(TCHAR));
-                ListView_SetItemText(GetDlgItem(hwndDlg, IDC_FILELIST), dwIndex, LVH_RESULT, szText);
+                ListView_SetItemText(hFileList, dwIndex, LVH_RESULT, szText);
             }
 
             //开始校验
@@ -884,7 +892,7 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
         //开启定时器
         SetTimer(hwndDlg, 1, 40, NULL);
 
-        return TRUE;
+        bDlgProcResult = TRUE;
     }
     else if(uMsg == WM_TIMER)
     {
@@ -917,6 +925,57 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
             }
 
             dwTimeStamp += 1;
+        }
+    }
+    else if(uMsg == WM_NOTIFY)
+    {
+        LPNMHDR lpNmHdr = (LPNMHDR)lParam;
+
+        if(lpNmHdr != NULL && wParam == IDC_FILELIST)
+        {
+            if(lpNmHdr->code == NM_CUSTOMDRAW)
+            {
+                LPNMLVCUSTOMDRAW lpNMCustomDraw = (LPNMLVCUSTOMDRAW)lParam;
+
+                if(CDDS_PREPAINT == lpNMCustomDraw->nmcd.dwDrawStage)
+                {
+                    SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_NOTIFYITEMDRAW);
+                }
+                else if(CDDS_ITEMPREPAINT == lpNMCustomDraw->nmcd.dwDrawStage)
+                {
+                    TCHAR szResult[100];
+
+                    ListView_GetItemText(
+                        GetDlgItem(hwndDlg, IDC_FILELIST),
+                        lpNMCustomDraw->nmcd.dwItemSpec,
+                        LVH_RESULT,
+                        szResult,
+                        sizeof(szResult) / sizeof(TCHAR)
+                        );
+
+                    if(lstrcmpi(szResult, TEXT("已签名")) == 0)
+                    {
+                        lpNMCustomDraw->clrText = RGB(0, 0, 255);
+                    }
+
+                    if(lpNMCustomDraw->nmcd.dwItemSpec % 2)
+                    {
+                        lpNMCustomDraw->clrTextBk = RGB(240, 240, 230);
+                    }
+                    else
+                    {
+                        lpNMCustomDraw->clrTextBk = RGB(255, 255, 255);
+                    }
+
+                    SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_DODEFAULT);
+                }
+                else
+                {
+                    SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_DODEFAULT);
+                }
+
+                bDlgProcResult = TRUE;
+            }
         }
     }
     else if(uMsg == WM_SYSCOMMAND)
@@ -958,7 +1017,7 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
         }
     }
 
-    return FALSE;
+    return bDlgProcResult;
 }
 
 
