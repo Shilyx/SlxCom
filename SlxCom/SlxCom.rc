@@ -109,6 +109,7 @@ IDB_TRYRUNWITHARGUMENTS BITMAP                  "res\\TryRunWithArguments.bmp"
 IDB_RUNCMDHERE          BITMAP                  "res\\RunCmdHere.bmp"
 IDB_OPENWITHNOTEPAD     BITMAP                  "res\\OpenWithNotepad.bmp"
 IDB_KILLEXPLORER        BITMAP                  "res\\KillExplorer.bmp"
+IDB_CHECKSIGNATURE      BITMAP                  "res\\CheckSignature.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -141,6 +142,14 @@ BEGIN
     CONTROL         "异步显示特殊图标（可有效提升系统反应速度）",IDC_ASYNC_OVERLAYICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,35,41,195,10
 END
 
+IDD_MANUALCHECKSIGNATURE_DIALOG DIALOGEX 0, 0, 316, 180
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 9, "宋体", 400, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_FILELIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,302,166
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -164,6 +173,14 @@ BEGIN
         RIGHTMARGIN, 251
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
+    END
+
+    IDD_MANUALCHECKSIGNATURE_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 173
     END
 END
 #endif    // APSTUDIO_INVOKED

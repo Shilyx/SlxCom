@@ -18,22 +18,24 @@
 #define IDB_RUNCMDHERE                  115
 #define IDI_CONFIG_ICON                 115
 #define IDB_OPENWITHNOTEPAD             116
+#define IDD_MANUALCHECKSIGNATURE_DIALOG 116
 #define IDB_KILLEXPLORER                117
+#define IDB_CHECKSIGNATURE              118
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
 #define IDC_CANCEL                      1004
 #define IDC_ENABLE_OVERLAYICON          1005
-#define IDC_CHECK2                      1006
 #define IDC_ASYNC_OVERLAYICON           1006
+#define IDC_FILELIST                    1007
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        116
+#define _APS_NEXT_RESOURCE_VALUE        117
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

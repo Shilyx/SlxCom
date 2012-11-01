@@ -6,6 +6,7 @@
 class FileInfo
 {
 public:
+    BOOL bIsFile;
     BOOL bIsDll;
     BOOL bIsJpg;
     BOOL bIsRar;
@@ -15,6 +16,7 @@ public:
 
     FileInfo()
     {
+        bIsFile = FALSE;
         bIsDll = FALSE;
         bIsJpg = FALSE;
         bIsRar = FALSE;
@@ -46,6 +48,12 @@ protected:
     volatile DWORD m_dwRefCount;
     FileInfo *m_pFiles;
     UINT m_uFileCount;
+
+    static volatile HANDLE m_hManualCheckSignatureThread;
+
+    static DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam);
+public:
+    static BOOL __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
 
 #endif

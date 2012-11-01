@@ -1,8 +1,8 @@
 #include "SlxStringStatusCache.h"
 #include <shlwapi.h>
+#include "SlxString.h"
 #pragma warning(disable: 4786)
 #include <map>
-#include <string>
 
 using namespace std;
 
@@ -10,12 +10,6 @@ using namespace std;
 
 #define SSC_MAXSIZE     20000
 #define SSC_CLEANTOSIZE 10000
-
-#ifdef UNICODE
-typedef wstring tstring;
-#else
-typedef  string tstring;
-#endif
 
 SlxStringStatusCache::SlxStringStatusCache(LPCTSTR lpRegPath, BOOL bAutoClean)
 {

@@ -803,22 +803,6 @@ void WINAPI ResetExplorer(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdL
     }
 }
 
-void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
-{
-    TCHAR szFilePath[MAX_PATH];
-
-    wnsprintf(szFilePath, sizeof(szFilePath) / sizeof(TCHAR), TEXT("%hs"), lpszCmdLine);
-
-    if(IsFileSigned(szFilePath))
-    {
-        MessageBox(hwndStub, TEXT("已签名"), TEXT("信息"), MB_TOPMOST | MB_ICONINFORMATION);
-    }
-    else
-    {
-        MessageBox(hwndStub, TEXT("未签名"), TEXT("信息"), MB_TOPMOST | MB_ICONINFORMATION);
-    }
-}
-
 BOOL IsExplorer()
 {
     TCHAR szExePath[MAX_PATH] = TEXT("");

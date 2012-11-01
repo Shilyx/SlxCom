@@ -1,6 +1,16 @@
 #include "SlxComContextMenu.h"
 #include <shlwapi.h>
+#include <CommCtrl.h>
+#include "SlxComOverlay.h"
 #include "SlxComTools.h"
+#include "resource.h"
+#include "SlxString.h"
+#pragma warning(disable: 4786)
+#include <map>
+
+using namespace std;
+
+extern HINSTANCE g_hinstDll;
 
 extern HBITMAP g_hInstallBmp;
 extern HBITMAP g_hUninstallBmp;
@@ -13,6 +23,10 @@ extern HBITMAP g_hTryRunWithArgumentsBmp;
 extern HBITMAP g_hRunCmdHereBmp;
 extern HBITMAP g_hOpenWithNotepadBmp;
 extern HBITMAP g_hKillExplorerBmp;
+extern HBITMAP g_hManualCheckSignatureBmp;
+
+volatile HANDLE CSlxComContextMenu::m_hManualCheckSignatureThread = NULL;
+static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
 
 CSlxComContextMenu::CSlxComContextMenu()
 {
@@ -140,6 +154,8 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
                             {
                                 m_pFiles[uIndex].bIsRar = TRUE;
                             }
+
+                            m_pFiles[uIndex].bIsFile = TRUE;
                         }
                     }
 
@@ -165,7 +181,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_RUNCMDHERE           9
 #define ID_OPENWITHNOTEPAD      10
 #define ID_KILLEXPLORER         11
-#define ID_12                   12
+#define ID_MANUALCHECKSIGNATURE 12
 #define ID_13                   13
 #define ID_14                   14
 #define ID_15                   15
@@ -254,6 +270,10 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
+    //Check Signature
+    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, TEXT("校验数字签名"));
+    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
+
     if(m_uFileCount == 1)
     {
         DWORD dwFileAttribute = GetFileAttributes(m_pFiles[0].szPath);
@@ -266,11 +286,11 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
                 if(hPopupMenu != NULL)
                 {
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("尝试运行(&R)"));
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("尝试运行"));
                     SetMenuItemBitmaps(hmenu, indexMenu + uMenuIndex - 1, MF_BYPOSITION, g_hTryRunBmp, g_hTryRunBmp);
 
                     //Try to run
-                    InsertMenu(hPopupMenu, 1, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("直接运行(&R)"));
+                    InsertMenu(hPopupMenu, 1, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("直接运行"));
                     SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUN, MF_BYCOMMAND, g_hTryRunBmp, g_hTryRunBmp);
 
                     InsertMenu(hPopupMenu, 2, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("附带参数运行(&P)"));
@@ -357,6 +377,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_KILLEXPLORER)
     {
         lpText = "结束Explorer。";
+    }
+    else if(idCmd == ID_MANUALCHECKSIGNATURE)
+    {
+        lpText = "手动校验选中的文件的数字签名。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -669,9 +693,293 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         break;
     }
 
+    case ID_MANUALCHECKSIGNATURE:
+    {
+        if(m_hManualCheckSignatureThread == NULL)
+        {
+            WaitForSingleObject(g_hManualCheckSignatureMutex, INFINITE);
+
+            if(m_hManualCheckSignatureThread == NULL)
+            {
+                m_hManualCheckSignatureThread = CreateThread(NULL, 0, ManualCheckSignatureThreadProc, NULL, 0, NULL);
+            }
+
+            ReleaseMutex(g_hManualCheckSignatureMutex);
+        }
+
+        if(m_hManualCheckSignatureThread == NULL)
+        {
+            MessageBox(pici->hwnd, TEXT("启动数字签名校验组件失败。"), NULL, MB_ICONERROR);
+        }
+        else
+        {
+#if _MSC_VER > 1200
+            map<tstring, HWND> *pMapPaths = new (std::nothrow) map<tstring, HWND>;
+#else
+            map<tstring, HWND> *pMapPaths = new map<tstring, HWND>;
+#endif
+            if(pMapPaths != NULL)
+            {
+                for(DWORD dwIndex = 0; dwIndex < m_uFileCount; dwIndex += 1)
+                {
+                    if(m_pFiles[dwIndex].bIsFile)
+                    {
+                        pMapPaths->insert(make_pair(m_pFiles[dwIndex].szPath, HWND(NULL)));
+                    }
+                }
+
+                if(pMapPaths->empty())
+                {
+                    delete pMapPaths;
+
+                    MessageBox(pici->hwnd, TEXT("选中的项目不直接包含任何文件。"), NULL, MB_ICONERROR);
+                }
+                else
+                {
+                    DialogBoxParam(
+                        g_hinstDll,
+                        MAKEINTRESOURCE(IDD_MANUALCHECKSIGNATURE_DIALOG),
+                        pici->hwnd,
+                        ManualCheckSignatureDialogProc,
+                        (LPARAM)pMapPaths
+                        );
+                }
+            }
+        }
+
+        break;
+    }
+
     default:
         return E_INVALIDARG;
     }
 
     return S_OK;
+}
+
+#define WM_SIGNRESULT (WM_USER + 101)
+
+DWORD __stdcall CSlxComContextMenu::ManualCheckSignatureThreadProc(LPVOID lpParam)
+{
+    if(lpParam == 0)
+    {
+        while(TRUE)
+        {
+            SleepEx(INFINITE, TRUE);
+        }
+    }
+    else
+    {
+        map<tstring, HWND> *pMapPaths = (map<tstring, HWND> *)lpParam;
+
+        if(pMapPaths != NULL && !pMapPaths->empty())
+        {
+            map<tstring, HWND>::iterator it = pMapPaths->begin();
+            HWND hTargetWindow = it->second;
+            DWORD dwFileIndex = 0;
+
+            for(; it != pMapPaths->end(); it++, dwFileIndex++)
+            {
+                BOOL bSigned = FALSE;
+
+                if(PathFileExists(it->first.c_str()))
+                {
+                    TCHAR szString[MAX_PATH + 100];
+
+                    if(CSlxComOverlay::BuildFileMarkString(
+                        it->first.c_str(),
+                        szString,
+                        sizeof(szString) / sizeof(TCHAR)
+                        ))
+                    {
+                        if(IsFileSigned(it->first.c_str()))
+                        {
+                            CSlxComOverlay::m_cache.AddCache(szString, SS_1);
+
+                            bSigned = TRUE;
+                        }
+                        else
+                        {
+                            CSlxComOverlay::m_cache.AddCache(szString, SS_2);
+                        }
+                    }
+                }
+
+                if(IsWindow(hTargetWindow))
+                {
+                    PostMessage(hTargetWindow, WM_SIGNRESULT, dwFileIndex, bSigned);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+#define LVH_INDEX       0
+#define LVH_PATH        1
+#define LVH_RESULT      2
+
+BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if(uMsg == WM_INITDIALOG)
+    {
+        //填充列表
+        LVCOLUMN col = {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT};
+
+        col.fmt = LVCFMT_LEFT;
+
+        col.cx = 35;
+        col.pszText = TEXT("#");
+        ListView_InsertColumn(GetDlgItem(hwndDlg, IDC_FILELIST), LVH_INDEX, &col);
+
+        col.cx = 345;
+        col.pszText = TEXT("路径");
+        ListView_InsertColumn(GetDlgItem(hwndDlg, IDC_FILELIST), LVH_PATH, &col);
+
+        col.cx = 50;
+        col.pszText = TEXT("结果");
+        ListView_InsertColumn(GetDlgItem(hwndDlg, IDC_FILELIST), LVH_RESULT, &col);
+
+        //开始启动校验过程
+        map<tstring, HWND> *pMapPaths = (map<tstring, HWND> *)lParam;
+
+        if(pMapPaths != NULL && !pMapPaths->empty())
+        {
+            //填充列表
+            TCHAR szText[1000];
+            DWORD dwIndex = 0;
+            LVITEM item = {LVIF_TEXT};
+            map<tstring, HWND>::iterator it = pMapPaths->begin();
+
+            it->second = hwndDlg;
+
+            for(; it != pMapPaths->end(); it++, dwIndex++)
+            {
+                item.iItem = dwIndex;
+                item.pszText = szText;
+
+                wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), dwIndex + 1);
+                ListView_InsertItem(GetDlgItem(hwndDlg, IDC_FILELIST), &item);
+
+                lstrcpyn(szText, it->first.c_str(), sizeof(szText) / sizeof(TCHAR));
+                ListView_SetItemText(GetDlgItem(hwndDlg, IDC_FILELIST), dwIndex, LVH_PATH, szText);
+
+                lstrcpyn(szText, TEXT(""), sizeof(szText) / sizeof(TCHAR));
+                ListView_SetItemText(GetDlgItem(hwndDlg, IDC_FILELIST), dwIndex, LVH_RESULT, szText);
+            }
+
+            //开始校验
+            QueueUserAPC(
+                (PAPCFUNC)ManualCheckSignatureThreadProc,
+                m_hManualCheckSignatureThread,
+                (DWORD)pMapPaths
+                );
+        }
+
+        //开启定时器
+        SetTimer(hwndDlg, 1, 40, NULL);
+
+        return TRUE;
+    }
+    else if(uMsg == WM_TIMER)
+    {
+        if(wParam == 1)
+        {
+            static DWORD dwTimeStamp = 0;
+
+            TCHAR szText[100];
+            TCHAR *szTimeStr[] = {
+                TEXT("◤"),
+                TEXT("◥"),
+                TEXT("◢"),
+                TEXT("◣")
+            };
+            HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
+
+            for(int nIndex = 0; nIndex < ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST)); nIndex += 1)
+            {
+                ListView_GetItemText(hFileList, nIndex, LVH_RESULT, szText, sizeof(szText) / sizeof(TCHAR));
+
+                if(lstrlen(szText) <= 1)
+                {
+                    ListView_SetItemText(
+                        hFileList,
+                        nIndex,
+                        LVH_RESULT,
+                        szTimeStr[(dwTimeStamp + nIndex) % (sizeof(szTimeStr) / sizeof(szTimeStr[0]))]
+                    );
+                }
+            }
+
+            dwTimeStamp += 1;
+        }
+    }
+    else if(uMsg == WM_SYSCOMMAND)
+    {
+        if(wParam == SC_CLOSE)
+        {
+            KillTimer(hwndDlg, 1);
+            EndDialog(hwndDlg, 0);
+        }
+    }
+    else if(uMsg == WM_SIGNRESULT)
+    {
+        TCHAR szIndex[100];
+        TCHAR szIndexInList[100];
+        TCHAR szResult[100];
+        HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
+
+        wnsprintf(szIndex, sizeof(szIndex) / sizeof(TCHAR), TEXT("%lu"), wParam + 1);
+
+        for(int nIndex = 0; nIndex < ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST)); nIndex += 1)
+        {
+            ListView_GetItemText(hFileList, nIndex, LVH_INDEX, szIndexInList, sizeof(szIndexInList) / sizeof(TCHAR));
+
+            if(lstrcmpi(szIndexInList, szIndex) == 0)
+            {
+                if((BOOL)lParam)
+                {
+                    lstrcpyn(szResult, TEXT("已签名"), sizeof(szResult) / sizeof(TCHAR));
+                }
+                else
+                {
+                    lstrcpyn(szResult, TEXT("未签名"), sizeof(szResult) / sizeof(TCHAR));
+                }
+
+                ListView_SetItemText(hFileList, nIndex, LVH_RESULT, szResult);
+
+                break;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+
+void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+{
+    map<tstring, HWND> m;
+
+    m[TEXT("aaaaaaaaaa")] = 0;
+    m[TEXT("aaaaaaaaa1")] = 0;
+    m[TEXT("aaaaaaaaa2")] = 0;
+    m[TEXT("aaaaaaaaa3")] = 0;
+    m[TEXT("aaaaaa1aaa")] = 0;
+    m[TEXT("aaaaaa1aa1")] = 0;
+    m[TEXT("aaaaaa1aa2")] = 0;
+    m[TEXT("aaaaaa1aa3")] = 0;
+
+    DialogBoxParam(
+        g_hinstDll,
+        MAKEINTRESOURCE(IDD_MANUALCHECKSIGNATURE_DIALOG),
+        NULL,
+        CSlxComContextMenu::ManualCheckSignatureDialogProc,
+        (LPARAM)&m
+        );
 }
