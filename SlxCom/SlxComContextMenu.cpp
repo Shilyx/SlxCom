@@ -202,6 +202,28 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
     }
 
+    //Check Dll And File
+    BOOL bExistDll = FALSE;
+    BOOL bExistFile = FALSE;
+
+    for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
+    {
+        if(m_pFiles[uFileIndex].bIsDll)
+        {
+            bExistDll = TRUE;
+        }
+
+        if(m_pFiles[uFileIndex].bIsFile)
+        {
+            bExistFile = TRUE;
+        }
+
+        if(bExistDll * bExistFile)
+        {
+            break;
+        }
+    }
+
     //clipboard functions
     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
 
@@ -230,17 +252,6 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     }
 
     //Dll Register
-    BOOL bExistDll = FALSE;
-
-    for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
-    {
-        if(m_pFiles[uFileIndex].bIsDll)
-        {
-            bExistDll = TRUE;
-            break;
-        }
-    }
-
     if(bExistDll)
     {
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("注册组件(&R)"));
@@ -272,8 +283,11 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     }
 
     //Check Signature
-    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, TEXT("校验数字签名"));
-    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
+    if(bExistFile)
+    {
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, TEXT("校验数字签名"));
+        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
+    }
 
     if(m_uFileCount == 1)
     {
@@ -779,40 +793,43 @@ DWORD __stdcall CSlxComContextMenu::ManualCheckSignatureThreadProc(LPVOID lpPara
             HWND hTargetWindow = it->second;
             DWORD dwFileIndex = 0;
 
-            for(; it != pMapPaths->end(); it++, dwFileIndex++)
+            if(IsWindow(hTargetWindow))             //通过排队，窗口可能已经被取消
             {
-                BOOL bSigned = FALSE;
-
-                if(PathFileExists(it->first.c_str()))
+                for(; it != pMapPaths->end(); it++, dwFileIndex++)
                 {
-                    TCHAR szString[MAX_PATH + 100];
+                    BOOL bSigned = FALSE;
 
-                    if(CSlxComOverlay::BuildFileMarkString(
-                        it->first.c_str(),
-                        szString,
-                        sizeof(szString) / sizeof(TCHAR)
-                        ))
+                    if(PathFileExists(it->first.c_str()))
                     {
-                        if(IsFileSigned(it->first.c_str()))
-                        {
-                            CSlxComOverlay::m_cache.AddCache(szString, SS_1);
+                        TCHAR szString[MAX_PATH + 100];
 
-                            bSigned = TRUE;
-                        }
-                        else
+                        if(CSlxComOverlay::BuildFileMarkString(
+                            it->first.c_str(),
+                            szString,
+                            sizeof(szString) / sizeof(TCHAR)
+                            ))
                         {
-                            CSlxComOverlay::m_cache.AddCache(szString, SS_2);
+                            if(IsFileSigned(it->first.c_str()))
+                            {
+                                CSlxComOverlay::m_cache.AddCache(szString, SS_1);
+
+                                bSigned = TRUE;
+                            }
+                            else
+                            {
+                                CSlxComOverlay::m_cache.AddCache(szString, SS_2);
+                            }
                         }
                     }
-                }
 
-                if(IsWindow(hTargetWindow))
-                {
-                    PostMessage(hTargetWindow, WM_SIGNRESULT, dwFileIndex, bSigned);
-                }
-                else
-                {
-                    break;
+                    if(IsWindow(hTargetWindow))
+                    {
+                        PostMessage(hTargetWindow, WM_SIGNRESULT, dwFileIndex, bSigned);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }
