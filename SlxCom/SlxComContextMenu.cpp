@@ -827,11 +827,23 @@ DWORD __stdcall CSlxComContextMenu::ManualCheckSignatureThreadProc(LPVOID lpPara
 
 BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    static HICON hIcon = NULL;
     BOOL bDlgProcResult = FALSE;
 
     if(uMsg == WM_INITDIALOG)
     {
         HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
+
+        //设定对话框图标
+        if(hIcon == NULL)
+        {
+            hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+        }
+
+        if(hIcon != NULL)
+        {
+            SetClassLong(hwndDlg, GCL_HICON, (LONG)hIcon);
+        }
 
         //设置全选风格
         ListView_SetExtendedListViewStyleEx(hFileList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
@@ -880,6 +892,12 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 lstrcpyn(szText, TEXT(""), sizeof(szText) / sizeof(TCHAR));
                 ListView_SetItemText(hFileList, dwIndex, LVH_RESULT, szText);
             }
+
+            //记录总文件个数
+            TCHAR szWindowText[100];
+
+            wnsprintf(szWindowText, sizeof(szWindowText) / sizeof(TCHAR), TEXT("校验数字签名 0/%lu(0.00%%)"), pMapPaths->size());
+            SetWindowText(hwndDlg, szWindowText);
 
             //开始校验
             QueueUserAPC(
@@ -992,10 +1010,12 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
         TCHAR szIndexInList[100];
         TCHAR szResult[100];
         HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
+        int nCount = ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST));
 
+        //更新列表状态
         wnsprintf(szIndex, sizeof(szIndex) / sizeof(TCHAR), TEXT("%lu"), wParam + 1);
 
-        for(int nIndex = 0; nIndex < ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST)); nIndex += 1)
+        for(int nIndex = 0; nIndex < nCount; nIndex += 1)
         {
             ListView_GetItemText(hFileList, nIndex, LVH_INDEX, szIndexInList, sizeof(szIndexInList) / sizeof(TCHAR));
 
@@ -1015,6 +1035,21 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 break;
             }
         }
+
+        //更新标题
+        TCHAR szWindowText[100];
+
+        wnsprintf(
+            szWindowText,
+            sizeof(szWindowText) / sizeof(TCHAR),
+            TEXT("校验数字签名 %lu/%lu(%lu.%02lu%%)"),
+            wParam + 1,
+            nCount,
+            (wParam + 1) * 100 / nCount,
+            (wParam + 1) * 100 * 100 / nCount % 100
+            );
+
+        SetWindowText(hwndDlg, szWindowText);
     }
 
     return bDlgProcResult;
