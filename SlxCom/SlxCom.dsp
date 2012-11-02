@@ -107,6 +107,10 @@ SOURCE=.\SlxCom.rc
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxComConfig.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComContextMenu.cpp
 # End Source File
 # Begin Source File
@@ -116,6 +120,10 @@ SOURCE=.\SlxComFactory.cpp
 # Begin Source File
 
 SOURCE=.\SlxComOverlay.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxComTools.cpp
 # End Source File
 # Begin Source File
 
@@ -129,10 +137,18 @@ SOURCE=.\SlxComWork_lvm.cpp
 
 SOURCE=.\SlxComWork_sd.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\SlxStringStatusCache.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\resource.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\SlxComContextMenu.h
@@ -147,6 +163,10 @@ SOURCE=.\SlxComOverlay.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxComTools.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComWork.h
 # End Source File
 # Begin Source File
@@ -156,6 +176,14 @@ SOURCE=.\SlxComWork_lvm.h
 # Begin Source File
 
 SOURCE=.\SlxComWork_sd.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxString.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxStringStatusCache.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

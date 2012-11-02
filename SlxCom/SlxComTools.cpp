@@ -564,7 +564,7 @@ BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory)
     return FALSE;
 }
 
-BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
     {
@@ -654,7 +654,7 @@ BOOL __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPara
 
 BOOL RunCommandWithArguments(LPCTSTR lpFile)
 {
-    return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, (DLGPROC)RunCommandWithArgumentsProc, (LPARAM)lpFile);
+    return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
 BOOL BrowseForFile(LPCTSTR lpFile)

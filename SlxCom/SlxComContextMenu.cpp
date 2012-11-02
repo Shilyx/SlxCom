@@ -891,7 +891,7 @@ int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSo
     }
 }
 
-BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HICON hIcon = NULL;
     BOOL bDlgProcResult = FALSE;
@@ -907,7 +907,7 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
 
         if(hIcon != NULL)
         {
-            SetClassLong(hwndDlg, GCL_HICON, (LONG)hIcon);
+            SetClassLongPtr(hwndDlg, GCLP_HICON, (LONG)hIcon);
         }
 
         //设置全选风格

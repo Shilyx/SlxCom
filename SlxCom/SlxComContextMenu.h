@@ -53,7 +53,7 @@ protected:
 
     static DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam);
 public:
-    static BOOL __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    static INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
 
 #endif
