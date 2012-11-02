@@ -825,6 +825,54 @@ DWORD __stdcall CSlxComContextMenu::ManualCheckSignatureThreadProc(LPVOID lpPara
 #define LVH_PATH        1
 #define LVH_RESULT      2
 
+struct ListCtrlSortStruct
+{
+    int nRet;
+    HWND hListCtrl;
+    int nSubItem;
+};
+
+int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+    ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;
+    TCHAR szText1[1000], szText2[1000];
+
+    ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(TCHAR));
+    ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(TCHAR));
+
+    if(lstrcmp(szText1, szText2) == 0)
+    {
+        return 0;
+    }
+
+    if(pLcss->nSubItem == LVH_INDEX)
+    {
+        int n1 = StrToInt(szText1);
+        int n2 = StrToInt(szText2);
+
+        if(n1 > n2)
+        {
+            return pLcss->nRet;
+        }
+        else
+        {
+            return -pLcss->nRet;
+        }
+    }
+    else if(pLcss->nSubItem == LVH_PATH)
+    {
+        return lstrcmp(szText1, szText2) * pLcss->nRet;
+    }
+    else if(pLcss->nSubItem == LVH_RESULT)
+    {
+        return lstrcmp(szText1, szText2) * pLcss->nRet;
+    }
+    else
+    {
+        return pLcss->nRet;
+    }
+}
+
 BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HICON hIcon = NULL;
@@ -949,8 +997,10 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
     {
         LPNMHDR lpNmHdr = (LPNMHDR)lParam;
 
-        if(lpNmHdr != NULL && wParam == IDC_FILELIST)
+        if(lpNmHdr != NULL && lpNmHdr->idFrom == IDC_FILELIST)
         {
+            HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
+
             if(lpNmHdr->code == NM_CUSTOMDRAW)
             {
                 LPNMLVCUSTOMDRAW lpNMCustomDraw = (LPNMLVCUSTOMDRAW)lParam;
@@ -964,7 +1014,7 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                     TCHAR szResult[100];
 
                     ListView_GetItemText(
-                        GetDlgItem(hwndDlg, IDC_FILELIST),
+                        hFileList,
                         lpNMCustomDraw->nmcd.dwItemSpec,
                         LVH_RESULT,
                         szResult,
@@ -993,6 +1043,31 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 }
 
                 bDlgProcResult = TRUE;
+            }
+            else if(lpNmHdr->code == LVN_COLUMNCLICK)
+            {
+                static int nRet = 1;
+                LPNMLISTVIEW lpNmListView = (LPNMLISTVIEW)lpNmHdr;
+
+                nRet = -nRet;
+
+                ListCtrlSortStruct lcss;
+
+                lcss.nRet = nRet;
+                lcss.hListCtrl = hFileList;
+                lcss.nSubItem = lpNmListView->iSubItem;
+
+                LVITEM item = {LVIF_PARAM};
+
+                for(int nIndex = 0; nIndex < ListView_GetItemCount(hFileList); nIndex += 1)
+                {
+                    item.iItem = nIndex;
+                    item.lParam = nIndex;
+
+                    ListView_SetItem(hFileList, &item);
+                }
+
+                ListView_SortItems(hFileList, ListCtrlCompareProc, &lcss);
             }
         }
     }
