@@ -877,11 +877,10 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
 {
     static HICON hIcon = NULL;
     BOOL bDlgProcResult = FALSE;
+    HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
 
     if(uMsg == WM_INITDIALOG)
     {
-        HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
-
         //设定对话框图标
         if(hIcon == NULL)
         {
@@ -999,8 +998,6 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
 
         if(lpNmHdr != NULL && lpNmHdr->idFrom == IDC_FILELIST)
         {
-            HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
-
             if(lpNmHdr->code == NM_CUSTOMDRAW)
             {
                 LPNMLVCUSTOMDRAW lpNMCustomDraw = (LPNMLVCUSTOMDRAW)lParam;
@@ -1070,6 +1067,52 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 ListView_SortItems(hFileList, ListCtrlCompareProc, &lcss);
             }
         }
+    }
+    else if(uMsg == WM_SIZING)
+    {
+        LPRECT pRect = (LPRECT)lParam;
+        const LONG lWidthLimit = 482;
+        const LONG lHeightLimit = 306;
+
+        if(pRect->right - pRect->left < lWidthLimit)
+        {
+            if(wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT)
+            {
+                pRect->left = pRect->right - lWidthLimit;
+            }
+            else
+            {
+                pRect->right = pRect->left + lWidthLimit;
+            }
+        }
+
+        if(pRect->bottom - pRect->top < lHeightLimit)
+        {
+            if(wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP)
+            {
+                pRect->top = pRect->bottom - lHeightLimit;
+            }
+            else
+            {
+                pRect->bottom = pRect->top + lHeightLimit;
+            }
+        }
+    }
+    else if(uMsg == WM_SIZE)
+    {
+        RECT rectClient;
+
+        GetClientRect(hwndDlg, &rectClient);
+        InflateRect(&rectClient, -9, -9);
+
+        MoveWindow(
+            hFileList,
+            rectClient.left,
+            rectClient.top,
+            rectClient.right - rectClient.left,
+            rectClient.bottom - rectClient.top,
+            TRUE
+            );
     }
     else if(uMsg == WM_SYSCOMMAND)
     {
