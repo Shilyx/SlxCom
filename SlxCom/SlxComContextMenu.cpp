@@ -835,7 +835,8 @@ struct ListCtrlSortStruct
 int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
     ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;
-    TCHAR szText1[1000], szText2[1000];
+    TCHAR szText1[1000] = TEXT("");
+    TCHAR szText2[1000] = TEXT("");
 
     ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(TCHAR));
     ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(TCHAR));
@@ -1008,7 +1009,7 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 }
                 else if(CDDS_ITEMPREPAINT == lpNMCustomDraw->nmcd.dwDrawStage)
                 {
-                    TCHAR szResult[100];
+                    TCHAR szResult[100] = TEXT("");
 
                     ListView_GetItemText(
                         hFileList,
@@ -1065,6 +1066,22 @@ BOOL __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDlg, 
                 }
 
                 ListView_SortItems(hFileList, ListCtrlCompareProc, &lcss);
+            }
+            else if(lpNmHdr->code == NM_DBLCLK)
+            {
+                LPNMITEMACTIVATE lpNmItemActivate = (LPNMITEMACTIVATE)lParam;
+                TCHAR szFilePath[MAX_PATH] = TEXT("");
+
+                ListView_GetItemText(hFileList, lpNmItemActivate->iItem, LVH_PATH, szFilePath, sizeof(szFilePath) / sizeof(TCHAR));
+
+                if(PathFileExists(szFilePath))
+                {
+                    BrowseForFile(szFilePath);
+                }
+                else
+                {
+                    MessageBox(hwndDlg, TEXT("文件不存在，无法定位。"), NULL, MB_ICONERROR);
+                }
             }
         }
     }
