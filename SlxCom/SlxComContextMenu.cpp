@@ -907,7 +907,8 @@ INT_PTR __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDl
 
         if(hIcon != NULL)
         {
-            SetClassLongPtr(hwndDlg, GCLP_HICON, (LONG)hIcon);
+            SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
 
         //设置全选风格
