@@ -110,6 +110,7 @@ IDB_RUNCMDHERE          BITMAP                  "res\\RunCmdHere.bmp"
 IDB_OPENWITHNOTEPAD     BITMAP                  "res\\OpenWithNotepad.bmp"
 IDB_KILLEXPLORER        BITMAP                  "res\\KillExplorer.bmp"
 IDB_CHECKSIGNATURE      BITMAP                  "res\\CheckSignature.bmp"
+IDB_UNESCAPE            BITMAP                  "res\\Unescape.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

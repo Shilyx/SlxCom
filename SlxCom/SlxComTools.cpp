@@ -813,7 +813,7 @@ BOOL IsExplorer()
     return lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
 }
 
-BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szEscapedFilePath[], int nSize)
+BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize)
 {
     BOOL bChanged = FALSE;
 
@@ -822,14 +822,14 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szEscapedFilePath[], int nSiz
         bChanged = FALSE;
     }
 
-    lstrcpyn(szEscapedFilePath, lpFilePath, nSize);
+    lstrcpyn(szUnescapedFilePath, lpFilePath, nSize);
 
     CRegexpT<TCHAR> reg(TEXT(".+?((?<kill>\\(([1-9][0-9]|[1-9])\\))|(?<kill>\\[([1-9][0-9]|[1-9])\\]))\\.[^\\\\:\\n]+"));
     int nGroupKill = reg.GetNamedGroupNumber(TEXT("kill"));
 
     while(TRUE)
     {
-        MatchResult result = reg.MatchExact(szEscapedFilePath);
+        MatchResult result = reg.MatchExact(szUnescapedFilePath);
 
         if(result.IsMatched())
         {
@@ -839,9 +839,9 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szEscapedFilePath[], int nSiz
             if(nGroupBegin >= 0 && nGroupEnd > nGroupBegin)
             {
                 MoveMemory(
-                    szEscapedFilePath + nGroupBegin,
-                    szEscapedFilePath + nGroupEnd,
-                    (lstrlen(szEscapedFilePath + nGroupEnd) + 1) * sizeof(TCHAR)
+                    szUnescapedFilePath + nGroupBegin,
+                    szUnescapedFilePath + nGroupEnd,
+                    (lstrlen(szUnescapedFilePath + nGroupEnd) + 1) * sizeof(TCHAR)
                     );
 
                 bChanged = TRUE;
@@ -854,14 +854,14 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szEscapedFilePath[], int nSiz
     }
 
     TCHAR szTailMark[] = TEXT(".ÖØÃüÃû");
-    int nResultLength = lstrlen(szEscapedFilePath);
+    int nResultLength = lstrlen(szUnescapedFilePath);
     int nMarkLength = lstrlen(szTailMark);
 
     if(nResultLength > nMarkLength)
     {
-        if(lstrcmp(szEscapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
+        if(lstrcmp(szUnescapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
         {
-            *(szEscapedFilePath + nResultLength - nMarkLength) = TEXT('\0');
+            *(szUnescapedFilePath + nResultLength - nMarkLength) = TEXT('\0');
 
             bChanged = TRUE;
         }

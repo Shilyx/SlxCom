@@ -507,6 +507,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\Unescape.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\Uninstall.bmp"
 				>
 			</File>

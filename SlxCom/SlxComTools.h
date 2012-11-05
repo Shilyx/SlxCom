@@ -13,6 +13,6 @@ BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCTSTR lpFile);
 BOOL BrowseForFile(LPCTSTR lpFile);
 BOOL IsExplorer();
-BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szEscapedFilePath[], int nSize);
+BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
 
 #endif

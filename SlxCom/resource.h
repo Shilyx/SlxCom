@@ -21,6 +21,7 @@
 #define IDD_MANUALCHECKSIGNATURE_DIALOG 116
 #define IDB_KILLEXPLORER                117
 #define IDB_CHECKSIGNATURE              118
+#define IDB_UNESCAPE                    119
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003

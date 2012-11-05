@@ -25,6 +25,7 @@ extern HBITMAP g_hRunCmdHereBmp;
 extern HBITMAP g_hOpenWithNotepadBmp;
 extern HBITMAP g_hKillExplorerBmp;
 extern HBITMAP g_hManualCheckSignatureBmp;
+extern HBITMAP g_hUnescapeBmp;
 
 volatile HANDLE CSlxComContextMenu::m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -183,7 +184,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_OPENWITHNOTEPAD      10
 #define ID_KILLEXPLORER         11
 #define ID_MANUALCHECKSIGNATURE 12
-#define ID_13                   13
+#define ID_UNESCAPE             13
 #define ID_14                   14
 #define ID_15                   15
 #define ID_16                   16
@@ -317,6 +318,24 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                 //OpenWithNotepad
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_OPENWITHNOTEPAD, TEXT("用记事本打开"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_OPENWITHNOTEPAD, MF_BYCOMMAND, g_hOpenWithNotepadBmp, g_hOpenWithNotepadBmp);
+
+                //Unescape
+                TCHAR szUnescapedFileName[MAX_PATH];
+
+                if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(TCHAR)))
+                {
+                    TCHAR szCommandText[MAX_PATH + 100];
+
+                    wnsprintf(
+                        szCommandText,
+                        sizeof(szCommandText) / sizeof(TCHAR),
+                        TEXT("重命名为“%s”"),
+                        PathFindFileName(szUnescapedFileName)
+                        );
+
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNESCAPE, szCommandText);
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNESCAPE, MF_BYCOMMAND, g_hUnescapeBmp, g_hUnescapeBmp);
+                }
             }
 
             if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
@@ -396,6 +415,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_MANUALCHECKSIGNATURE)
     {
         lpText = "手动校验选中的文件的数字签名。";
+    }
+    else if(idCmd == ID_UNESCAPE)
+    {
+        lpText = "转化文件名为较合适的形式。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -759,6 +782,58 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                         (LPARAM)pMapPaths
                         );
                 }
+            }
+        }
+
+        break;
+    }
+
+    case ID_UNESCAPE:
+    {
+        TCHAR szUnescapedFileName[MAX_PATH];
+        TCHAR szMsgText[MAX_PATH + 1000];
+
+        if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(TCHAR)))
+        {
+            if(PathFileExists(szUnescapedFileName))
+            {
+                wnsprintf(
+                    szMsgText,
+                    sizeof(szMsgText) / sizeof(TCHAR),
+                    TEXT("“%s”已存在，是否要先删除？"),
+                    szUnescapedFileName
+                    );
+
+                if(IDYES == MessageBox(
+                    pici->hwnd,
+                    szMsgText,
+                    TEXT("请确认"),
+                    MB_ICONQUESTION | MB_YESNOCANCEL
+                    ))
+                {
+                    if(!DeleteFile(szUnescapedFileName))
+                    {
+                        MessageBox(pici->hwnd, TEXT("删除失败。"), NULL, MB_ICONERROR);
+
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if(!MoveFile(m_pFiles[0].szPath, szUnescapedFileName))
+            {
+                wnsprintf(
+                    szMsgText,
+                    sizeof(szMsgText) / sizeof(TCHAR),
+                    TEXT("操作失败。\r\n\r\n错误码：%lu"),
+                    GetLastError()
+                    );
+
+                MessageBox(pici->hwnd, szMsgText, NULL, MB_ICONERROR);
             }
         }
 
