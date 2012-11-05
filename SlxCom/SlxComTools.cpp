@@ -5,6 +5,7 @@
 #include <shlobj.h>
 #include <WinTrust.h>
 #include "resource.h"
+#include "lib/deelx.h"
 
 #pragma comment(lib, "Wintrust.lib")
 
@@ -810,4 +811,61 @@ BOOL IsExplorer()
     GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
 
     return lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
+}
+
+BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szEscapedFilePath[], int nSize)
+{
+    BOOL bChanged = FALSE;
+
+    if(lstrlen(lpFilePath) + 1 > nSize)
+    {
+        bChanged = FALSE;
+    }
+
+    lstrcpyn(szEscapedFilePath, lpFilePath, nSize);
+
+    CRegexpT<TCHAR> reg(TEXT(".+?((?<kill>\\(([1-9][0-9]|[1-9])\\))|(?<kill>\\[([1-9][0-9]|[1-9])\\]))\\.[^\\\\:\\n]+"));
+    int nGroupKill = reg.GetNamedGroupNumber(TEXT("kill"));
+
+    while(TRUE)
+    {
+        MatchResult result = reg.MatchExact(szEscapedFilePath);
+
+        if(result.IsMatched())
+        {
+            int nGroupBegin = result.GetGroupStart(nGroupKill);
+            int nGroupEnd = result.GetGroupEnd(nGroupKill);
+
+            if(nGroupBegin >= 0 && nGroupEnd > nGroupBegin)
+            {
+                MoveMemory(
+                    szEscapedFilePath + nGroupBegin,
+                    szEscapedFilePath + nGroupEnd,
+                    (lstrlen(szEscapedFilePath + nGroupEnd) + 1) * sizeof(TCHAR)
+                    );
+
+                bChanged = TRUE;
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    TCHAR szTailMark[] = TEXT(".ÖØÃüÃû");
+    int nResultLength = lstrlen(szEscapedFilePath);
+    int nMarkLength = lstrlen(szTailMark);
+
+    if(nResultLength > nMarkLength)
+    {
+        if(lstrcmp(szEscapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
+        {
+            *(szEscapedFilePath + nResultLength - nMarkLength) = TEXT('\0');
+
+            bChanged = TRUE;
+        }
+    }
+
+    return bChanged;
 }
