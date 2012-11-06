@@ -1284,7 +1284,7 @@ INT_PTR __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDl
 }
 
 
-void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     map<tstring, HWND> m;
 

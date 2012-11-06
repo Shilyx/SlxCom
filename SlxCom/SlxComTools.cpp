@@ -819,37 +819,62 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
 
     if(lstrlen(lpFilePath) + 1 > nSize)
     {
-        bChanged = FALSE;
+        return bChanged;
     }
 
     lstrcpyn(szUnescapedFilePath, lpFilePath, nSize);
 
-    CRegexpT<TCHAR> reg(TEXT(".+?((?<kill>\\(([1-9][0-9]|[1-9])\\))|(?<kill>\\[([1-9][0-9]|[1-9])\\]))\\.[^\\\\:\\n]+"));
-    int nGroupKill = reg.GetNamedGroupNumber(TEXT("kill"));
+    // win7
+    // (.+?\\)++.+?(?<kill>( \- 副本(( \(([1-9][0-9]{2}|[1-9][0-9]|[1-9])\))|))+)\..+
+    // xp
+    // (.+?\\)++(?<kill>复件( \(([1-9][0-9]|[1-9])\))? )[^\.\\\n]+\.[^\.\\\n]+
+    // 点前加(数字)或[数字]
+    // (.+?\\)++.+?((?<kill>\(([1-9][0-9]|[1-9])\))|(?<kill>\[([1-9][0-9]|[1-9])\]))\..+
+    static CRegexpT<TCHAR> regWin7    (TEXT("(.+?\\\\)++.+?(?<kill>( \\- 副本(( \\(([1-9][0-9]{2}|[1-9][0-9]|[1-9])\\))|))+)\\..+"));
+    static CRegexpT<TCHAR> regXp      (TEXT("(.+?\\\\)++(?<kill>复件( \\(([1-9][0-9]|[1-9])\\))? )[^\\.\\\\\\n]+\\.[^\\.\\\\\\n]+"));
+    static CRegexpT<TCHAR> regDownload(TEXT("(.+?\\\\)++.+?((?<kill>\\(([1-9][0-9]|[1-9])\\))|(?<kill>\\[([1-9][0-9]|[1-9])\\]))\\..+"));
 
-    while(TRUE)
+    static int nGroupKillWin7     = regWin7.    GetNamedGroupNumber(TEXT("kill"));
+    static int nGroupKillXp       = regXp.      GetNamedGroupNumber(TEXT("kill"));
+    static int nGroupKillDownload = regDownload.GetNamedGroupNumber(TEXT("kill"));
+
+    static CRegexpT<TCHAR>* pRegs[] = {
+        &regWin7,
+        &regXp,
+        &regDownload,
+        };
+    static int pGroupKills[] = {
+        nGroupKillWin7,
+        nGroupKillXp,
+        nGroupKillDownload,
+    };
+
+    for(int nIndex = 0; nIndex < sizeof(pRegs) / sizeof(pRegs[0]); nIndex += 1)
     {
-        MatchResult result = reg.MatchExact(szUnescapedFilePath);
-
-        if(result.IsMatched())
+        while(TRUE)
         {
-            int nGroupBegin = result.GetGroupStart(nGroupKill);
-            int nGroupEnd = result.GetGroupEnd(nGroupKill);
+            MatchResult result = pRegs[nIndex]->Match(szUnescapedFilePath);
 
-            if(nGroupBegin >= 0 && nGroupEnd > nGroupBegin)
+            if(result.IsMatched())
             {
-                MoveMemory(
-                    szUnescapedFilePath + nGroupBegin,
-                    szUnescapedFilePath + nGroupEnd,
-                    (lstrlen(szUnescapedFilePath + nGroupEnd) + 1) * sizeof(TCHAR)
-                    );
+                int nGroupBegin = result.GetGroupStart(pGroupKills[nIndex]);
+                int nGroupEnd = result.GetGroupEnd(pGroupKills[nIndex]);
 
-                bChanged = TRUE;
+                if(nGroupBegin >= 0 && nGroupEnd > nGroupBegin)
+                {
+                    MoveMemory(
+                        szUnescapedFilePath + nGroupBegin,
+                        szUnescapedFilePath + nGroupEnd,
+                        (lstrlen(szUnescapedFilePath + nGroupEnd) + 1) * sizeof(TCHAR)
+                        );
+
+                    bChanged = TRUE;
+                }
             }
-        }
-        else
-        {
-            break;
+            else
+            {
+                break;
+            }
         }
     }
 
@@ -868,4 +893,36 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
     }
 
     return bChanged;
+}
+
+void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+{
+    const TCHAR *sz[] = {
+        TEXT("D:\\桌面\\新建文件夹\\复件 aaa.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 a(88).aa.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 aa[5].a.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本 (10).txt"),
+        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本 (8).txt"),
+        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本 (7) - 副本.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 (14) aa a.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 (14) aaa.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 (15) aa a.txt"),
+        TEXT("D:\\桌面\\新建(8).文件夹\\复件 (15) aaa.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 (16) aa a.txt"),
+        TEXT("D:\\桌面\\新建文件夹\\复件 (26) aaa.txt"),
+    };
+    TCHAR szO[MAX_PATH];
+
+    for(int nIndex = 0; nIndex < sizeof(sz) / sizeof(sz[0]); nIndex += 1)
+    {
+        if(TryUnescapeFileName(sz[nIndex], szO, MAX_PATH))
+        {
+            TCHAR szText[1000];
+
+            wsprintf(szText, TEXT("%lu %s -> %s\r\n"), nIndex, sz[nIndex], szO);
+
+            OutputDebugString(szText);
+        }
+    }
 }
