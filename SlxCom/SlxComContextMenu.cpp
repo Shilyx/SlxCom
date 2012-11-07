@@ -691,7 +691,15 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         GetEnvironmentVariable(TEXT("ComSpec"), szCommand, MAX_PATH);
 
         lstrcat(szCommand, TEXT(" /k pushd "));
-        lstrcat(szCommand, m_pFiles[0].szPath);
+
+        if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+        {
+            GetShortPathName(m_pFiles[0].szPath, szCommand + lstrlen(szCommand), MAX_PATH);
+        }
+        else
+        {
+            lstrcat(szCommand, m_pFiles[0].szPath);
+        }
 
         RunCommand(szCommand, NULL);
 
