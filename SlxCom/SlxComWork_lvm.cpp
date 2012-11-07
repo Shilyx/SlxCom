@@ -19,6 +19,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
             if(GetWindowText(hEdit, szText, MAX_PATH) == nLength)
             {
+                BOOL bToPost = FALSE;
                 LPCTSTR lpMark = TEXT(".tar.gz");
                 LONG_PTR nIndex = nLength;
                 LONG_PTR nMarkLength = lstrlen(lpMark);
@@ -28,6 +29,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                     if(lstrcmpi(szText + nLength - nMarkLength, lpMark) == 0)
                     {
                         nIndex = nLength - nMarkLength;
+                        bToPost = TRUE;
                     }
                 }
 
@@ -37,6 +39,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                     {
                         if(szText[nIndex] == TEXT('.'))
                         {
+                            bToPost = TRUE;
                             break;
                         }
 
@@ -44,7 +47,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                     }
                 }
 
-                if(nIndex != nLength)
+                if(bToPost)
                 {
                     PostMessage(hEdit, EM_SETSEL, 0, nIndex);
                 }
