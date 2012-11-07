@@ -14,5 +14,6 @@ BOOL RunCommandWithArguments(LPCTSTR lpFile);
 BOOL BrowseForFile(LPCTSTR lpFile);
 BOOL IsExplorer();
 BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
+BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize);
 
 #endif

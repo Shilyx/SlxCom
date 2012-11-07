@@ -675,11 +675,14 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_RUNCMDHERE:
     {
-        TCHAR szCommand[MAX_PATH] = TEXT("");
+        TCHAR szCommand[MAX_PATH * 2] = TEXT("");
 
         GetEnvironmentVariable(TEXT("ComSpec"), szCommand, MAX_PATH);
 
-        RunCommand(szCommand, m_pFiles[0].szPath);
+        lstrcat(szCommand, TEXT(" /k pushd "));
+        lstrcat(szCommand, m_pFiles[0].szPath);
+
+        RunCommand(szCommand, NULL);
 
         break;
     }
@@ -1283,6 +1286,21 @@ INT_PTR __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDl
     return bDlgProcResult;
 }
 
+void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+{
+    TCHAR szLinkFilePath[MAX_PATH];
+    TCHAR szTargetFilePath[MAX_PATH];
+
+    CoInitialize(NULL);
+
+    wnsprintf(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(TCHAR), TEXT("%hs"), lpszCmdLine);
+    PathUnquoteSpaces(szLinkFilePath);
+
+    if(ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(TCHAR)))
+    {
+        BrowseForFile(szTargetFilePath);
+    }
+}
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {

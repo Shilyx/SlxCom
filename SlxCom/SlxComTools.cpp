@@ -895,6 +895,41 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
     return bChanged;
 }
 
+BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize)
+{
+    WCHAR szLinkFilePath[MAX_PATH];
+    IShellLink *pShellLink = NULL;
+    IPersistFile *pPersistFile = NULL;
+    WIN32_FIND_DATA wfd;
+    BOOL bResult = FALSE;
+
+    if(PathFileExists(lpLinkFilePath))
+    {
+#ifdef UNICODE
+        wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%s", lpLinkFilePath);
+#else
+        wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%S", lpLinkFilePath);
+#endif
+
+        if(SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&pShellLink)))
+        {
+            if(SUCCEEDED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile)))
+            {
+                if(SUCCEEDED(pPersistFile->Load(szLinkFilePath, STGM_READ)))
+                {
+                    bResult = SUCCEEDED(pShellLink->GetPath(szResolvedPath, nSize, &wfd, 0));
+                }
+
+                pPersistFile->Release();
+            }
+
+            pShellLink->Release();
+        }
+    }
+
+    return bResult;
+} 
+
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {
