@@ -49,9 +49,11 @@ protected:
     FileInfo *m_pFiles;
     UINT m_uFileCount;
 
-    static volatile HANDLE m_hManualCheckSignatureThread;
+    BOOL ConvertToShortPaths();
 
+    static volatile HANDLE m_hManualCheckSignatureThread;
     static DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam);
+
 public:
     static INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

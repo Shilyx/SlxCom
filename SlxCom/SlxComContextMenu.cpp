@@ -440,6 +440,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         return E_INVALIDARG;
     }
 
+    if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+    {
+        ConvertToShortPaths();
+    }
+
     switch(LOWORD(pici->lpVerb))
     {
     case ID_REGISTER:
@@ -615,19 +620,6 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_COPYFULLPATH:
     {
-        UINT uFileIndex = 0;
-
-        if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
-        {
-            TCHAR szFilePathTemp[MAX_PATH];
-
-            for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
-            {
-                GetShortPathName(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
-                lstrcpyn(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
-            }
-        }
-
         if(m_uFileCount == 1)
         {
             SetClipboardText(m_pFiles[0].szPath);
@@ -638,9 +630,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
             if(szText != NULL)
             {
+                UINT uFileIndex = 0;
+
                 szText[0] = TEXT('\0');
 
-                for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
+                for(; uFileIndex < m_uFileCount; uFileIndex += 1)
                 {
                     lstrcat(szText, m_pFiles[uFileIndex].szPath);
                     lstrcat(szText, TEXT("\r\n"));
@@ -691,15 +685,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         GetEnvironmentVariable(TEXT("ComSpec"), szCommand, MAX_PATH);
 
         lstrcat(szCommand, TEXT(" /k pushd "));
-
-        if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
-        {
-            GetShortPathName(m_pFiles[0].szPath, szCommand + lstrlen(szCommand), MAX_PATH);
-        }
-        else
-        {
-            lstrcat(szCommand, m_pFiles[0].szPath);
-        }
+        lstrcat(szCommand, m_pFiles[0].szPath);
 
         RunCommand(szCommand, NULL);
 
@@ -1303,6 +1289,19 @@ INT_PTR __stdcall CSlxComContextMenu::ManualCheckSignatureDialogProc(HWND hwndDl
     }
 
     return bDlgProcResult;
+}
+
+BOOL CSlxComContextMenu::ConvertToShortPaths()
+{
+    TCHAR szFilePathTemp[MAX_PATH];
+
+    for(UINT uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
+    {
+        GetShortPathName(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
+        lstrcpyn(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
+    }
+
+    return TRUE;
 }
 
 void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
