@@ -181,6 +181,44 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 
+VOID ConfigBrowserLinkFilePosition(BOOL bInstall)
+{
+    OSVERSIONINFO osi = {sizeof(osi)};
+
+    GetVersionEx(&osi);
+
+    if(osi.dwMajorVersion <= 5)
+    {
+        if(bInstall)
+        {
+            TCHAR szCommand[MAX_PATH + 100];
+            TCHAR szDllPath[MAX_PATH];
+
+            GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
+
+            wnsprintf(
+                szCommand,
+                sizeof(szCommand) / sizeof(TCHAR),
+                TEXT("rundll32 \"%s\" BrowserLinkFilePosition \"%%1\""),
+                szDllPath
+                );
+
+            SHSetValue(
+                HKEY_CLASSES_ROOT,
+                TEXT("lnkfile\\shell\\打开文件位置(&B)\\command"),
+                NULL,
+                REG_SZ,
+                szCommand,
+                (lstrlen(szCommand) + 1) * sizeof(TCHAR)
+                );
+        }
+        else
+        {
+            SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("lnkfile\\shell\\打开文件位置(&B)"));
+        }
+    }
+}
+
 STDAPI DllRegisterServer(void)
 {
     TCHAR *szGuid = NULL;
@@ -229,6 +267,8 @@ STDAPI DllRegisterServer(void)
         RpcStringFree(&szGuid);
     }
 
+    ConfigBrowserLinkFilePosition(TRUE);
+
     return S_OK;
 }
 
@@ -275,6 +315,8 @@ STDAPI DllUnregisterServer(void)
 
         RpcStringFree(&szGuid);
     }
+
+    ConfigBrowserLinkFilePosition(FALSE);
 
     return S_OK;
 }
