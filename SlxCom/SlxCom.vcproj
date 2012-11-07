@@ -139,10 +139,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="2"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos;"
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				TargetMachine="17"
 			/>
@@ -244,6 +246,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.pdb ..\Bin\ 1&gt;nul"
 			/>
 		</Configuration>
 		<Configuration
@@ -293,11 +296,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="1"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos;"
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -323,6 +328,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.pdb ..\Bin\ 1&gt;nul"
 			/>
 		</Configuration>
 	</Configurations>
