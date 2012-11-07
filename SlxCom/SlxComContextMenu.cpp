@@ -615,6 +615,19 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_COPYFULLPATH:
     {
+        UINT uFileIndex = 0;
+
+        if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+        {
+            TCHAR szFilePathTemp[MAX_PATH];
+
+            for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
+            {
+                GetShortPathName(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
+                lstrcpyn(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
+            }
+        }
+
         if(m_uFileCount == 1)
         {
             SetClipboardText(m_pFiles[0].szPath);
@@ -625,11 +638,9 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
             if(szText != NULL)
             {
-                UINT uFileIndex = 0;
-
                 szText[0] = TEXT('\0');
 
-                for(; uFileIndex < m_uFileCount; uFileIndex += 1)
+                for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
                 {
                     lstrcat(szText, m_pFiles[uFileIndex].szPath);
                     lstrcat(szText, TEXT("\r\n"));
