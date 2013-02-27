@@ -355,159 +355,159 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
     return FALSE;
 }
 
-UINT GetDropEffectFormat()
-{
-    static UINT uDropEffect = RegisterClipboardFormat(TEXT("Preferred DropEffect"));
-
-    return uDropEffect;
-}
-
-LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount)
-{
-    TCHAR *szFiles = NULL;
-
-    if(puFileCount != NULL)
-    {
-        *puFileCount = 0;
-    }
-
-    if(pdwEffect != NULL)
-    {
-        *pdwEffect = 0;
-
-        if(OpenClipboard(NULL))
-        {
-            if(IsClipboardFormatAvailable(GetDropEffectFormat()) && IsClipboardFormatAvailable(CF_HDROP))
-            {
-                HGLOBAL hGlobalEffect = GetClipboardData(GetDropEffectFormat());
-                HGLOBAL hGlobalDrop = GetClipboardData(CF_HDROP);
-
-                if(hGlobalEffect != NULL && hGlobalDrop != NULL)
-                {
-                    LPCVOID lpBuffer = (LPCVOID)GlobalLock(hGlobalEffect);
-
-                    if(lpBuffer != NULL)
-                    {
-                        *pdwEffect = *(DWORD *)lpBuffer;
-
-                        GlobalUnlock(hGlobalEffect);
-                    }
-
-                    if((*pdwEffect & DROPEFFECT_COPY) || (*pdwEffect & DROPEFFECT_MOVE))
-                    {
-                        HDROP hDrop = (HDROP)GlobalLock(hGlobalDrop);
-
-                        if(hDrop != NULL)
-                        {
-                            UINT uCount = DragQueryFile(hDrop, 0xffffffff, NULL, 0);
-
-                            if(puFileCount != NULL)
-                            {
-                                *puFileCount = uCount;
-                            }
-
-                            if(uCount > 0)
-                            {
-                                UINT uOffset = 0;
-                                szFiles = new TCHAR[MAX_PATH * uCount];
-
-                                if(szFiles != NULL)
-                                {
-                                    ZeroMemory(szFiles, MAX_PATH * uCount);
-
-                                    for(UINT uIndex = 0; uIndex < uCount; uIndex += 1)
-                                    {
-                                        uOffset += DragQueryFile(hDrop, uIndex, szFiles + uOffset, MAX_PATH) + 1;
-                                    }
-                                }
-                            }
-
-                            GlobalUnlock(hGlobalDrop);
-                        }
-                    }
-                }
-            }
-
-            CloseClipboard();
-        }
-    }
-
-    return szFiles;
-}
-
-BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy)
-{
-    DWORD dwBufferSize = 0;
-
-    while(true)
-    {
-        if(lpFileList[dwBufferSize] == TEXT('\0') && lpFileList[dwBufferSize + 1] == TEXT('\0'))
-        {
-            dwBufferSize += 2;
-            break;
-        }
-
-        dwBufferSize += 1;
-    }
-
-    dwBufferSize *= sizeof(TCHAR);
-    dwBufferSize += sizeof(DROPFILES);
-
-    char *lpBufferAll = new char[dwBufferSize];
-
-    if(lpBufferAll != NULL)
-    {
-        DROPFILES *pDropFiles = (DROPFILES *)lpBufferAll;
-
-        pDropFiles->fNC = FALSE;
-        pDropFiles->pt.x = 0;
-        pDropFiles->pt.y = 0;
-        pDropFiles->fWide = TRUE;
-        pDropFiles->pFiles = sizeof(DROPFILES);
-
-        memcpy(lpBufferAll + sizeof(DROPFILES), lpFileList, dwBufferSize - sizeof(DROPFILES));
-
-        HGLOBAL hGblFiles = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, dwBufferSize);
-
-        if(hGblFiles != NULL)
-        {
-            LPSTR lpGblData = (char *)GlobalLock(hGblFiles);
-
-            if(lpGblData != NULL)
-            {
-                memcpy(lpGblData, lpBufferAll, dwBufferSize);
-                GlobalUnlock(hGblFiles);
-            }
-        }
-
-        HGLOBAL hGblEffect = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, sizeof(DWORD));
-
-        if(hGblEffect != NULL)
-        {
-            DWORD *pEffect = (DWORD *)GlobalLock(hGblEffect);
-
-            if(pEffect != NULL)
-            {
-                *pEffect = bCopy ? DROPEFFECT_COPY : DROPEFFECT_MOVE;
-                GlobalUnlock(hGblEffect);
-            }
-        }
-
-        if(OpenClipboard(NULL))
-        {
-            EmptyClipboard();
-
-            SetClipboardData(CF_HDROP, hGblFiles);
-            SetClipboardData(GetDropEffectFormat(), hGblEffect);
-
-            CloseClipboard();
-        }
-
-        delete []lpBufferAll;
-    }
-
-    return TRUE;
-}
+// UINT GetDropEffectFormat()
+// {
+//     static UINT uDropEffect = RegisterClipboardFormat(TEXT("Preferred DropEffect"));
+// 
+//     return uDropEffect;
+// }
+// 
+// LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount)
+// {
+//     TCHAR *szFiles = NULL;
+// 
+//     if(puFileCount != NULL)
+//     {
+//         *puFileCount = 0;
+//     }
+// 
+//     if(pdwEffect != NULL)
+//     {
+//         *pdwEffect = 0;
+// 
+//         if(OpenClipboard(NULL))
+//         {
+//             if(IsClipboardFormatAvailable(GetDropEffectFormat()) && IsClipboardFormatAvailable(CF_HDROP))
+//             {
+//                 HGLOBAL hGlobalEffect = GetClipboardData(GetDropEffectFormat());
+//                 HGLOBAL hGlobalDrop = GetClipboardData(CF_HDROP);
+// 
+//                 if(hGlobalEffect != NULL && hGlobalDrop != NULL)
+//                 {
+//                     LPCVOID lpBuffer = (LPCVOID)GlobalLock(hGlobalEffect);
+// 
+//                     if(lpBuffer != NULL)
+//                     {
+//                         *pdwEffect = *(DWORD *)lpBuffer;
+// 
+//                         GlobalUnlock(hGlobalEffect);
+//                     }
+// 
+//                     if((*pdwEffect & DROPEFFECT_COPY) || (*pdwEffect & DROPEFFECT_MOVE))
+//                     {
+//                         HDROP hDrop = (HDROP)GlobalLock(hGlobalDrop);
+// 
+//                         if(hDrop != NULL)
+//                         {
+//                             UINT uCount = DragQueryFile(hDrop, 0xffffffff, NULL, 0);
+// 
+//                             if(puFileCount != NULL)
+//                             {
+//                                 *puFileCount = uCount;
+//                             }
+// 
+//                             if(uCount > 0)
+//                             {
+//                                 UINT uOffset = 0;
+//                                 szFiles = new TCHAR[MAX_PATH * uCount];
+// 
+//                                 if(szFiles != NULL)
+//                                 {
+//                                     ZeroMemory(szFiles, MAX_PATH * uCount);
+// 
+//                                     for(UINT uIndex = 0; uIndex < uCount; uIndex += 1)
+//                                     {
+//                                         uOffset += DragQueryFile(hDrop, uIndex, szFiles + uOffset, MAX_PATH) + 1;
+//                                     }
+//                                 }
+//                             }
+// 
+//                             GlobalUnlock(hGlobalDrop);
+//                         }
+//                     }
+//                 }
+//             }
+// 
+//             CloseClipboard();
+//         }
+//     }
+// 
+//     return szFiles;
+// }
+// 
+// BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy)
+// {
+//     DWORD dwBufferSize = 0;
+// 
+//     while(true)
+//     {
+//         if(lpFileList[dwBufferSize] == TEXT('\0') && lpFileList[dwBufferSize + 1] == TEXT('\0'))
+//         {
+//             dwBufferSize += 2;
+//             break;
+//         }
+// 
+//         dwBufferSize += 1;
+//     }
+// 
+//     dwBufferSize *= sizeof(TCHAR);
+//     dwBufferSize += sizeof(DROPFILES);
+// 
+//     char *lpBufferAll = new char[dwBufferSize];
+// 
+//     if(lpBufferAll != NULL)
+//     {
+//         DROPFILES *pDropFiles = (DROPFILES *)lpBufferAll;
+// 
+//         pDropFiles->fNC = FALSE;
+//         pDropFiles->pt.x = 0;
+//         pDropFiles->pt.y = 0;
+//         pDropFiles->fWide = TRUE;
+//         pDropFiles->pFiles = sizeof(DROPFILES);
+// 
+//         memcpy(lpBufferAll + sizeof(DROPFILES), lpFileList, dwBufferSize - sizeof(DROPFILES));
+// 
+//         HGLOBAL hGblFiles = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, dwBufferSize);
+// 
+//         if(hGblFiles != NULL)
+//         {
+//             LPSTR lpGblData = (char *)GlobalLock(hGblFiles);
+// 
+//             if(lpGblData != NULL)
+//             {
+//                 memcpy(lpGblData, lpBufferAll, dwBufferSize);
+//                 GlobalUnlock(hGblFiles);
+//             }
+//         }
+// 
+//         HGLOBAL hGblEffect = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, sizeof(DWORD));
+// 
+//         if(hGblEffect != NULL)
+//         {
+//             DWORD *pEffect = (DWORD *)GlobalLock(hGblEffect);
+// 
+//             if(pEffect != NULL)
+//             {
+//                 *pEffect = bCopy ? DROPEFFECT_COPY : DROPEFFECT_MOVE;
+//                 GlobalUnlock(hGblEffect);
+//             }
+//         }
+// 
+//         if(OpenClipboard(NULL))
+//         {
+//             EmptyClipboard();
+// 
+//             SetClipboardData(CF_HDROP, hGblFiles);
+//             SetClipboardData(GetDropEffectFormat(), hGblEffect);
+// 
+//             CloseClipboard();
+//         }
+// 
+//         delete []lpBufferAll;
+//     }
+// 
+//     return TRUE;
+// }
 
 BOOL SetClipboardText(LPCTSTR lpText)
 {

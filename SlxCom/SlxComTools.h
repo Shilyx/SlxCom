@@ -15,6 +15,6 @@ BOOL BrowseForFile(LPCTSTR lpFile);
 BOOL IsExplorer();
 BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
 BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize);
-BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy);
+// BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy);
 
 #endif

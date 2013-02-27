@@ -176,8 +176,8 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_UNREGISTER           2
 #define ID_COMBINE              3
 #define ID_COPYFULLPATH         4
-#define ID_ADDTOCOPY            5
-#define ID_ADDTOCUT             6
+#define ID_ID5                  5
+#define ID_ID6                  6
 #define ID_TRYRUN               7
 #define ID_TRYRUNWITHARGUMENTS  8
 #define ID_RUNCMDHERE           9
@@ -231,26 +231,6 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     //CopyFilePath
     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整路径"));
     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
-
-    //add copy or cut files
-    DWORD dwEffect = 0;
-    LPCTSTR lpCbFiles = GetClipboardFiles(&dwEffect);
-
-    if(lpCbFiles != NULL)
-    {
-        delete [](TCHAR *)lpCbFiles;
-    }
-
-    if(dwEffect & DROPEFFECT_COPY)
-    {
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_ADDTOCOPY, TEXT("添加到复制列表"));
-        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_ADDTOCOPY, MF_BYCOMMAND, g_hAddToCopyBmp, g_hAddToCopyBmp);
-    }
-    else if(dwEffect & DROPEFFECT_MOVE)
-    {
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_ADDTOCUT, TEXT("添加到剪切列表"));
-        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_ADDTOCUT, MF_BYCOMMAND, g_hAddToCutBmp, g_hAddToCutBmp);
-    }
 
     //Dll Register
     if(bExistDll)
@@ -384,13 +364,13 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     {
         lpText = "复制选中的文件或文件夹的完整路径到剪贴板。";
     }
-    else if(idCmd == ID_ADDTOCOPY)
+    else if(idCmd == ID_ID5)
     {
-        lpText = "将文件添加到已复制文件列表。";
+        lpText = "";
     }
-    else if(idCmd == ID_ADDTOCUT)
+    else if(idCmd == ID_ID6)
     {
-        lpText = "将文件添加到已剪切文件列表。";
+        lpText = "";
     }
     else if(idCmd == ID_TRYRUN)
     {
@@ -601,78 +581,9 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         break;
     }
 
-    case ID_ADDTOCOPY:
-    case ID_ADDTOCUT:
-    {
-        DWORD dwEffect = 0;
-        UINT uFileCount = 0;
-
-        LPCTSTR lpClipboardFiles = GetClipboardFiles(&dwEffect, &uFileCount);
-
-        if(lpClipboardFiles != NULL)
-        {
-            IStream *pStream = NULL;
-
-            if (S_OK == CreateStreamOnHGlobal(NULL, TRUE, &pStream))
-            {
-                HGLOBAL hGlobal = NULL;
-
-                if (S_OK == GetHGlobalFromStream(pStream, &hGlobal))
-                {
-                    LPCTSTR lpFiles = lpClipboardFiles;
-                    while (TRUE)
-                    {
-                        int nCount = lstrlen(lpFiles);
-
-                        if (nCount == 0)
-                        {
-                            break;
-                        }
-
-                        nCount += 1;
-                        lpFiles += nCount;
-                        pStream->Write(lpFiles, nCount * sizeof(TCHAR), NULL);
-                    }
-
-                    DWORD dwFileIndex = 0;
-                    while (dwFileIndex < m_uFileCount)
-                    {
-                        int nCount = lstrlen(m_pFiles[dwFileIndex].szPath);
-
-                        if (nCount == 0)
-                        {
-                            break;
-                        }
-
-                        nCount += 1;
-                        pStream->Write(lpFiles, nCount * sizeof(TCHAR), NULL);
-
-                        dwFileIndex += 1;
-                    }
-
-                    pStream->Write(TEXT(""), sizeof(TCHAR), NULL);
-
-                    STATSTG stat;
-
-                    if (S_OK == pStream->Stat(&stat, STATFLAG_NONAME))
-                    {
-                        LPCTSTR lpFiles = (LPCTSTR)GlobalLock(hGlobal);
-
-                        if (lpFiles != NULL)
-                        {
-                            RegisterClipboardFile(lpFiles, LOWORD(pici->lpVerb) == ID_ADDTOCOPY);
-                        }
-                    }
-                }
-
-                pStream->Release();
-            }
-
-            delete []lpClipboardFiles;
-        }
-
+    case ID_ID5:
+    case ID_ID6:
         break;
-    }
 
     case ID_COPYFULLPATH:
     {
