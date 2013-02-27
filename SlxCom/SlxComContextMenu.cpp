@@ -606,15 +606,71 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     {
         DWORD dwEffect = 0;
         UINT uFileCount = 0;
-        LPCTSTR lpFiles = GetClipboardFiles(&dwEffect, &uFileCount);
-        TCHAR *szFiles = NULL;
 
-        if(lpFiles != NULL)
+        LPCTSTR lpClipboardFiles = GetClipboardFiles(&dwEffect, &uFileCount);
+
+        if(lpClipboardFiles != NULL)
         {
+            IStream *pStream = NULL;
 
+            if (S_OK == CreateStreamOnHGlobal(NULL, TRUE, &pStream))
+            {
+                HGLOBAL hGlobal = NULL;
+
+                if (S_OK == GetHGlobalFromStream(pStream, &hGlobal))
+                {
+                    LPCTSTR lpFiles = lpClipboardFiles;
+                    while (TRUE)
+                    {
+                        int nCount = lstrlen(lpFiles);
+
+                        if (nCount == 0)
+                        {
+                            break;
+                        }
+
+                        nCount += 1;
+                        lpFiles += nCount;
+                        pStream->Write(lpFiles, nCount * sizeof(TCHAR), NULL);
+                    }
+
+                    DWORD dwFileIndex = 0;
+                    while (dwFileIndex < m_uFileCount)
+                    {
+                        int nCount = lstrlen(m_pFiles[dwFileIndex].szPath);
+
+                        if (nCount == 0)
+                        {
+                            break;
+                        }
+
+                        nCount += 1;
+                        pStream->Write(lpFiles, nCount * sizeof(TCHAR), NULL);
+
+                        dwFileIndex += 1;
+                    }
+
+                    pStream->Write(TEXT(""), sizeof(TCHAR), NULL);
+
+                    STATSTG stat;
+
+                    if (S_OK == pStream->Stat(&stat, STATFLAG_NONAME))
+                    {
+                        LPCTSTR lpFiles = (LPCTSTR)GlobalLock(hGlobal);
+
+                        if (lpFiles != NULL)
+                        {
+                            RegisterClipboardFile(lpFiles, LOWORD(pici->lpVerb) == ID_ADDTOCOPY);
+                        }
+                    }
+                }
+
+                pStream->Release();
+            }
+
+            delete []lpClipboardFiles;
         }
 
-        MessageBox(pici->hwnd, TEXT("ID_ADDTOCUT"), NULL, MB_TOPMOST);
         break;
     }
 
@@ -1320,7 +1376,7 @@ void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCST
     }
 }
 
-void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     map<tstring, HWND> m;
 
@@ -1332,6 +1388,46 @@ void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nC
     m[TEXT("aaaaaa1aa1")] = 0;
     m[TEXT("aaaaaa1aa2")] = 0;
     m[TEXT("aaaaaa1aa3")] = 0;
+
+//     IStream *pStream = NULL;
+// 
+//     if (S_OK == CreateStreamOnHGlobal(NULL, TRUE, &pStream))
+//     {
+//         HGLOBAL hGlobal = NULL;
+// 
+//         if (S_OK == GetHGlobalFromStream(pStream, &hGlobal))
+//         {
+//             while (TRUE)
+//             {
+//                 pStream->Write("AAAAAAAAAAAAAAAAAAAAAA", 10, NULL);
+// 
+//                 LPVOID lpBuffer = GlobalLock(hGlobal);
+// 
+//                 OutputDebugString(NULL);
+//             }
+//         }
+// 
+//         pStream->Release();
+//     }
+
+    OPENFILENAME ofn = {sizeof(ofn)};
+
+    ofn.hInstance = GetModuleHandle(NULL);
+
+    ofn.lStructSize = sizeof(OPENFILENAME); 
+    ofn.hwndOwner = NULL; 
+    ofn.lpstrFile = NULL; 
+    ofn.nMaxFile = 10000; 
+    ofn.lpstrFilter = TEXT("All/0*.*/0Text/0*.TXT/0"); 
+    ofn.nFilterIndex = 1; 
+    ofn.lpstrFileTitle = NULL; 
+    ofn.nMaxFileTitle = 0; 
+    ofn.lpstrInitialDir = NULL; 
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST; 
+
+    // Display the Open dialog box.  
+
+    GetOpenFileName(&ofn);
 
     DialogBoxParam(
         g_hinstDll,
