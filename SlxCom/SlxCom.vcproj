@@ -95,7 +95,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -246,12 +246,12 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.pdb ..\Bin\ 1&gt;nul"
+				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.pdb ..\Bin\ 1&gt;nul&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -328,7 +328,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.pdb ..\Bin\ 1&gt;nul"
+				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.pdb ..\Bin\ 1&gt;nul&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
