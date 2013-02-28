@@ -91,6 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -168,6 +169,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -246,7 +248,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\Release\SlxCom.pdb ..\Bin\ 1&gt;nul&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -328,7 +330,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="md ..\Bin 2&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.dll ..\Bin\ 1&gt;nul&#x0D;&#x0A;copy /y ..\x64\Release\SlxCom64.pdb ..\Bin\ 1&gt;nul&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
