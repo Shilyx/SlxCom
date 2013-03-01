@@ -111,6 +111,7 @@ IDB_OPENWITHNOTEPAD     BITMAP                  "res\\OpenWithNotepad.bmp"
 IDB_KILLEXPLORER        BITMAP                  "res\\KillExplorer.bmp"
 IDB_CHECKSIGNATURE      BITMAP                  "res\\CheckSignature.bmp"
 IDB_UNESCAPE            BITMAP                  "res\\Unescape.bmp"
+IDB_APPPATH             BITMAP                  "res\\AppPath.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -150,6 +151,19 @@ BEGIN
     CONTROL         "",IDC_FILELIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,302,167
 END
 
+IDD_APPPATH DIALOGEX 0, 0, 258, 78
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "已知程序路径"
+FONT 9, "宋体", 400, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_KEY,51,34,199,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "确定(&S)",IDOK,139,57,50,14
+    PUSHBUTTON      "取消(&C)",IDCANCEL,200,57,50,14
+    EDITTEXT        IDC_FILE,51,10,199,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "路径：",-1,7,13,41,8,0,WS_EX_RIGHT
+    LTEXT           "快捷短语：",-1,7,37,41,8,0,WS_EX_RIGHT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -181,6 +195,14 @@ BEGIN
         RIGHTMARGIN, 309
         TOPMARGIN, 7
         BOTTOMMARGIN, 174
+    END
+
+    IDD_APPPATH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 250
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 71
     END
 END
 #endif    // APSTUDIO_INVOKED

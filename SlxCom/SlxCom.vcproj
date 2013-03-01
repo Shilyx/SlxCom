@@ -455,6 +455,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\AppPath.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\CheckSignature.bmp"
 				>
 			</File>

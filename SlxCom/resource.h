@@ -20,11 +20,14 @@
 #define IDB_OPENWITHNOTEPAD             116
 #define IDD_MANUALCHECKSIGNATURE_DIALOG 116
 #define IDB_KILLEXPLORER                117
+#define IDD_APPPATH                     117
 #define IDB_CHECKSIGNATURE              118
 #define IDB_UNESCAPE                    119
+#define IDB_APPPATH                     120
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
+#define IDC_KEY                         1003
 #define IDC_CANCEL                      1004
 #define IDC_ENABLE_OVERLAYICON          1005
 #define IDC_ASYNC_OVERLAYICON           1006
@@ -34,7 +37,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        117
+#define _APS_NEXT_RESOURCE_VALUE        118
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101

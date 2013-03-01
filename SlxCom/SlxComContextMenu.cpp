@@ -26,6 +26,7 @@ extern HBITMAP g_hOpenWithNotepadBmp;
 extern HBITMAP g_hKillExplorerBmp;
 extern HBITMAP g_hManualCheckSignatureBmp;
 extern HBITMAP g_hUnescapeBmp;
+extern HBITMAP g_hAppPathBmp;
 
 volatile HANDLE CSlxComContextMenu::m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -176,7 +177,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_UNREGISTER           2
 #define ID_COMBINE              3
 #define ID_COPYFULLPATH         4
-#define ID_ID5                  5
+#define ID_APPPATH              5
 #define ID_ID6                  6
 #define ID_TRYRUN               7
 #define ID_TRYRUNWITHARGUMENTS  8
@@ -202,6 +203,8 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     {
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
     }
+
+    BOOL bShiftDown = GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0;
 
     //Check Dll And File
     BOOL bExistDll = FALSE;
@@ -278,7 +281,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         {
             if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
             {
-                if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+                if(bShiftDown)
                 {
                     HMENU hPopupMenu = CreatePopupMenu();
 
@@ -319,6 +322,32 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNESCAPE, szCommandText);
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNESCAPE, MF_BYCOMMAND, g_hUnescapeBmp, g_hUnescapeBmp);
                 }
+
+                //App path
+                TCHAR szCommandInReg[MAX_PATH] = TEXT("");
+
+                ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, sizeof(szCommandInReg) / sizeof(TCHAR));
+
+                if (bShiftDown ||
+                    lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".exe")) == 0 ||
+                    lstrlen(szCommandInReg) > 0
+                    )
+                {
+                    TCHAR szMenuText[MAX_PATH + 1000] = TEXT("添加快捷短语");
+
+                    if (lstrlen(szCommandInReg) > 0)
+                    {
+                        wnsprintf(
+                            szMenuText,
+                            sizeof(szMenuText) / sizeof(TCHAR),
+                            TEXT("修改快捷短语“%s”"),
+                            szCommandInReg
+                            );
+                    }
+
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_APPPATH, szMenuText);
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_APPPATH, MF_BYCOMMAND, g_hAppPathBmp, g_hAppPathBmp);
+                }
             }
 
             if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
@@ -330,7 +359,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
-    if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+    if(bShiftDown)
     {
         //结束Explorer
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_KILLEXPLORER, TEXT("结束Explorer进程"));
@@ -367,9 +396,9 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     {
         lpText = "复制选中的文件或文件夹的完整路径到剪贴板。";
     }
-    else if(idCmd == ID_ID5)
+    else if(idCmd == ID_APPPATH)
     {
-        lpText = "";
+        lpText = "维护在“运行”对话框中快速启动的条目。";
     }
     else if(idCmd == ID_ID6)
     {
@@ -584,7 +613,10 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         break;
     }
 
-    case ID_ID5:
+    case ID_APPPATH:
+        ModifyAppPath(m_pFiles[0].szPath);
+        break;
+
     case ID_ID6:
         break;
 
@@ -1292,6 +1324,9 @@ void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCST
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
+    ModifyAppPath(TEXT("D:\\Administrator\\Desktop\\身份证背面.jpg"));
+    return;
+
     map<tstring, HWND> m;
 
     m[TEXT("aaaaaaaaaa")] = 0;

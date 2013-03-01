@@ -29,6 +29,7 @@ HBITMAP g_hOpenWithNotepadBmp = NULL;
 HBITMAP g_hKillExplorerBmp = NULL;
 HBITMAP g_hManualCheckSignatureBmp = NULL;
 HBITMAP g_hUnescapeBmp = NULL;
+HBITMAP g_hAppPathBmp = NULL;
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
@@ -145,6 +146,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_hKillExplorerBmp          = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_KILLEXPLORER));
         g_hManualCheckSignatureBmp  = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_CHECKSIGNATURE));
         g_hUnescapeBmp              = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNESCAPE));
+        g_hAppPathBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_APPPATH));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);
