@@ -1084,6 +1084,121 @@ BOOL ModifyAppPath(LPCTSTR lpFilePath)
     return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_APPPATH), NULL, ModifyAppPathProc, (LPARAM)lpFilePath);
 }
 
+VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode)
+{
+    LPTSTR lpMessage = NULL;
+    TCHAR szMessage[2000];
+    UINT uType = MB_ICONERROR;
+
+    FormatMessage(  
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dwErrorCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR)&lpMessage,
+        0,
+        NULL
+        );
+
+    if (lpMessage != NULL)
+    {
+        wnsprintf(
+            szMessage,
+            sizeof(szMessage) / sizeof(TCHAR),
+            TEXT("错误码：%lu\r\n\r\n参考意义：%s"),
+            dwErrorCode,
+            lpMessage
+            );
+
+        LocalFree(lpMessage);
+    }
+
+    if (dwErrorCode == 0)
+    {
+        uType = MB_ICONINFORMATION;
+    }
+
+    MessageBox(hWindow, szMessage, TEXT("信息"), uType);
+}
+
+VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
+{
+    if (daValue != DA_INSTALL   &&
+        daValue != DA_UNINSTALL &&
+        daValue != DA_START     &&
+        daValue != DA_STOP
+        )
+    {
+        return;
+    }
+
+    SC_HANDLE hService = NULL;
+    SC_HANDLE hScManager = OpenSCManager(NULL, NULL, GENERIC_READ | GENERIC_WRITE);
+
+    if (hScManager == NULL)
+    {
+        return;
+    }
+
+    TCHAR szServiceName[MAX_PATH] = TEXT("");
+
+    lstrcpyn(szServiceName, PathFindFileName(lpFilePath), sizeof(szServiceName) / sizeof(TCHAR));
+    PathRemoveExtension(szServiceName);
+
+    if (daValue == DA_INSTALL)
+    {
+        TCHAR szImagePath[MAX_PATH * 4] = TEXT("\\??\\");
+
+        StrCatBuff(szImagePath, lpFilePath, sizeof(szImagePath) / sizeof(TCHAR));
+
+        hService = CreateService(
+            hScManager,
+            szServiceName,
+            szServiceName,
+            SERVICE_START | SERVICE_QUERY_STATUS | SERVICE_QUERY_CONFIG | SERVICE_CHANGE_CONFIG,
+            SERVICE_KERNEL_DRIVER,
+            SERVICE_DEMAND_START,
+            SERVICE_ERROR_IGNORE,
+            szImagePath,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL
+            );
+    }
+    else
+    {
+        hService = OpenService(hScManager, szServiceName, SERVICE_ALL_ACCESS);
+
+        if (hService != NULL)
+        {
+            if (daValue == DA_UNINSTALL)
+            {
+                DeleteService(hService);
+            }
+            else if (daValue == DA_START)
+            {
+                StartService(hService, 0, NULL);
+            }
+            else if (daValue == DA_STOP)
+            {
+                SERVICE_STATUS status;
+                ControlService(hService, SERVICE_CONTROL_STOP, &status);
+            }
+        }
+    }
+
+    ShowErrorMessage(hWindow, GetLastError());
+
+    if (hService != NULL)
+    {
+        CloseServiceHandle(hService);
+    }
+
+    CloseServiceHandle(hScManager);
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {

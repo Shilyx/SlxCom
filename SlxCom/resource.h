@@ -24,6 +24,8 @@
 #define IDB_CHECKSIGNATURE              118
 #define IDB_UNESCAPE                    119
 #define IDB_APPPATH                     120
+#define IDB_ADDTOCOPY1                  121
+#define IDB_DRIVER                      121
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003

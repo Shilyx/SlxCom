@@ -27,6 +27,7 @@ extern HBITMAP g_hKillExplorerBmp;
 extern HBITMAP g_hManualCheckSignatureBmp;
 extern HBITMAP g_hUnescapeBmp;
 extern HBITMAP g_hAppPathBmp;
+extern HBITMAP g_hDriverBmp;
 
 volatile HANDLE CSlxComContextMenu::m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -186,10 +187,10 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_KILLEXPLORER         11
 #define ID_MANUALCHECKSIGNATURE 12
 #define ID_UNESCAPE             13
-#define ID_14                   14
-#define ID_15                   15
-#define ID_16                   16
-#define ID_17                   17
+#define ID_DRV_INSTALL          14
+#define ID_DRV_START            15
+#define ID_DRV_STOP             16
+#define ID_DRV_UNINSTALL        17
 #define ID_18                   18
 #define IDCOUNT                 19
 
@@ -347,6 +348,25 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
                     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_APPPATH, szMenuText);
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_APPPATH, MF_BYCOMMAND, g_hAppPathBmp, g_hAppPathBmp);
+                }
+
+                //Driver
+                if (bShiftDown &&
+                    lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".dll")) == 0 ||
+                    lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".sys")) == 0
+                    )
+                {
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_INSTALL, TEXT("驱动程序-安装"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_INSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_START, TEXT("驱动程序-启动"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_START, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_STOP, TEXT("驱动程序-停止"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_STOP, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_UNINSTALL, TEXT("驱动程序-卸载"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_UNINSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
                 }
             }
 
@@ -850,6 +870,22 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         break;
     }
 
+    case ID_DRV_INSTALL:
+        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_INSTALL);
+        break;
+
+    case ID_DRV_START:
+        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_START);
+        break;
+
+    case ID_DRV_STOP:
+        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_STOP);
+        break;
+
+    case ID_DRV_UNINSTALL:
+        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_UNINSTALL);
+        break;
+
     default:
         return E_INVALIDARG;
     }
@@ -1324,7 +1360,7 @@ void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCST
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    ModifyAppPath(TEXT("D:\\Administrator\\Desktop\\身份证背面.jpg"));
+    DrvAction(hwndStub, TEXT("D:\\Administrator\\Desktop\\Tools\\InstDrv\\MySYS.sys"), DA_INSTALL);
     return;
 
     map<tstring, HWND> m;

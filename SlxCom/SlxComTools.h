@@ -3,6 +3,15 @@
 
 #include <Windows.h>
 
+enum DRIVER_ACTION
+{
+    DA_INSTALL,
+    DA_START,
+    DA_STOP,
+    DA_UNINSTALL,
+};
+
+VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue);
 DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData);
 BOOL IsFileSigned(LPCTSTR lpFilePath);
 BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int nLength);
