@@ -1199,6 +1199,122 @@ VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
     CloseServiceHandle(hScManager);
 }
 
+int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...)
+{
+    TCHAR szText[2000];
+    va_list val;
+
+    va_start(val, lpFormat);
+    wvnsprintf(szText, sizeof(szText) / sizeof(TCHAR), lpFormat, val);
+    va_end(val);
+
+    return MessageBox(hWindow, szText, lpCaption, uType);
+}
+
+// BOOL Reg2Bat(HWND hWindow, LPCTSTR lpRegFilePath)
+// {
+//     BOOL bResult = FALSE;
+//     TCHAR szRegFilePath[MAX_PATH];
+//     TCHAR szBatFilePath[MAX_PATH];
+//     DWORD dwFileIndex = 1;
+// 
+//     lstrcpyn(szRegFilePath, lpRegFilePath, sizeof(szRegFilePath) / sizeof(TCHAR));
+//     PathRemoveExtension(szRegFilePath);
+//     lstrcpyn(szBatFilePath, szRegFilePath, sizeof(szBatFilePath) / sizeof(TCHAR));
+//     StrCatBuff(szBatFilePath, TEXT(".bat"), sizeof(szBatFilePath) / sizeof(TCHAR));
+// 
+//     while (PathFileExists(szBatFilePath))
+//     {
+//         wnsprintf(
+//             szBatFilePath,
+//             sizeof(szBatFilePath) / sizeof(TCHAR),
+//             TEXT("%s (%lu).bat"),
+//             szRegFilePath,
+//             dwFileIndex++
+//             );
+//     }
+// 
+//     char szBatFileHeader[1000];
+//     SYSTEMTIME st;
+// 
+//     GetLocalTime(&st);
+//     wnsprintfA(
+//         szBatFileHeader,
+//         sizeof(szBatFileHeader),
+//         "@echo off\r\n"
+//         "rem Made by SlxCom.dll %04u-%02u-%02u %02u:%02u:%02u.%03u\r\n"
+//         "set tmpfile=%%tmp%%\\__slxcomdll_reg2bat_%%random%%_%lu.reg\r\n"
+//         "del %%tmpfile%% 2>nul\r\n"
+//         "for /F \"skip=11 tokens=*\" %%%%i in (%%~fs0) do echo %%%%i>>%%tmpfile%%\r\n"
+//         "regedit /s %%tmpfile%%\r\n"
+//         "echo 完成导入，按任意键退出...\r\n"
+//         "pause>nul\r\n"
+//         "del %%tmpfile%% 2>nul\r\n"
+//         "goto :EOF\r\n"
+//         "\r\n",
+//         st.wYear,
+//         st.wMonth,
+//         st.wDay,
+//         st.wHour,
+//         st.wMinute,
+//         st.wSecond,
+//         st.wMilliseconds
+//         );
+// 
+//     IStream *pRegStream = NULL;
+//     IStream *pBatStream = NULL;
+// 
+//     if (S_OK == SHCreateStreamOnFile(lpRegFilePath, STGM_READ | STGM_SHARE_DENY_WRITE, &pRegStream))
+//     {
+//         if (S_OK == SHCreateStreamOnFile(szBatFilePath, STGM_WRITE | STGM_SHARE_DENY_WRITE | STGM_CREATE, &pBatStream))
+//         {
+//             STATSTG stat;
+// 
+//             if (S_OK == pRegStream->Stat(&stat, STATFLAG_NONAME) &&
+//                 S_OK == pBatStream->Write(szBatFileHeader, lstrlenA(szBatFileHeader), NULL) &&
+//                 S_OK == pRegStream->CopyTo(pBatStream, stat.cbSize, NULL, NULL)
+//             )
+//             {
+//                 MessageBoxFormat(
+//                     hWindow,
+//                     TEXT("信息"),
+//                     MB_ICONINFORMATION,
+//                     TEXT("转化成功，批处理文件保存为“%s”。"),
+//                     szBatFilePath
+//                     );
+// 
+//                 bResult = TRUE;
+//             }
+// 
+//             pBatStream->Release();
+//         }
+//         else
+//         {
+//             MessageBoxFormat(
+//                 hWindow,
+//                 NULL,
+//                 MB_ICONERROR,
+//                 TEXT("打开输出文件“%s”错误。"),
+//                 szBatFilePath
+//                 );
+//         }
+// 
+//         pRegStream->Release();
+//     }
+//     else
+//     {
+//         MessageBoxFormat(
+//             hWindow,
+//             NULL,
+//             MB_ICONERROR,
+//             TEXT("打开源文件“%s”错误。"),
+//             lpRegFilePath
+//             );
+//     }
+// 
+//     return bResult;
+// }
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {
