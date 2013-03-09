@@ -1057,6 +1057,22 @@ int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpForm
     return MessageBox(hWindow, szText, lpCaption, uType);
 }
 
+void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+{
+    TCHAR szLinkFilePath[MAX_PATH];
+    TCHAR szTargetFilePath[MAX_PATH];
+
+    CoInitialize(NULL);
+
+    wnsprintf(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(TCHAR), TEXT("%hs"), lpszCmdLine);
+    PathUnquoteSpaces(szLinkFilePath);
+
+    if(ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(TCHAR)))
+    {
+        BrowseForFile(szTargetFilePath);
+    }
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {

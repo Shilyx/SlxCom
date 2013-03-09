@@ -443,10 +443,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\res\addtocop.bmp"
-				>
-			</File>
-			<File
 				RelativePath=".\res\AddToCopy.bmp"
 				>
 			</File>
@@ -479,10 +475,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\res\icon1.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\res\Install.bmp"
 				>
 			</File>
@@ -512,10 +504,6 @@
 			</File>
 			<File
 				RelativePath=".\res\TryRun.bmp"
-				>
-			</File>
-			<File
-				RelativePath=".\res\tryrun1.bmp"
 				>
 			</File>
 			<File
