@@ -383,6 +383,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxManualCheckSignature.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxStringStatusCache.cpp"
 				>
 			</File>

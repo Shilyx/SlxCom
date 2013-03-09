@@ -8,6 +8,7 @@
 class CSlxComOverlay : public IShellIconOverlayIdentifier
 {
     friend class CSlxComContextMenu;
+    friend DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam);
 
 public:
     CSlxComOverlay();

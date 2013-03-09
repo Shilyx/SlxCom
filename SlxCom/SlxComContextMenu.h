@@ -50,12 +50,6 @@ protected:
     UINT m_uFileCount;
 
     BOOL ConvertToShortPaths();
-
-    static volatile HANDLE m_hManualCheckSignatureThread;
-    static DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam);
-
-public:
-    static INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
 
 #endif
