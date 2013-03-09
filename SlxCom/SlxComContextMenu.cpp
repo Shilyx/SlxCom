@@ -6,6 +6,7 @@
 #include "SlxComTools.h"
 #include "resource.h"
 #include "SlxString.h"
+#include "SlxManualCheckSignature.h"
 #pragma warning(disable: 4786)
 #include <map>
 
@@ -804,8 +805,6 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 }
                 else
                 {
-                    extern INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
                     DialogBoxParam(
                         g_hinstDll,
                         MAKEINTRESOURCE(IDD_MANUALCHECKSIGNATURE_DIALOG),
