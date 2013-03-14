@@ -16,50 +16,41 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 #define CMD_REFRESH         1
 #define CMD_CLOSE           2
 
-VOID RefreshHandles(HWND hwndDlg, HWND hHandleList)
+#define WM_REFRESH_VIEW     (WM_USER + 112)
+
+BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
 {
-    ListView_DeleteAllItems(hHandleList);
+    BOOL bResult = FALSE;
+    HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessId);
 
-    DWORD dwCount = 0;
-    FileHandleInfo *pHandles = GetFileHandleInfos(&dwCount);
-
-    if (pHandles != NULL)
+    if (hProcess != NULL)
     {
-        DWORD dwHandleIndex = 0;
-        TCHAR szTargetFilePath[MAX_PATH] = TEXT("");
+        HANDLE hLocalHandle = NULL;
 
-        GetDlgItemText(hwndDlg, IDC_FILEPATH, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(TCHAR));
-
-        for (; dwHandleIndex < dwCount; dwHandleIndex += 1)
+        if (DuplicateHandle(
+            hProcess,
+            hRemoteHandle,
+            GetCurrentProcess(),
+            &hLocalHandle,
+            0,
+            FALSE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE
+            ))
         {
-            if (lstrcmpi(szTargetFilePath, pHandles[dwHandleIndex].szFilePath) == 0)
-            {
-                DWORD dwItemIndex = ListView_GetItemCount(hHandleList);
-                TCHAR szText[1000];
-                LV_ITEM item = {LVIF_TEXT};
-
-                item.pszText = szText;
-
-                item.iItem = dwItemIndex;
-                wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), dwItemIndex + 1);
-                ListView_InsertItem(hHandleList, &item);
-
-                wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), pHandles[dwHandleIndex].dwProcessId);
-                ListView_SetItemText(hHandleList, dwItemIndex, LVH_PROCESSID, szText);
-
-                ListView_SetItemText(hHandleList, dwItemIndex, LVH_PROCESSIMAGE, pHandles[dwHandleIndex].szFilePath);
-
-                wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%#x"), pHandles[dwHandleIndex].hFile);
-                ListView_SetItemText(hHandleList, dwItemIndex, LVH_HANDLEVALUE, szText);
-            }
+            bResult = TRUE;
+            CloseHandle(hLocalHandle);
         }
 
-        FreeFileHandleInfos(pHandles);
+        CloseHandle(hProcess);
     }
+
+    return bResult;
 }
 
 INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    LPCTSTR lpPropHandles = TEXT("Handles");
+    LPCTSTR lpPropCount = TEXT("Count");
+
     if (uMsg == WM_INITDIALOG)
     {
         SetDlgItemText(hwndDlg, IDC_FILEPATH, (LPCTSTR)lParam);
@@ -104,11 +95,133 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
 
         if (LOWORD(wParam) == CMD_REFRESH)
         {
-            RefreshHandles(hwndDlg, hHandleList);
+            DWORD dwCount = 0;
+            FileHandleInfo *pHandles = GetFileHandleInfos(&dwCount);
+            FileHandleInfo *pLastHandles = (FileHandleInfo *)GetProp(hwndDlg, lpPropHandles);
+            DWORD dwLastCount = (DWORD)GetProp(hwndDlg, lpPropCount);
+
+            if (pLastHandles != NULL)
+            {
+                FreeFileHandleInfos(pLastHandles);
+            }
+
+            SetProp(hwndDlg, lpPropHandles, (HANDLE)pHandles);
+            SetProp(hwndDlg, lpPropCount, (HANDLE)dwCount);
+
+            PostMessage(hwndDlg, WM_REFRESH_VIEW, 0, 0);
         }
         else if (LOWORD(wParam) == CMD_CLOSE)
         {
-            MessageBox(hwndDlg, TEXT("CMD_CLOSE"), NULL, 0);
+            DWORD dwSelectCount = ListView_GetSelectedCount(hHandleList);
+            DWORD dwSucceedCount = 0;
+            TCHAR *szErrorInfo = (TCHAR *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwSelectCount * 100 * sizeof(TCHAR));
+
+            if (szErrorInfo != NULL)
+            {
+                LRESULT lResult = ListView_GetNextItem(hHandleList, -1, LVNI_SELECTED);
+
+                while (lResult != -1)
+                {
+                    TCHAR szText[100] = TEXT("");
+                    DWORD dwProcessId = 0;
+                    HANDLE hHandle = NULL;
+
+                    ListView_GetItemText(hHandleList, lResult, LVH_PROCESSID, szText, sizeof(szText) / sizeof(TCHAR));
+                    dwProcessId = StrToInt(szText);
+
+                    ListView_GetItemText(hHandleList, lResult, LVH_HANDLEVALUE, szText, sizeof(szText) / sizeof(TCHAR));
+                    StrToIntEx(szText, STIF_SUPPORT_HEX, (int *)&hHandle);
+
+                    if (CloseRemoteHandle(dwProcessId, hHandle))
+                    {
+                        dwSucceedCount += 1;
+                    }
+                    else
+                    {
+                        wnsprintf(
+                            szErrorInfo + lstrlen(szErrorInfo),
+                            dwSelectCount * 100 - lstrlen(szErrorInfo),
+                            TEXT("进程%lu中的句柄%#x关闭失败\r\n"),
+                            dwProcessId,
+                            hHandle
+                            );
+                    }
+
+                    lResult = ListView_GetNextItem(hHandleList, lResult + 1, LVNI_SELECTED);
+                }
+
+                if (dwSucceedCount == dwSelectCount)
+                {
+                    MessageBoxFormat(
+                        hwndDlg,
+                        TEXT("信息"),
+                        MB_ICONINFORMATION,
+                        TEXT("成功关闭了%lu个句柄。"),
+                        dwSucceedCount
+                        );
+
+                    PostMessage(hwndDlg, WM_REFRESH_VIEW, 0, 0);
+                }
+                else
+                {
+                    MessageBoxFormat(
+                        hwndDlg,
+                        TEXT("信息"),
+                        MB_ICONINFORMATION,
+                        TEXT("成功关闭了%lu个句柄，以下句柄未能成功关闭：\r\n\r\n%s"),
+                        dwSucceedCount,
+                        szErrorInfo
+                        );
+                }
+
+                HeapFree(GetProcessHeap(), 0, szErrorInfo);
+            }
+        }
+        else if (LOWORD(wParam) == IDC_FILTER)
+        {
+            PostMessage(hwndDlg, WM_REFRESH_VIEW, 0, 0);
+        }
+    }
+    else if (uMsg == WM_REFRESH_VIEW)
+    {
+        HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
+
+        ListView_DeleteAllItems(hHandleList);
+
+        FileHandleInfo *pHandles = (FileHandleInfo *)GetProp(hwndDlg, lpPropHandles);
+        DWORD dwCount = (DWORD)GetProp(hwndDlg, lpPropCount);
+        BOOL bFilter = SendDlgItemMessage(hwndDlg, IDC_FILTER, BM_GETCHECK, 0, 0) == BST_CHECKED;
+
+        if (pHandles != NULL)
+        {
+            DWORD dwHandleIndex = 0;
+            TCHAR szTargetFilePath[MAX_PATH] = TEXT("");
+
+            GetDlgItemText(hwndDlg, IDC_FILEPATH, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(TCHAR));
+
+            for (; dwHandleIndex < dwCount; dwHandleIndex += 1)
+            {
+                if (!bFilter || bFilter && lstrcmpi(szTargetFilePath, pHandles[dwHandleIndex].szFilePath) == 0)
+                {
+                    DWORD dwItemIndex = ListView_GetItemCount(hHandleList);
+                    TCHAR szText[1000];
+                    LV_ITEM item = {LVIF_TEXT};
+
+                    item.pszText = szText;
+
+                    item.iItem = dwItemIndex;
+                    wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), dwItemIndex + 1);
+                    ListView_InsertItem(hHandleList, &item);
+
+                    wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), pHandles[dwHandleIndex].dwProcessId);
+                    ListView_SetItemText(hHandleList, dwItemIndex, LVH_PROCESSID, szText);
+
+                    ListView_SetItemText(hHandleList, dwItemIndex, LVH_PROCESSIMAGE, pHandles[dwHandleIndex].szFilePath);
+
+                    wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%#x"), pHandles[dwHandleIndex].hFile);
+                    ListView_SetItemText(hHandleList, dwItemIndex, LVH_HANDLEVALUE, szText);
+                }
+            }
         }
     }
     else if (uMsg == WM_NOTIFY)
@@ -132,7 +245,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
 
                         if (lpNmItemAct->iItem != -1)
                         {
-                            AppendMenu(hPopMenu, MF_STRING, CMD_REFRESH, TEXT("关闭选中的句柄"));
+                            AppendMenu(hPopMenu, MF_STRING, CMD_CLOSE, TEXT("关闭选中的句柄"));
                         }
 
                         AppendMenu(hPopMenu, MF_STRING, CMD_REFRESH, TEXT("刷新句柄列表"));
