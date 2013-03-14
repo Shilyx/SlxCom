@@ -1073,6 +1073,28 @@ void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCST
     }
 }
 
+BOOL EnableDebugPrivilege(BOOL bEnable)
+{
+    BOOL bResult = FALSE;
+    HANDLE hToken;
+
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
+    {
+        TOKEN_PRIVILEGES tp;
+
+        tp.PrivilegeCount = 1;
+        LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid);
+        tp.Privileges[0].Attributes = bEnable ? SE_PRIVILEGE_ENABLED : 0;
+        AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL);
+
+        bResult = GetLastError() == ERROR_SUCCESS;
+
+        CloseHandle(hToken);
+    }
+
+    return bResult;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {

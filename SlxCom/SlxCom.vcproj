@@ -383,11 +383,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxFileHandles.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxManualCheckSignature.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\SlxStringStatusCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxUnlockFile.cpp"
 				>
 			</File>
 		</Filter>
@@ -433,6 +441,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxFileHandles.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxManualCheckSignature.h"
 				>
 			</File>
@@ -442,6 +454,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxStringStatusCache.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxUnlockFile.h"
 				>
 			</File>
 		</Filter>

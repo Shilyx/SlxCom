@@ -28,5 +28,6 @@ BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize)
 BOOL ModifyAppPath(LPCTSTR lpFilePath);
 BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD dwSize);
 int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...);
+BOOL EnableDebugPrivilege(BOOL bEnable);
 
 #endif
