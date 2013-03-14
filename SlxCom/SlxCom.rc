@@ -113,6 +113,7 @@ IDB_CHECKSIGNATURE      BITMAP                  "res\\CheckSignature.bmp"
 IDB_UNESCAPE            BITMAP                  "res\\Unescape.bmp"
 IDB_APPPATH             BITMAP                  "res\\AppPath.bmp"
 IDB_DRIVER              BITMAP                  "res\\Driver.bmp"
+IDB_UNLOCKFILE          BITMAP                  "res\\UnlockFile.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

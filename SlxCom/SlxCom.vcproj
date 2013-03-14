@@ -542,6 +542,10 @@
 				RelativePath=".\res\Uninstall.bmp"
 				>
 			</File>
+			<File
+				RelativePath=".\res\UnlockFile.bmp"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

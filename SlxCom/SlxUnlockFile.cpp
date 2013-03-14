@@ -48,13 +48,29 @@ BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
 
 INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    static HICON hIcon = NULL;
+
     LPCTSTR lpPropHandles = TEXT("Handles");
     LPCTSTR lpPropCount = TEXT("Count");
 
     if (uMsg == WM_INITDIALOG)
     {
+        //设定对话框图标
+        if(hIcon == NULL)
+        {
+            hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+        }
+
+        if(hIcon != NULL)
+        {
+            SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        }
+
+        //
         SetDlgItemText(hwndDlg, IDC_FILEPATH, (LPCTSTR)lParam);
 
+        //
         HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
         ListView_SetExtendedListViewStyleEx(hHandleList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
