@@ -11,6 +11,13 @@ enum DRIVER_ACTION
     DA_UNINSTALL,
 };
 
+struct ListCtrlSortStruct
+{
+    int nRet;
+    HWND hListCtrl;
+    int nSubItem;
+};
+
 VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue);
 DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData);
 BOOL IsFileSigned(LPCTSTR lpFilePath);

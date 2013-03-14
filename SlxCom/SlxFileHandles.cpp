@@ -1,5 +1,6 @@
 #include "SlxFileHandles.h"
 #include <Shlwapi.h>
+#include <TlHelp32.h>
 
 typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemBasicInformation,
@@ -375,6 +376,26 @@ VOID InitDriveSerials(DWORD dwSerials[])
     }
 }
 
+BOOL QueryProcessNameFromSnapshot(HANDLE hSnapshot, DWORD dwProcessId, TCHAR szProcessName[], DWORD dwSize)
+{
+    PROCESSENTRY32 pe32 = {sizeof(pe32)};
+
+    if (Process32First(hSnapshot, &pe32))
+    {
+        do 
+        {
+            if (pe32.th32ProcessID == dwProcessId)
+            {
+                lstrcpyn(szProcessName, pe32.szExeFile, dwSize);
+                return TRUE;
+            }
+
+        } while (Process32Next(hSnapshot, &pe32));
+    }
+
+    return FALSE;
+}
+
 FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
 {
     TCHAR szTempFile[MAX_PATH];
@@ -419,6 +440,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
         return NULL;
     }
 
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     FileHandleInfo *pResult = NULL;
     *pCount = 0;
 
@@ -474,6 +496,20 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
                                     pResult[*pCount - 1].dwProcessId = pHandles->aSH[uIndex].uIdProcess;
                                     pResult[*pCount - 1].hFile = (HANDLE)pHandles->aSH[uIndex].Handle;
                                     lstrcpyn(pResult[*pCount - 1].szFilePath, threadParam.szFilePath, sizeof(pResult[*pCount - 1].szFilePath) / sizeof(TCHAR));
+
+                                    if (!QueryProcessNameFromSnapshot(
+                                        hSnapshot,
+                                        pResult[*pCount - 1].dwProcessId,
+                                        pResult[*pCount - 1].szProcessName,
+                                        sizeof(pResult[*pCount - 1].szProcessName) / sizeof(TCHAR)
+                                        ))
+                                    {
+                                        lstrcpyn(
+                                            pResult[*pCount - 1].szProcessName,
+                                            TEXT(""),
+                                            sizeof(pResult[*pCount - 1].szProcessName) / sizeof(TCHAR)
+                                            );
+                                    }
                                 }
                             }
                             else
@@ -489,6 +525,11 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
                 }
             }
         }
+    }
+
+    if (hSnapshot != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(hSnapshot);
     }
 
     CloseHandle(hTempFile);

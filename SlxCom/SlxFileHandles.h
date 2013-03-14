@@ -8,6 +8,7 @@ struct FileHandleInfo
     DWORD               dwProcessId;
     HANDLE              hFile;
     TCHAR               szFilePath[MAX_PATH];
+    TCHAR               szProcessName[MAX_PATH];
 };
 
 FileHandleInfo *GetFileHandleInfos(DWORD *pCount);

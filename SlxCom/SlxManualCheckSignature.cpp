@@ -81,14 +81,7 @@ DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam)
 #define LVH_PATH        1
 #define LVH_RESULT      2
 
-struct ListCtrlSortStruct
-{
-    int nRet;
-    HWND hListCtrl;
-    int nSubItem;
-};
-
-int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
     ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;
     TCHAR szText1[1000] = TEXT("");
