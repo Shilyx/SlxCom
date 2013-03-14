@@ -380,10 +380,10 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
             }
 
             if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
-                (dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0 && (bShiftDown || IsFileDenyed())
+                (dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0 && (bShiftDown || IsFileDenyed(m_pFiles[0].szPath)))
             {
                 //UnlockFile
-                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("解锁文件夹"));
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("查看锁定情况"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNLOCKFILE, MF_BYCOMMAND, g_hUnlockFileBmp, g_hUnlockFileBmp);
             }
         }
@@ -647,8 +647,51 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         ModifyAppPath(m_pFiles[0].szPath);
         break;
 
-    case ID_ID6:
+    case ID_UNLOCKFILE:
+    {
+        TCHAR szDllPath[MAX_PATH];
+        TCHAR szCommand[MAX_PATH * 2];
+        STARTUPINFO si = {sizeof(si)};
+        PROCESS_INFORMATION pi;
+
+        GetModuleFileName(g_hinstDll, szDllPath, sizeof(szDllPath) / sizeof(TCHAR));
+        wnsprintf(
+            szCommand,
+            sizeof(szCommand) / sizeof(TCHAR),
+            TEXT("rundll32.exe \"%s\" UnlockFileFromPath %s"),
+            szDllPath,
+            m_pFiles[0].szPath
+            );
+
+        if (CreateProcess(
+            NULL,
+            szCommand,
+            NULL,
+            NULL,
+            FALSE,
+            0,
+            NULL,
+            NULL,
+            &si,
+            &pi
+            ))
+        {
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+        }
+        else
+        {
+            MessageBoxFormat(
+                pici->hwnd,
+                NULL,
+                MB_ICONERROR,
+                TEXT("启动外部程序失败，命令行：\r\n\r\n%s"),
+                szCommand
+                );
+        }
+
         break;
+    }
 
     case ID_COPYFULLPATH:
     {
