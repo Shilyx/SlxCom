@@ -29,6 +29,7 @@ extern HBITMAP g_hManualCheckSignatureBmp;
 extern HBITMAP g_hUnescapeBmp;
 extern HBITMAP g_hAppPathBmp;
 extern HBITMAP g_hDriverBmp;
+extern HBITMAP g_hUnlockFileBmp;
 
 volatile HANDLE m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -180,7 +181,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_COMBINE              3
 #define ID_COPYFULLPATH         4
 #define ID_APPPATH              5
-#define ID_ID6                  6
+#define ID_UNLOCKFILE           6
 #define ID_TRYRUN               7
 #define ID_TRYRUNWITHARGUMENTS  8
 #define ID_RUNCMDHERE           9
@@ -377,6 +378,14 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
             }
+
+            if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
+                (dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0 && (bShiftDown || IsFileDenyed())
+            {
+                //UnlockFile
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("解锁文件夹"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNLOCKFILE, MF_BYCOMMAND, g_hUnlockFileBmp, g_hUnlockFileBmp);
+            }
         }
     }
 
@@ -421,9 +430,9 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     {
         lpText = "维护在“运行”对话框中快速启动的条目。";
     }
-    else if(idCmd == ID_ID6)
+    else if(idCmd == ID_UNLOCKFILE)
     {
-        lpText = "";
+        lpText = "查看文件夹或文件是否锁定和解除这些锁定。";
     }
     else if(idCmd == ID_TRYRUN)
     {

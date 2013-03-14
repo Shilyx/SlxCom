@@ -242,7 +242,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
                         dwSucceedCount
                         );
 
-                    PostMessage(hwndDlg, WM_REFRESH_VIEW, 0, 0);
+                    PostMessage(hwndDlg, WM_COMMAND, MAKELONG(CMD_REFRESH, 0), 0);
                 }
                 else
                 {

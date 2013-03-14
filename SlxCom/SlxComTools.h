@@ -36,5 +36,6 @@ BOOL ModifyAppPath(LPCTSTR lpFilePath);
 BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD dwSize);
 int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...);
 BOOL EnableDebugPrivilege(BOOL bEnable);
+BOOL IsFileDenyed(LPCTSTR lpFilePath);
 
 #endif

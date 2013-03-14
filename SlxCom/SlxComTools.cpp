@@ -1095,6 +1095,19 @@ BOOL EnableDebugPrivilege(BOOL bEnable)
     return bResult;
 }
 
+BOOL IsFileDenyed(LPCTSTR lpFilePath)
+{
+    HANDLE hFile = CreateFile(lpFilePath, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+    DWORD dwLastError = GetLastError();
+
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(hFile);
+    }
+
+    return dwLastError == ERROR_SHARING_VIOLATION;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {
