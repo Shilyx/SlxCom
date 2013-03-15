@@ -65,7 +65,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="2"
-				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos;"
+				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -76,6 +76,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -142,7 +143,7 @@
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="2"
-				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos;"
+				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -154,6 +155,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -220,7 +222,7 @@
 				Name="VCLinkerTool"
 				LinkIncremental="1"
 				GenerateManifest="true"
-				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos;"
+				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -233,6 +235,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -301,7 +304,7 @@
 				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="1"
 				GenerateManifest="true"
-				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos;"
+				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -315,6 +318,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
