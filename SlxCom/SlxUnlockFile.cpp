@@ -302,7 +302,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
 
             for (; dwHandleIndex < dwCount; dwHandleIndex += 1)
             {
-                if (!bFilter || bFilter && lstrcmpi(szTargetFilePath, pHandles[dwHandleIndex].szFilePath) == 0)
+                if (!bFilter || bFilter && IsSameFilePath(szTargetFilePath, pHandles[dwHandleIndex].szFilePath))
                 {
                     DWORD dwItemIndex = ListView_GetItemCount(hHandleList);
                     TCHAR szText[1000];

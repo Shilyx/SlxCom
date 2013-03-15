@@ -1136,6 +1136,29 @@ BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
     return bResult;
 }
 
+BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2)
+{
+    TCHAR szFilePath1[MAX_PATH];
+    TCHAR szFilePath2[MAX_PATH];
+    TCHAR szLongFilePath1[MAX_PATH];
+    TCHAR szLongFilePath2[MAX_PATH];
+
+    lstrcpyn(szFilePath1, lpFilePath1, sizeof(szFilePath1) / sizeof(TCHAR));
+    lstrcpyn(szFilePath2, lpFilePath2, sizeof(szFilePath2) / sizeof(TCHAR));
+
+    if (0 == GetLongPathName(szFilePath1, szLongFilePath1, sizeof(szLongFilePath1) / sizeof(TCHAR)))
+    {
+        lstrcpyn(szLongFilePath1, lpFilePath1, sizeof(szLongFilePath1) / sizeof(TCHAR));
+    }
+
+    if (0 == GetLongPathName(szFilePath2, szLongFilePath2, sizeof(szLongFilePath2) / sizeof(TCHAR)))
+    {
+        lstrcpyn(szLongFilePath2, lpFilePath2, sizeof(szLongFilePath2) / sizeof(TCHAR));
+    }
+
+    return lstrcmpi(szLongFilePath1, szLongFilePath2) == 0;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {

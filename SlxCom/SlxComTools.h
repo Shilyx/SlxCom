@@ -38,5 +38,6 @@ int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpForm
 BOOL EnableDebugPrivilege(BOOL bEnable);
 BOOL IsFileDenyed(LPCTSTR lpFilePath);
 BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle);
+BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2);
 
 #endif
