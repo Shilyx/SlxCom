@@ -37,5 +37,6 @@ BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD d
 int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...);
 BOOL EnableDebugPrivilege(BOOL bEnable);
 BOOL IsFileDenyed(LPCTSTR lpFilePath);
+BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle);
 
 #endif

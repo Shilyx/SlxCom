@@ -23,34 +23,6 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
 #define DLGWND_CAPTION      TEXT("文件锁定情况")
 
-BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
-{
-    BOOL bResult = FALSE;
-    HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessId);
-
-    if (hProcess != NULL)
-    {
-        HANDLE hLocalHandle = NULL;
-
-        if (DuplicateHandle(
-            hProcess,
-            hRemoteHandle,
-            GetCurrentProcess(),
-            &hLocalHandle,
-            0,
-            FALSE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE
-            ))
-        {
-            bResult = TRUE;
-            CloseHandle(hLocalHandle);
-        }
-
-        CloseHandle(hProcess);
-    }
-
-    return bResult;
-}
-
 static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
     ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;

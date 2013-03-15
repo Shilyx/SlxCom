@@ -1108,6 +1108,34 @@ BOOL IsFileDenyed(LPCTSTR lpFilePath)
     return dwLastError == ERROR_SHARING_VIOLATION;
 }
 
+BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
+{
+    BOOL bResult = FALSE;
+    HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessId);
+
+    if (hProcess != NULL)
+    {
+        HANDLE hLocalHandle = NULL;
+
+        if (DuplicateHandle(
+            hProcess,
+            hRemoteHandle,
+            GetCurrentProcess(),
+            &hLocalHandle,
+            0,
+            FALSE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE
+            ))
+        {
+            bResult = TRUE;
+            CloseHandle(hLocalHandle);
+        }
+
+        CloseHandle(hProcess);
+    }
+
+    return bResult;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {
