@@ -253,7 +253,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
                             );
                     }
 
-                    lResult = ListView_GetNextItem(hHandleList, lResult + 1, LVNI_SELECTED);
+                    lResult = ListView_GetNextItem(hHandleList, lResult, LVNI_SELECTED);
                 }
 
                 if (dwSucceedCount == dwSelectCount)
@@ -361,6 +361,21 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
                     }
 
                     ListView_SortItems(hHandleList, ListCtrlCompareProc, &lcss);
+                }
+                else if (lpNmHdr->code == NM_DBLCLK)
+                {
+                    LPNMITEMACTIVATE lpNmItemAct = (LPNMITEMACTIVATE)lParam;
+                    int nIndex = ListView_GetSelectionMark(hHandleList);
+
+                    if (nIndex != -1)
+                    {
+                        TCHAR szFilePath[MAX_PATH] = TEXT("");
+
+                        ListView_GetItemText(hHandleList, lpNmItemAct->iItem, LVH_FILEPATH, szFilePath, sizeof(szFilePath) / sizeof(TCHAR));
+
+                        BrowseForFile(szFilePath);
+                    }
+                    
                 }
                 else if (lpNmHdr->code == NM_RCLICK)
                 {

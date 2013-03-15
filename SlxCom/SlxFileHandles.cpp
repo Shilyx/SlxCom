@@ -302,15 +302,18 @@ DWORD __stdcall QueryFileNameProc(LPVOID lpParam)
 
     if (GetFileInformationByHandle(pThreadParam->hDubHandle, &bhfi))
     {
-        unsigned char ucDriveIndex = 0;
-
-        for (; ucDriveIndex < sizeof(pThreadParam->dwSerials) / sizeof(DWORD); ucDriveIndex += 1)
+        if (bhfi.dwVolumeSerialNumber != 0 && bhfi.dwVolumeSerialNumber != -1)
         {
-            if (bhfi.dwVolumeSerialNumber == pThreadParam->dwSerials[ucDriveIndex])
+            unsigned char ucDriveIndex = 0;
+
+            for (; ucDriveIndex < sizeof(pThreadParam->dwSerials) / sizeof(DWORD); ucDriveIndex += 1)
             {
-                chDriveLetter += ucDriveIndex;
-                bDriveLetterSucceed = TRUE;
-                break;
+                if (bhfi.dwVolumeSerialNumber == pThreadParam->dwSerials[ucDriveIndex])
+                {
+                    chDriveLetter += ucDriveIndex;
+                    bDriveLetterSucceed = TRUE;
+                    break;
+                }
             }
         }
     }

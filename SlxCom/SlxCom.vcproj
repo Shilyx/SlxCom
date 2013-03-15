@@ -460,10 +460,6 @@
 				RelativePath=".\SlxStringStatusCache.h"
 				>
 			</File>
-			<File
-				RelativePath=".\SlxUnlockFile.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="资源文件"
