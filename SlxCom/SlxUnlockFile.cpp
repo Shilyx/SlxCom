@@ -18,7 +18,10 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 #define CMD_CLOSE           2
 #define CMD_FILTER          3
 
-#define WM_REFRESH_VIEW     (WM_USER + 112)
+#define WM_REVIEW           (WM_USER + 112)
+#define WM_REFRESH_COMPLETE (WM_USER + 113)
+
+#define DLGWND_CAPTION      TEXT("文件锁定情况")
 
 BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
 {
@@ -102,15 +105,47 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     }
 }
 
+static DWORD __stdcall RefreshThread(LPVOID lpParam)
+{
+    HWND hwndDlg = (HWND)lpParam;
+
+    DWORD dwCount = 0;
+    FileHandleInfo *pHandles = GetFileHandleInfos(&dwCount);
+
+    if (IsWindow(hwndDlg))
+    {
+        PostMessage(hwndDlg, WM_REFRESH_COMPLETE, dwCount, (LPARAM)pHandles);
+    }
+
+    return 0;
+}
+
 INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HICON hIcon = NULL;
-    static BOOL bFilter = FALSE;
+    static BOOL bFilter = TRUE;
+    static BOOL bRefreshing = FALSE;
 
     LPCTSTR lpPropHandles = TEXT("Handles");
     LPCTSTR lpPropCount = TEXT("Count");
 
-    if (uMsg == WM_INITDIALOG)
+    if (uMsg == WM_TIMER)
+    {
+        if (wParam == 1)
+        {
+            if (bRefreshing)
+            {
+                static DWORD dwTimerIndex = 0;
+                TCHAR szCaption[1000] = DLGWND_CAPTION TEXT(" - 正在刷新....");
+
+                dwTimerIndex += 1;
+
+                szCaption[lstrlen(szCaption) - 3 + dwTimerIndex % 4] = TEXT('\0');
+                SetWindowText(hwndDlg, szCaption);
+            }
+        }
+    }
+    else if (uMsg == WM_INITDIALOG)
     {
         //设定对话框图标
         if(hIcon == NULL)
@@ -125,6 +160,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
         }
 
         //
+        SetWindowText(hwndDlg, DLGWND_CAPTION);
         SetDlgItemText(hwndDlg, IDC_FILEPATH, (LPCTSTR)lParam);
 
         //
@@ -157,6 +193,12 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
         col.pszText = TEXT("文件路径");
         ListView_InsertColumn(hHandleList, LVH_FILEPATH, &col);
 
+        //
+        SetTimer(hwndDlg, 1, 400, NULL);
+
+        //
+        PostMessage(hwndDlg, WM_COMMAND, MAKELONG(CMD_REFRESH, 0), 0);
+
         return TRUE;
     }
     else if (uMsg == WM_SYSCOMMAND)
@@ -166,31 +208,41 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
             EndDialog(hwndDlg, 0);
         }
     }
+    else if (uMsg == WM_REFRESH_COMPLETE)
+    {
+        bRefreshing = FALSE;
+        SetWindowText(hwndDlg, DLGWND_CAPTION);
+
+        DWORD dwCount = (DWORD)wParam;
+        FileHandleInfo *pHandles = (FileHandleInfo *)lParam;
+        FileHandleInfo *pLastHandles = (FileHandleInfo *)GetProp(hwndDlg, lpPropHandles);
+        DWORD dwLastCount = (DWORD)GetProp(hwndDlg, lpPropCount);
+
+        if (pLastHandles != NULL)
+        {
+            FreeFileHandleInfos(pLastHandles);
+        }
+
+        SetProp(hwndDlg, lpPropHandles, (HANDLE)pHandles);
+        SetProp(hwndDlg, lpPropCount, (HANDLE)dwCount);
+
+        PostMessage(hwndDlg, WM_REVIEW, 0, 0);
+    }
     else if (uMsg == WM_COMMAND)
     {
         HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
         if (LOWORD(wParam) == CMD_REFRESH)
         {
-            DWORD dwCount = 0;
-            FileHandleInfo *pHandles = GetFileHandleInfos(&dwCount);
-            FileHandleInfo *pLastHandles = (FileHandleInfo *)GetProp(hwndDlg, lpPropHandles);
-            DWORD dwLastCount = (DWORD)GetProp(hwndDlg, lpPropCount);
+            bRefreshing = TRUE;
 
-            if (pLastHandles != NULL)
-            {
-                FreeFileHandleInfos(pLastHandles);
-            }
-
-            SetProp(hwndDlg, lpPropHandles, (HANDLE)pHandles);
-            SetProp(hwndDlg, lpPropCount, (HANDLE)dwCount);
-
-            PostMessage(hwndDlg, WM_REFRESH_VIEW, 0, 0);
+            HANDLE hThread = CreateThread(NULL, 0, RefreshThread, (LPVOID)hwndDlg, 0, NULL);
+            CloseHandle(hThread);
         }
         else if (LOWORD(wParam) == CMD_FILTER)
         {
             bFilter = !bFilter;
-            PostMessage(hwndDlg, WM_REFRESH_VIEW, 0, 0);
+            PostMessage(hwndDlg, WM_REVIEW, 0, 0);
         }
         else if (LOWORD(wParam) == CMD_CLOSE)
         {
@@ -260,7 +312,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
             }
         }
     }
-    else if (uMsg == WM_REFRESH_VIEW)
+    else if (uMsg == WM_REVIEW)
     {
         HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
@@ -362,6 +414,11 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
                         }
 
                         AppendMenu(hPopMenu, MF_STRING, CMD_REFRESH, TEXT("刷新句柄列表"));
+
+                        if (bRefreshing)
+                        {
+                            EnableMenuItem(hPopMenu, CMD_REFRESH, MF_GRAYED | MF_BYCOMMAND);
+                        }
 
                         TrackPopupMenu(hPopMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwndDlg, NULL);
                         DestroyMenu(hPopMenu);
