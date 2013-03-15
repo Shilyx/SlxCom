@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SLXCOM_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /D "_USRDLL" /D "SLXCOM_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /D "_USRDLL" /D "SLXCOM_EXPORTS" /D _WIN32_WINNT=0x500 /D "ISOLATION_AWARE_ENABLED" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SLXCOM_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /D "_USRDLL" /D "SLXCOM_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /D "_USRDLL" /D "SLXCOM_EXPORTS" /D _WIN32_WINNT=0x500 /D "ISOLATION_AWARE_ENABLED" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
@@ -139,7 +139,19 @@ SOURCE=.\SlxComWork_sd.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxFileHandles.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxManualCheckSignature.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxStringStatusCache.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxUnlockFile.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -179,17 +191,53 @@ SOURCE=.\SlxComWork_sd.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxFileHandles.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxManualCheckSignature.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxString.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\SlxStringStatusCache.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\SlxUnlockFile.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=.\res\AddToCopy.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Default.jpg
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\default1.bin
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Main.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Mark.ico
+# End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\SlxCom.manifest
+# End Source File
 # Begin Source File
 
 SOURCE=.\WindowsXP.manifest
