@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by SlxCom.rc
 //
 #define IDR_ICON                        104
@@ -24,6 +24,7 @@
 #define IDB_CHECKSIGNATURE              118
 #define IDD_UNLOCKFILE_DIALOG           118
 #define IDB_UNESCAPE                    119
+#define IDD_PAINT_DIALOG                119
 #define IDB_APPPATH                     120
 #define IDB_DRIVER                      121
 #define IDB_UNLOCKFILE                  122
@@ -43,7 +44,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        119
+#define _APS_NEXT_RESOURCE_VALUE        120
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101

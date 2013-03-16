@@ -395,6 +395,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxPaint.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxStringStatusCache.cpp"
 				>
 			</File>
@@ -547,6 +551,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\SlxCom.manifest"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
