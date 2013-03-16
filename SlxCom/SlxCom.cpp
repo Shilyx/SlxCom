@@ -10,6 +10,10 @@
 #pragma comment(lib, "RpcRt4.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
+#if !defined(UNICODE) || !defined(_UNICODE)
+#error Need UNICODE & _UNICODE pre-defined
+#endif
+
 #define APPNAME TEXT("SlxAddin")
 
 // {191B1456-2DC2-41a7-A3FA-AC4D017889DA}
