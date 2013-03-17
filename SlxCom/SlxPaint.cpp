@@ -20,7 +20,7 @@ public:
     ~CBitmapHandle();
 
     CBitmapHandle &operator=(HBITMAP hBmp);
-    operator HBITMAP();
+    operator HBITMAP() const;
 
 private:
     HBITMAP             m_hBmp;
@@ -34,14 +34,15 @@ public:
 
 public:
     DWORD GetRecordCount() const;
-    HBITMAP GetBitmap(DWORD dwIndex);
+    HBITMAP GetBitmapByIndex(DWORD dwIndex) const;
+    HBITMAP GetBitmap() const;
 
     DWORD GetCurrentIndex() const;
     DWORD SetCurrentIndex(DWORD dwIndex);
 
     VOID AppendBitmap(HBITMAP hBmp);
 
-    static HBITMAP CopyBitmap(HDC hDc, HBITMAP hSrcBmp);
+    static HBITMAP CopyBitmap(HDC hDc, const HBITMAP hSrcBmp);
 
 private:
     int                 m_nWidth;
@@ -52,13 +53,12 @@ private:
 
     HDC                 m_hFirstDc;
     HBITMAP             m_hFirstBmp;
-    HBITMAP             m_hFirstBmpTmp;
+    HBITMAP             m_hFirstDcBmpTmp;
 };
 
 struct PaintDlgData
 {
     CBitmapRecord       *pBmpRecord;
-    HBITMAP             hCurrentBmp;
     HDC                 hCurrentMemDc;
     int                 nWidth;
     int                 nHeight;
@@ -84,7 +84,7 @@ CBitmapHandle &CBitmapHandle::operator=(HBITMAP hBmp)
     return *this;
 }
 
-CBitmapHandle::operator HBITMAP()
+CBitmapHandle::operator HBITMAP() const
 {
     return m_hBmp;
 }
@@ -95,10 +95,17 @@ CBitmapRecord::CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight)
     m_nHeight = nHeight;
 
     m_hFirstDc = CreateCompatibleDC(hSrcDc);
-    m_hFirstBmp = CreateCompatibleBitmap(hSrcDc, nWidth, nHeight);
-    m_hFirstBmpTmp = (HBITMAP)SelectObject(m_hFirstDc, m_hFirstBmp);
+    HBITMAP hBmp = CreateCompatibleBitmap(hSrcDc, nWidth, nHeight);
+    m_hFirstDcBmpTmp = (HBITMAP)SelectObject(m_hFirstDc, hBmp);
 
     BitBlt(m_hFirstDc, 0, 0, nWidth, nHeight, hSrcDc, 0, 0, SRCCOPY);
+
+    HDC hMemDcTemp = CreateCompatibleDC(m_hFirstDc);
+    m_hFirstBmp = CreateCompatibleBitmap(m_hFirstDc, nWidth, nHeight);
+    HBITMAP hMemDcTempBmpTmp = (HBITMAP)SelectObject(hMemDcTemp, m_hFirstBmp);
+
+    BitBlt(hMemDcTemp, 0, 0, nWidth, nHeight, m_hFirstDc, 0, 0, SRCCOPY);
+    SelectObject(hMemDcTemp, hMemDcTempBmpTmp);
 
     m_vectorBmps.push_back(CopyBitmap(m_hFirstDc, m_hFirstBmp));
     m_dwCurrentIndex = 0;
@@ -106,8 +113,9 @@ CBitmapRecord::CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight)
 
 CBitmapRecord::~CBitmapRecord()
 {
-    SelectObject(m_hFirstDc, m_hFirstBmpTmp);
+    HBITMAP hBmp = (HBITMAP)SelectObject(m_hFirstDc, m_hFirstDcBmpTmp);
 
+    DeleteObject(hBmp);
     DeleteDC(m_hFirstDc);
     DeleteObject(m_hFirstBmp);
 }
@@ -117,7 +125,7 @@ DWORD CBitmapRecord::GetRecordCount() const
     return m_vectorBmps.size();
 }
 
-HBITMAP CBitmapRecord::GetBitmap(DWORD dwIndex)
+HBITMAP CBitmapRecord::GetBitmapByIndex(DWORD dwIndex) const
 {
     if (dwIndex < GetRecordCount())
     {
@@ -125,6 +133,11 @@ HBITMAP CBitmapRecord::GetBitmap(DWORD dwIndex)
     }
 
     return NULL;
+}
+
+HBITMAP CBitmapRecord::GetBitmap() const
+{
+    return GetBitmapByIndex(m_dwCurrentIndex);
 }
 
 DWORD CBitmapRecord::GetCurrentIndex() const
@@ -156,11 +169,13 @@ VOID CBitmapRecord::AppendBitmap(HBITMAP hBmp)
     m_dwCurrentIndex = m_vectorBmps.size() - 1;
 }
 
-HBITMAP CBitmapRecord::CopyBitmap(HDC hDc, HBITMAP hSrcBmp)
+HBITMAP CBitmapRecord::CopyBitmap(HDC hDc, const HBITMAP hSrcBmp)
 {
     BITMAP bmp;
 
+    GlobalLock(hSrcBmp);
     GetObject(hSrcBmp, sizeof(bmp), &bmp);
+    GlobalUnlock(hSrcBmp);
 
     HDC hSrcDc = CreateCompatibleDC(hDc);
     HDC hDstDc = CreateCompatibleDC(hDc);
@@ -196,9 +211,8 @@ static PaintDlgData *GetPaintDlgDataPointer(HWND hwndDlg)
             pData->nHeight = GetSystemMetrics(SM_CYSCREEN);
             pData->pBmpRecord = new CBitmapRecord(hScreenDc, pData->nWidth, pData->nHeight);
             pData->hCurrentMemDc = CreateCompatibleDC(hScreenDc);
-            pData->hCurrentBmp = CreateCompatibleBitmap(hScreenDc, pData->nWidth, pData->nHeight);
 
-            SelectObject(pData->hCurrentMemDc, pData->hCurrentBmp);
+            SelectObject(pData->hCurrentMemDc, pData->pBmpRecord->GetBitmap());
 
             ReleaseDC(NULL, hScreenDc);
         }
@@ -302,7 +316,7 @@ static INT_PTR __stdcall PaintDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             0,
 //             GetSystemMetrics(SM_CXSCREEN),
 //             GetSystemMetrics(SM_CYSCREEN),
-800,
+100,
 200,
             0
             );
