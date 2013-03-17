@@ -12,6 +12,7 @@ using namespace Gdiplus;
 
 extern HINSTANCE g_hinstDll;
 
+//位图句柄封装类，提供自动析构功能
 class CBitmapHandle
 {
 public:
@@ -19,9 +20,48 @@ public:
     ~CBitmapHandle();
 
     CBitmapHandle &operator=(HBITMAP hBmp);
-    HBITMAP operator()();
+    operator HBITMAP();
 
+private:
     HBITMAP             m_hBmp;
+};
+
+class CBitmapRecord
+{
+public:
+    CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight);
+    ~CBitmapRecord();
+
+public:
+    DWORD GetRecordCount() const;
+    HBITMAP GetBitmap(DWORD dwIndex);
+
+    DWORD GetCurrentIndex() const;
+    DWORD SetCurrentIndex(DWORD dwIndex);
+
+    VOID AppendBitmap(HBITMAP hBmp);
+
+    static HBITMAP CopyBitmap(HDC hDc, HBITMAP hSrcBmp);
+
+private:
+    int                 m_nWidth;
+    int                 m_nHeight;
+
+    vector<CBitmapHandle> m_vectorBmps;
+    DWORD               m_dwCurrentIndex;
+
+    HDC                 m_hFirstDc;
+    HBITMAP             m_hFirstBmp;
+    HBITMAP             m_hFirstBmpTmp;
+};
+
+struct PaintDlgData
+{
+    CBitmapRecord       *pBmpRecord;
+    HBITMAP             hCurrentBmp;
+    HDC                 hCurrentMemDc;
+    int                 nWidth;
+    int                 nHeight;
 };
 
 CBitmapHandle::CBitmapHandle(HBITMAP hBmp)
@@ -44,37 +84,10 @@ CBitmapHandle &CBitmapHandle::operator=(HBITMAP hBmp)
     return *this;
 }
 
-HBITMAP CBitmapHandle::operator()()
+CBitmapHandle::operator HBITMAP()
 {
     return m_hBmp;
 }
-
-class CBitmapRecord
-{
-public:
-    CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight);
-    ~CBitmapRecord();
-
-public:
-    DWORD GetRecordCount;
-
-private:
-    VOID AllocBitmap();
-
-    VOID AddBitmap(HBITMAP hBmp);
-    static HBITMAP CopyBitmap(HDC hDc, HBITMAP hSrcBmp);
-
-private:
-    int                 m_nWidth;
-    int                 m_nHeight;
-
-    vector<CBitmapHandle> m_vectorBmps;
-    DWORD               m_dwCurrentIndex;
-
-    HDC                 m_hFirstDc;
-    HBITMAP             m_hFirstBmp;
-    HBITMAP             m_hFirstBmpTmp;
-};
 
 CBitmapRecord::CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight)
 {
@@ -86,6 +99,9 @@ CBitmapRecord::CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight)
     m_hFirstBmpTmp = (HBITMAP)SelectObject(m_hFirstDc, m_hFirstBmp);
 
     BitBlt(m_hFirstDc, 0, 0, nWidth, nHeight, hSrcDc, 0, 0, SRCCOPY);
+
+    m_vectorBmps.push_back(CopyBitmap(m_hFirstDc, m_hFirstBmp));
+    m_dwCurrentIndex = 0;
 }
 
 CBitmapRecord::~CBitmapRecord()
@@ -96,9 +112,48 @@ CBitmapRecord::~CBitmapRecord()
     DeleteObject(m_hFirstBmp);
 }
 
-VOID CBitmapRecord::AddBitmap(HBITMAP hBmp)
+DWORD CBitmapRecord::GetRecordCount() const
 {
-    //m_vectorBmps.
+    return m_vectorBmps.size();
+}
+
+HBITMAP CBitmapRecord::GetBitmap(DWORD dwIndex)
+{
+    if (dwIndex < GetRecordCount())
+    {
+        return CopyBitmap(m_hFirstDc, m_vectorBmps.at(dwIndex));
+    }
+
+    return NULL;
+}
+
+DWORD CBitmapRecord::GetCurrentIndex() const
+{
+    return m_dwCurrentIndex;
+}
+
+DWORD CBitmapRecord::SetCurrentIndex(DWORD dwIndex)
+{
+    DWORD dwLastIndex = m_dwCurrentIndex;
+
+    if (dwIndex < GetRecordCount())
+    {
+        m_dwCurrentIndex = dwIndex;
+    }
+    else
+    {
+        dwLastIndex = -1;
+    }
+
+    return dwLastIndex;
+}
+
+VOID CBitmapRecord::AppendBitmap(HBITMAP hBmp)
+{
+    m_vectorBmps.erase(m_vectorBmps.begin() + m_dwCurrentIndex + 1, m_vectorBmps.end());
+
+    m_vectorBmps.push_back(CopyBitmap(m_hFirstDc, hBmp));
+    m_dwCurrentIndex = m_vectorBmps.size() - 1;
 }
 
 HBITMAP CBitmapRecord::CopyBitmap(HDC hDc, HBITMAP hSrcBmp)
@@ -123,6 +178,38 @@ HBITMAP CBitmapRecord::CopyBitmap(HDC hDc, HBITMAP hSrcBmp)
     DeleteDC(hDstDc);
 
     return hDstBmp;
+}
+
+static PaintDlgData *GetPaintDlgDataPointer(HWND hwndDlg)
+{
+    PaintDlgData *pData = (PaintDlgData *)GetWindowLongPtr(hwndDlg, GWLP_USERDATA);
+
+    if (pData == NULL)
+    {
+        pData = new PaintDlgData;
+
+        if (pData != NULL)
+        {
+            HDC hScreenDc = GetDC(NULL);
+
+            pData->nWidth = GetSystemMetrics(SM_CXSCREEN);
+            pData->nHeight = GetSystemMetrics(SM_CYSCREEN);
+            pData->pBmpRecord = new CBitmapRecord(hScreenDc, pData->nWidth, pData->nHeight);
+            pData->hCurrentMemDc = CreateCompatibleDC(hScreenDc);
+            pData->hCurrentBmp = CreateCompatibleBitmap(hScreenDc, pData->nWidth, pData->nHeight);
+
+            SelectObject(pData->hCurrentMemDc, pData->hCurrentBmp);
+
+            ReleaseDC(NULL, hScreenDc);
+        }
+
+        SetWindowLong(hwndDlg, GWLP_USERDATA, (LONG_PTR)pData);
+        return GetPaintDlgDataPointer(hwndDlg);
+    }
+    else
+    {
+        return pData;
+    }
 }
 
 static BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID *pClsid)
@@ -195,7 +282,18 @@ BOOL SaveHBitmapAsJpgFile(HBITMAP hBitmap, LPCTSTR lpJpgFilePath, DWORD dwQualit
 
 static INT_PTR __stdcall PaintDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (uMsg == WM_INITDIALOG)
+    if (uMsg == WM_PAINT)
+    {
+        PaintDlgData *pData = GetPaintDlgDataPointer(hwndDlg);
+
+        PAINTSTRUCT ps;
+        HDC hPaintDc = BeginPaint(hwndDlg, &ps);
+
+        BitBlt(hPaintDc, 0, 0, pData->nWidth, pData->nHeight, pData->hCurrentMemDc, 0, 0, SRCCOPY);
+
+        EndPaint(hwndDlg, &ps);
+    }
+    else if (uMsg == WM_INITDIALOG)
     {
         SetWindowPos(
             hwndDlg,
@@ -205,7 +303,7 @@ static INT_PTR __stdcall PaintDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 //             GetSystemMetrics(SM_CXSCREEN),
 //             GetSystemMetrics(SM_CYSCREEN),
 800,
-500,
+200,
             0
             );
 
@@ -241,7 +339,6 @@ static INT_PTR __stdcall PaintDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
 VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow)
 {
-
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
@@ -249,5 +346,4 @@ VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow
     DialogBox(g_hinstDll, MAKEINTRESOURCE(IDD_PAINT_DIALOG), hwndStub, PaintDlgProc);
 
     GdiplusShutdown(gdiplusToken);
-
 }
