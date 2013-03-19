@@ -3,6 +3,7 @@
 // Used by SlxCom.rc
 //
 #define IDR_ICON                        104
+#define IDC_POINTER                     104
 #define IDR_FILE                        105
 #define IDB_INSTALL                     106
 #define IDB_UNINSTALL                   107
@@ -24,8 +25,8 @@
 #define IDB_CHECKSIGNATURE              118
 #define IDD_UNLOCKFILE_DIALOG           118
 #define IDB_UNESCAPE                    119
-#define IDD_PAINT_DIALOG                119
 #define IDB_APPPATH                     120
+#define IDR_PAINTMENU                   120
 #define IDB_DRIVER                      121
 #define IDB_UNLOCKFILE                  122
 #define IDC_RUN                         1000
@@ -39,13 +40,29 @@
 #define IDC_FILEPATH                    1008
 #define IDC_HANDLELIST                  1009
 #define IDC_FILTER                      1010
+#define ID_MENU_40001                   40001
+#define ID_MENU_40002                   40002
+#define ID_MENU_40003                   40003
+#define ID_MENU_40004                   40004
+#define ID_MENU_40005                   40005
+#define ID_MENU_40006                   40006
+#define ID_MENU_40007                   40007
+#define ID_MENU_40008                   40008
+#define ID_MENU_40009                   40009
+#define ID_MENU_40010                   40010
+#define ID_MENU_40011                   40011
+#define ID_MENU_40012                   40012
+#define ID_MENU_40013                   40013
+#define ID_Menu                         40014
+#define ID_MENU_40015                   40015
+#define ID_MENU_40016                   40016
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        120
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_RESOURCE_VALUE        121
+#define _APS_NEXT_COMMAND_VALUE         40017
 #define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

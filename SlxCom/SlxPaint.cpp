@@ -10,166 +10,35 @@
 using namespace std;
 using namespace Gdiplus;
 
+#define WNDCLASS_NAME   TEXT("SLX_PAINT_WINDOW_20130318")
 extern HINSTANCE g_hinstDll;
 
-//位图句柄封装类，提供自动析构功能
-class CBitmapHandle
-{
-public:
-    CBitmapHandle(HBITMAP hBmp);
-    ~CBitmapHandle();
 
-    CBitmapHandle &operator=(HBITMAP hBmp);
-    operator HBITMAP() const;
-
-private:
-    HBITMAP             m_hBmp;
-};
-
-class CBitmapRecord
-{
-public:
-    CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight);
-    ~CBitmapRecord();
-
-public:
-    DWORD GetRecordCount() const;
-    HBITMAP GetBitmapByIndex(DWORD dwIndex) const;
-    HBITMAP GetBitmap() const;
-
-    DWORD GetCurrentIndex() const;
-    DWORD SetCurrentIndex(DWORD dwIndex);
-
-    VOID AppendBitmap(HBITMAP hBmp);
-
-    static HBITMAP CopyBitmap(HDC hDc, const HBITMAP hSrcBmp);
-
-private:
-    int                 m_nWidth;
-    int                 m_nHeight;
-
-    vector<CBitmapHandle> m_vectorBmps;
-    DWORD               m_dwCurrentIndex;
-
-    HDC                 m_hFirstDc;
-    HBITMAP             m_hFirstBmp;
-    HBITMAP             m_hFirstDcBmpTmp;
-};
 
 struct PaintDlgData
 {
-    CBitmapRecord       *pBmpRecord;
-    HDC                 hCurrentMemDc;
+    vector<HBITMAP>     vectorBmps;
+    DWORD               dwCurrentIndex;
+    HDC                 hMemDc;
     int                 nWidth;
     int                 nHeight;
+    HBITMAP             hBmpTmp;
+
+    VOID LoadBitmap();
+    VOID UnloadBitmap();
 };
 
-CBitmapHandle::CBitmapHandle(HBITMAP hBmp)
+VOID PaintDlgData::LoadBitmap()
 {
-    m_hBmp = hBmp;
+    hBmpTmp = (HBITMAP)SelectObject(hMemDc, vectorBmps.at(dwCurrentIndex));
 }
 
-CBitmapHandle::~CBitmapHandle()
+VOID PaintDlgData::UnloadBitmap()
 {
-    if (m_hBmp != NULL)
-    {
-        DeleteObject(m_hBmp);
-    }
+    SelectObject(hMemDc, hBmpTmp);
 }
 
-CBitmapHandle &CBitmapHandle::operator=(HBITMAP hBmp)
-{
-    m_hBmp = hBmp;
-
-    return *this;
-}
-
-CBitmapHandle::operator HBITMAP() const
-{
-    return m_hBmp;
-}
-
-CBitmapRecord::CBitmapRecord(HDC hSrcDc, int nWidth, int nHeight)
-{
-    m_nWidth = nWidth;
-    m_nHeight = nHeight;
-
-    m_hFirstDc = CreateCompatibleDC(hSrcDc);
-    HBITMAP hBmp = CreateCompatibleBitmap(hSrcDc, nWidth, nHeight);
-    m_hFirstDcBmpTmp = (HBITMAP)SelectObject(m_hFirstDc, hBmp);
-
-    BitBlt(m_hFirstDc, 0, 0, nWidth, nHeight, hSrcDc, 0, 0, SRCCOPY);
-
-    HDC hMemDcTemp = CreateCompatibleDC(m_hFirstDc);
-    m_hFirstBmp = CreateCompatibleBitmap(m_hFirstDc, nWidth, nHeight);
-    HBITMAP hMemDcTempBmpTmp = (HBITMAP)SelectObject(hMemDcTemp, m_hFirstBmp);
-
-    BitBlt(hMemDcTemp, 0, 0, nWidth, nHeight, m_hFirstDc, 0, 0, SRCCOPY);
-    SelectObject(hMemDcTemp, hMemDcTempBmpTmp);
-
-    m_vectorBmps.push_back(CopyBitmap(m_hFirstDc, m_hFirstBmp));
-    m_dwCurrentIndex = 0;
-}
-
-CBitmapRecord::~CBitmapRecord()
-{
-    HBITMAP hBmp = (HBITMAP)SelectObject(m_hFirstDc, m_hFirstDcBmpTmp);
-
-    DeleteObject(hBmp);
-    DeleteDC(m_hFirstDc);
-    DeleteObject(m_hFirstBmp);
-}
-
-DWORD CBitmapRecord::GetRecordCount() const
-{
-    return m_vectorBmps.size();
-}
-
-HBITMAP CBitmapRecord::GetBitmapByIndex(DWORD dwIndex) const
-{
-    if (dwIndex < GetRecordCount())
-    {
-        return CopyBitmap(m_hFirstDc, m_vectorBmps.at(dwIndex));
-    }
-
-    return NULL;
-}
-
-HBITMAP CBitmapRecord::GetBitmap() const
-{
-    return GetBitmapByIndex(m_dwCurrentIndex);
-}
-
-DWORD CBitmapRecord::GetCurrentIndex() const
-{
-    return m_dwCurrentIndex;
-}
-
-DWORD CBitmapRecord::SetCurrentIndex(DWORD dwIndex)
-{
-    DWORD dwLastIndex = m_dwCurrentIndex;
-
-    if (dwIndex < GetRecordCount())
-    {
-        m_dwCurrentIndex = dwIndex;
-    }
-    else
-    {
-        dwLastIndex = -1;
-    }
-
-    return dwLastIndex;
-}
-
-VOID CBitmapRecord::AppendBitmap(HBITMAP hBmp)
-{
-    m_vectorBmps.erase(m_vectorBmps.begin() + m_dwCurrentIndex + 1, m_vectorBmps.end());
-
-    m_vectorBmps.push_back(CopyBitmap(m_hFirstDc, hBmp));
-    m_dwCurrentIndex = m_vectorBmps.size() - 1;
-}
-
-HBITMAP CBitmapRecord::CopyBitmap(HDC hDc, const HBITMAP hSrcBmp)
+HBITMAP CopyBitmap(HDC hDc, const HBITMAP hSrcBmp)
 {
     BITMAP bmp;
 
@@ -195,9 +64,9 @@ HBITMAP CBitmapRecord::CopyBitmap(HDC hDc, const HBITMAP hSrcBmp)
     return hDstBmp;
 }
 
-static PaintDlgData *GetPaintDlgDataPointer(HWND hwndDlg)
+static PaintDlgData *GetPaintDlgDataPointer(HWND hWindow)
 {
-    PaintDlgData *pData = (PaintDlgData *)GetWindowLongPtr(hwndDlg, GWLP_USERDATA);
+    PaintDlgData *pData = (PaintDlgData *)GetWindowLongPtr(hWindow, GWLP_USERDATA);
 
     if (pData == NULL)
     {
@@ -209,16 +78,21 @@ static PaintDlgData *GetPaintDlgDataPointer(HWND hwndDlg)
 
             pData->nWidth = GetSystemMetrics(SM_CXSCREEN);
             pData->nHeight = GetSystemMetrics(SM_CYSCREEN);
-            pData->pBmpRecord = new CBitmapRecord(hScreenDc, pData->nWidth, pData->nHeight);
-            pData->hCurrentMemDc = CreateCompatibleDC(hScreenDc);
+            pData->dwCurrentIndex = 0;
+            pData->hMemDc = CreateCompatibleDC(hScreenDc);
+            pData->vectorBmps.push_back(CreateCompatibleBitmap(hScreenDc, pData->nWidth, pData->nHeight));
 
-            SelectObject(pData->hCurrentMemDc, pData->pBmpRecord->GetBitmap());
+            SelectObject(pData->hMemDc, GetStockObject(NULL_BRUSH));
+
+            pData->LoadBitmap();
+            BitBlt(pData->hMemDc, 0, 0, pData->nWidth, pData->nHeight, hScreenDc, 0, 0, SRCCOPY);
+            pData->UnloadBitmap();
 
             ReleaseDC(NULL, hScreenDc);
         }
 
-        SetWindowLong(hwndDlg, GWLP_USERDATA, (LONG_PTR)pData);
-        return GetPaintDlgDataPointer(hwndDlg);
+        SetWindowLong(hWindow, GWLP_USERDATA, (LONG_PTR)pData);
+        return GetPaintDlgDataPointer(hWindow);
     }
     else
     {
@@ -294,61 +168,59 @@ BOOL SaveHBitmapAsJpgFile(HBITMAP hBitmap, LPCTSTR lpJpgFilePath, DWORD dwQualit
     return bResult;
 }
 
-static INT_PTR __stdcall PaintDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static HRESULT __stdcall WndProc(HWND hWindow, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     if (uMsg == WM_PAINT)
     {
-        PaintDlgData *pData = GetPaintDlgDataPointer(hwndDlg);
+        PaintDlgData *pData = GetPaintDlgDataPointer(hWindow);
 
         PAINTSTRUCT ps;
-        HDC hPaintDc = BeginPaint(hwndDlg, &ps);
+        HDC hPaintDc = BeginPaint(hWindow, &ps);
 
-        BitBlt(hPaintDc, 0, 0, pData->nWidth, pData->nHeight, pData->hCurrentMemDc, 0, 0, SRCCOPY);
+        pData->LoadBitmap();
+        BitBlt(hPaintDc, 0, 0, pData->nWidth, pData->nHeight, pData->hMemDc, 0, 0, SRCCOPY);
+        pData->UnloadBitmap();
 
-        EndPaint(hwndDlg, &ps);
+#ifdef _DEBUG
+        HPEN hPen = CreatePen(PS_SOLID, 3, RGB(0, 0, 0));
+        HPEN hPenTmp = (HPEN)SelectObject(hPaintDc, hPen);
+        HBRUSH hBrushTmp = (HBRUSH)SelectObject(hPaintDc, GetStockObject(NULL_BRUSH));
+        Rectangle(hPaintDc, 3, 3, 30, 30);
+        SelectObject(hPaintDc, hBrushTmp);
+        SelectObject(hPaintDc, hPenTmp);
+        DeleteObject(hPen);
+#endif
+
+        EndPaint(hWindow, &ps);
     }
-    else if (uMsg == WM_INITDIALOG)
+    else if (uMsg == WM_CREATE)
     {
-        SetWindowPos(
-            hwndDlg,
-            HWND_TOPMOST,
-            0,
-            0,
-//             GetSystemMetrics(SM_CXSCREEN),
-//             GetSystemMetrics(SM_CYSCREEN),
-100,
-200,
-            0
-            );
-
-        return TRUE;
+        GetPaintDlgDataPointer(hWindow);
+    }
+    else if (uMsg == WM_CLOSE)
+    {
+        DestroyWindow(hWindow);
+    }
+    else if (uMsg == WM_DESTROY)
+    {
+        PostQuitMessage(0);
+    }
+    else if (uMsg == WM_MBUTTONUP)
+    {
+        SendMessage(hWindow, WM_SYSCOMMAND, SC_CLOSE, 0);
     }
     else if (uMsg == WM_RBUTTONUP)
     {
-        RECT rect;
+        HDC hDc = GetWindowDC(hWindow);
+        POINT pt;
 
-        rect.left = 0;
-        rect.top = 0;
-        rect.right = GetSystemMetrics(SM_CXSCREEN);
-        rect.bottom = GetSystemMetrics(SM_CYSCREEN);
+        GetCursorPos(&pt);
 
-        HDC hScreenDc = GetDC(NULL);
-        HDC hMetaFile = CreateEnhMetaFile(hScreenDc, TEXT("D:\\administrator\\Desktop\\a.emf"), &rect, NULL);
-
-        TextOut(hMetaFile, 0, 0, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"), 20);
-
-        CloseEnhMetaFile(hMetaFile);
-        ReleaseDC(NULL, hScreenDc);
-
+        Rectangle(hDc, pt.x, pt.y, 100, 100);
+        ReleaseDC(hWindow, hDc);
     }
-#ifdef _DEBUG
-    else if (uMsg == WM_MBUTTONDOWN)
-    {
-        EndDialog(hwndDlg, 0);
-    }
-#endif
 
-    return FALSE;
+    return DefWindowProc(hWindow, uMsg, wParam, lParam);
 }
 
 VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow)
@@ -357,7 +229,52 @@ VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow
     ULONG_PTR gdiplusToken;
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-    DialogBox(g_hinstDll, MAKEINTRESOURCE(IDD_PAINT_DIALOG), hwndStub, PaintDlgProc);
+    WNDCLASSEX wcex = {sizeof(wcex)};
+
+    wcex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    wcex.hInstance = g_hinstDll;
+    wcex.lpszClassName = WNDCLASS_NAME;
+    wcex.hCursor = LoadCursor(g_hinstDll, MAKEINTRESOURCE(IDC_POINTER));
+    wcex.lpfnWndProc = WndProc;
+
+    if (RegisterClassEx(&wcex))
+    {
+        HWND hWindow = CreateWindowEx(
+            WS_EX_TOOLWINDOW,
+            WNDCLASS_NAME,
+            NULL,
+            WS_POPUP,
+            0,
+            0,
+            GetSystemMetrics(SM_CXSCREEN),
+            GetSystemMetrics(SM_CYSCREEN),
+            NULL,
+            NULL,
+            NULL,
+            NULL
+            );
+
+        if (IsWindow(hWindow))
+        {
+            ShowWindow(hWindow, SW_SHOW);
+            UpdateWindow(hWindow);
+
+            MSG msg;
+
+            while (TRUE)
+            {
+                int nRet = GetMessage(&msg, NULL, 0, 0);
+
+                if (nRet <= 0)
+                {
+                    break;
+                }
+
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+    }
 
     GdiplusShutdown(gdiplusToken);
 }

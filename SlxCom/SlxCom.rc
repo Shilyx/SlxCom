@@ -175,12 +175,6 @@ BEGIN
     LTEXT           "文件路径：",IDC_STATIC,7,7,41,8
 END
 
-IDD_PAINT_DIALOG DIALOGEX 0, 0, 316, 183
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -229,14 +223,6 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 175
     END
-
-    IDD_PAINT_DIALOG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 309
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 176
-    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -256,6 +242,48 @@ IDI_CONFIG_ICON         ICON                    "res\\Main.ico"
 //
 
 2                       RT_MANIFEST             "SlxCom.manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_POINTER             CURSOR                  "POINTER.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_PAINTMENU MENU 
+BEGIN
+    POPUP "Menu"
+    BEGIN
+        MENUITEM "颜色",                          ID_MENU_40015
+        MENUITEM SEPARATOR
+        MENUITEM "实线",                          ID_MENU_40001
+        MENUITEM "虚线",                          ID_MENU_40002
+        MENUITEM SEPARATOR
+        MENUITEM "细线",                          ID_MENU_40003
+        MENUITEM "中线",                          ID_MENU_40004
+        MENUITEM "粗线",                          ID_MENU_40005
+        MENUITEM "最粗线",                         ID_MENU_40006
+        MENUITEM SEPARATOR
+        MENUITEM "直线",                          ID_MENU_40007
+        MENUITEM "椭圆",                          ID_MENU_40008
+        MENUITEM "矩形",                          ID_MENU_40009
+        MENUITEM "曲线",                          ID_MENU_40010
+        MENUITEM SEPARATOR
+        MENUITEM "撤销(&U)\tCtrl+Z",              ID_MENU_40011
+        MENUITEM "重复(&R)\tCtrl+Shift+Z",        ID_MENU_40012
+        MENUITEM SEPARATOR
+        MENUITEM "保存(&S)\tCtrl+S",              ID_MENU_40013
+        MENUITEM "复制到剪贴板(&C)\tCtrl+C",          ID_MENU_40016
+        MENUITEM SEPARATOR
+        MENUITEM "退出(&X)\tEsc",                 ID_Menu
+    END
+END
+
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 

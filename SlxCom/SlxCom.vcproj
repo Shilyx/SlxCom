@@ -523,6 +523,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\POINTER.cur"
+				>
+			</File>
+			<File
 				RelativePath=".\res\RunCmdHere.bmp"
 				>
 			</File>
