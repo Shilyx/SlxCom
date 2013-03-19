@@ -1159,6 +1159,43 @@ BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2)
     return lstrcmpi(szLongFilePath1, szLongFilePath2) == 0;
 }
 
+BOOL IsWow64ProcessHelper(HANDLE hProcess)
+{
+    BOOL bIsWow64 = FALSE;
+    BOOL (WINAPI *pIsWow64Process)(HANDLE, PBOOL) = NULL;
+
+    (PROC &)pIsWow64Process = GetProcAddress(
+        GetModuleHandle(TEXT("kernel32")),
+        "IsWow64Process"
+        );
+
+    if (pIsWow64Process != NULL)
+    {
+        pIsWow64Process(hProcess, &bIsWow64);
+    }
+
+    return bIsWow64;
+}
+
+BOOL DisableWow64FsRedirection()
+{
+    BOOL bResult = TRUE;
+    BOOL (WINAPI *pWow64DisableWow64FsRedirection)(PVOID *) = NULL;
+
+    (PROC &)pWow64DisableWow64FsRedirection = GetProcAddress(
+        GetModuleHandle(TEXT("kernel32")),
+        "Wow64DisableWow64FsRedirection"
+        );
+
+    if (pWow64DisableWow64FsRedirection != NULL)
+    {
+        PVOID pOldValue = NULL;
+        bResult = pWow64DisableWow64FsRedirection(&pOldValue);
+    }
+
+    return bResult;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {

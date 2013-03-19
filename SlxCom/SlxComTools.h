@@ -39,5 +39,7 @@ BOOL EnableDebugPrivilege(BOOL bEnable);
 BOOL IsFileDenyed(LPCTSTR lpFilePath);
 BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle);
 BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2);
+BOOL IsWow64ProcessHelper(HANDLE hProcess);
+BOOL DisableWow64FsRedirection();
 
 #endif
