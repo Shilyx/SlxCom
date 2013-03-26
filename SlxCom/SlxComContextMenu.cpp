@@ -4,6 +4,7 @@
 #include <CommCtrl.h>
 #include "SlxComOverlay.h"
 #include "SlxComTools.h"
+#include "SlxComPeTools.h"
 #include "resource.h"
 #include "SlxString.h"
 #include "SlxManualCheckSignature.h"
@@ -212,20 +213,26 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     //Check Dll And File
     BOOL bExistDll = FALSE;
     BOOL bExistFile = FALSE;
+    BOOL bExistCom = FALSE;
 
     for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
     {
-        if(m_pFiles[uFileIndex].bIsDll)
+        if(!bExistDll && m_pFiles[uFileIndex].bIsDll)
         {
             bExistDll = TRUE;
         }
 
-        if(m_pFiles[uFileIndex].bIsFile)
+        if(!bExistFile && m_pFiles[uFileIndex].bIsFile)
         {
             bExistFile = TRUE;
         }
 
-        if(bExistDll * bExistFile)
+        if (!bExistCom && PeIsCOMModule(m_pFiles[uFileIndex].szPath))
+        {
+            bExistCom = TRUE;
+        }
+
+        if(bExistDll * bExistFile * bExistCom)
         {
             break;
         }
@@ -239,7 +246,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
 
     //Dll Register
-    if(bExistDll)
+    if(bExistCom)
     {
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("×¢²á×é¼þ(&R)"));
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);

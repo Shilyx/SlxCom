@@ -371,6 +371,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComPeTools.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComTools.cpp"
 				>
 			</File>
@@ -426,6 +430,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComOverlay.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComPeTools.h"
 				>
 			</File>
 			<File
@@ -527,6 +535,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxCom.manifest"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxCom.rc"
 				>
 			</File>
@@ -551,10 +563,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\SlxCom.manifest"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
