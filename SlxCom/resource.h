@@ -25,6 +25,7 @@
 #define IDB_CHECKSIGNATURE              118
 #define IDD_UNLOCKFILE_DIALOG           118
 #define IDB_UNESCAPE                    119
+#define IDD_PEINFO                      119
 #define IDB_APPPATH                     120
 #define IDR_PAINTMENU                   120
 #define IDB_DRIVER                      121

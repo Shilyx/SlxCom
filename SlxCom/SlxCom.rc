@@ -175,6 +175,13 @@ BEGIN
     LTEXT           "文件路径：",IDC_STATIC,7,7,41,8
 END
 
+IDD_PEINFO DIALOGEX 0, 0, 316, 181
+STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+FONT 9, "宋体", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_FILELIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,302,167
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -222,6 +229,14 @@ BEGIN
         RIGHTMARGIN, 356
         TOPMARGIN, 7
         BOTTOMMARGIN, 175
+    END
+
+    IDD_PEINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 174
     END
 END
 #endif    // APSTUDIO_INVOKED
