@@ -123,6 +123,10 @@ SOURCE=.\SlxComOverlay.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxComPeTools.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComTools.cpp
 # End Source File
 # Begin Source File
@@ -172,6 +176,10 @@ SOURCE=.\SlxComFactory.h
 # Begin Source File
 
 SOURCE=.\SlxComOverlay.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxComPeTools.h
 # End Source File
 # Begin Source File
 
