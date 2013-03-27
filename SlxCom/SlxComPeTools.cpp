@@ -244,13 +244,31 @@ BOOL PeIsCOMModule(LPCTSTR fileName)
             break;
         }
 
-        IMAGE_EXPORT_DIRECTORY* pExpDir = (IMAGE_EXPORT_DIRECTORY*)((byte*)pDosHdr + _PeRVAToFileOffset(pfms->lpView, rva, NULL, 0));
-        DWORD* offsetNames = (DWORD*)((byte*)pDosHdr + _PeRVAToFileOffset(pfms->lpView, pExpDir->AddressOfNames, NULL, 0));
+        UINT expDirRva = _PeRVAToFileOffset(pfms->lpView, rva, NULL, 0);
+        if (0xffffffff == expDirRva)
+        {
+            break;
+        }
+
+        IMAGE_EXPORT_DIRECTORY* pExpDir = (IMAGE_EXPORT_DIRECTORY*)((byte*)pDosHdr + expDirRva);
+
+        UINT namesRva = _PeRVAToFileOffset(pfms->lpView, pExpDir->AddressOfNames, NULL, 0);
+        if (0xffffffff == namesRva)
+        {
+            break;
+        }
+
+        DWORD* offsetNames = (DWORD*)((byte*)pDosHdr + namesRva);
         UINT i;
         int score = 0;
         for (i = 0; i < pExpDir->NumberOfNames; ++i)
         {
-            char* funcName = (char*)((byte*)pDosHdr + _PeRVAToFileOffset(pfms->lpView, offsetNames[i], NULL, 0));
+            UINT funcNameRva = _PeRVAToFileOffset(pfms->lpView, offsetNames[i], NULL, 0);
+            if (0xffffffff == funcNameRva)
+            {
+                continue;
+            }
+            char* funcName = (char*)((byte*)pDosHdr + funcNameRva);
 
 #define _HADDSCORE(func)                    \
     if (EQUALA(funcName, func))     \
