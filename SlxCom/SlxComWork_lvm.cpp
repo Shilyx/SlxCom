@@ -102,47 +102,11 @@ LRESULT WINAPI NewListViewWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
     if(uMsg == LVM_GETEDITCONTROL)
     {
         HWND hEdit = (HWND)CallWindowProc(lpOldListViewProc, hwnd, uMsg, wParam, lParam);
-        LONG_PTR nLength = SendMessage(hEdit, WM_GETTEXTLENGTH, 0, 0);
+        int nDotIndex = GetDotIndex(hEdit);
 
-        if(nLength > 0 && nLength < MAX_PATH)
+        if (nDotIndex != -1)
         {
-            TCHAR szText[MAX_PATH];
-
-            if(GetWindowText(hEdit, szText, MAX_PATH) == nLength)
-            {
-                BOOL bToPost = FALSE;
-                LPCTSTR lpMark = TEXT(".tar.gz");
-                LONG_PTR nIndex = nLength;
-                LONG_PTR nMarkLength = lstrlen(lpMark);
-
-                if(nLength > nMarkLength)
-                {
-                    if(lstrcmpi(szText + nLength - nMarkLength, lpMark) == 0)
-                    {
-                        nIndex = nLength - nMarkLength;
-                        bToPost = TRUE;
-                    }
-                }
-
-                if(nIndex == nLength)
-                {
-                    while(nIndex > 0)
-                    {
-                        if(szText[nIndex] == TEXT('.'))
-                        {
-                            bToPost = TRUE;
-                            break;
-                        }
-
-                        nIndex -= 1;
-                    }
-                }
-
-                if(bToPost)
-                {
-                    PostMessage(hEdit, EM_SETSEL, 0, nIndex);
-                }
-            }
+            PostMessage(hEdit, EM_SETSEL, 0, nDotIndex);
         }
 
         return (LRESULT)hEdit;
