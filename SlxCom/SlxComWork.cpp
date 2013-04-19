@@ -8,10 +8,7 @@ BOOL SlxWork(HINSTANCE hinstDll)
 
     GetVersionEx(&osi);
 
-    if(osi.dwMajorVersion <= 5)
-    {
-        LvmInit(hinstDll);
-    }
+    LvmInit(hinstDll, osi.dwMajorVersion <= 5);
 
     if(osi.dwMajorVersion == 5 && osi.dwMinorVersion > 0)
     {

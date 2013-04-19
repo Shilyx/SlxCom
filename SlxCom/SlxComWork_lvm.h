@@ -3,6 +3,6 @@
 
 #include <Windows.h>
 
-BOOL LvmInit(HINSTANCE hInstance);
+BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier);
 
 #endif
