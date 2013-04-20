@@ -18,6 +18,7 @@
 
 // {191B1456-2DC2-41a7-A3FA-AC4D017889DA}
 DEFINE_GUID(GUID_SLXCOM, 0x191b1456, 0x2dc2, 0x41a7, 0xa3, 0xfa, 0xac, 0x4d, 0x1, 0x78, 0x89, 0xda);
+static LPCTSTR g_lpGuidSlxCom = TEXT("{191B1456-2DC2-41a7-A3FA-AC4D017889DA}");
 
 HINSTANCE g_hinstDll = NULL;
 HBITMAP g_hInstallBmp = NULL;
@@ -231,51 +232,41 @@ VOID ConfigBrowserLinkFilePosition(BOOL bInstall)
 
 STDAPI DllRegisterServer(void)
 {
-    TCHAR *szGuid = NULL;
+    TCHAR szRegPath[1000];
+    TCHAR szDllPath[MAX_PATH];
 
-    if(RPC_S_OK == UuidToString((GUID *)&GUID_SLXCOM, &szGuid))
-    {
-        TCHAR szRegPath[1000];
-        TCHAR szGuidWithQuota[100];
-        TCHAR szDllPath[MAX_PATH];
+    GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
 
-        GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
+        APPNAME);
+    SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
-        wnsprintf(szGuidWithQuota, sizeof(szGuidWithQuota) / sizeof(TCHAR), TEXT("{%s}"), szGuid);
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
-            APPNAME);
-        SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
-
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szGuidWithQuota, (lstrlen(szGuidWithQuota) + 1) * sizeof(TCHAR));
-
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("CLSID\\%s\\InprocServer32"),
-            szGuidWithQuota);
-        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
-        SHSetValue(HKEY_CLASSES_ROOT, szRegPath, TEXT("ThreadingModel"), REG_SZ, TEXT("Apartment"), 20);
-
-        RpcStringFree(&szGuid);
-    }
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("CLSID\\%s\\InprocServer32"),
+        g_lpGuidSlxCom);
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, TEXT("ThreadingModel"), REG_SZ, TEXT("Apartment"), 20);
 
     ConfigBrowserLinkFilePosition(TRUE);
 
@@ -284,47 +275,37 @@ STDAPI DllRegisterServer(void)
 
 STDAPI DllUnregisterServer(void)
 {
-    TCHAR *szGuid = NULL;
+    TCHAR szRegPath[1000];
 
-    if(RPC_S_OK == UuidToString((GUID *)&GUID_SLXCOM, &szGuid))
-    {
-        TCHAR szRegPath[1000];
-        TCHAR szGuidWithQuota[100];
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
+        APPNAME);
+    SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
 
-        wnsprintf(szGuidWithQuota, sizeof(szGuidWithQuota) / sizeof(TCHAR), TEXT("{%s}"), szGuid);
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
-            APPNAME);
-        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
+        APPNAME);
+    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
-
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
-            APPNAME);
-        SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
-
-        wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-            TEXT("CLSID\\%s"),
-            szGuidWithQuota);
-        SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
-
-        RpcStringFree(&szGuid);
-    }
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("CLSID\\%s"),
+        g_lpGuidSlxCom);
+    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     ConfigBrowserLinkFilePosition(FALSE);
 
