@@ -165,12 +165,12 @@ BOOL SlxStringStatusCache::CheckCache(LPCTSTR lpString, StringStatus *pssValue)
         {
             *pssValue = (StringStatus)(dwRegData & SS_MASK);
 
-#ifdef _DEBUG
-            TCHAR szDebugText[1000];
-
-            wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!命中%s\r\n"), lpString);
-            OutputDebugString(szDebugText);
-#endif
+// #ifdef _DEBUG
+//             TCHAR szDebugText[1000];
+// 
+//             wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!命中%s\r\n"), lpString);
+//             OutputDebugString(szDebugText);
+// #endif
 
             return UpdateCache(lpString, *pssValue);
         }
@@ -203,12 +203,12 @@ BOOL SlxStringStatusCache::AddCache(LPCTSTR lpString, StringStatus ssValue)
         }
     }
 
-#ifdef _DEBUG
-    TCHAR szDebugText[1000];
-
-    wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!添加%s\r\n"), lpString);
-    OutputDebugString(szDebugText);
-#endif
+// #ifdef _DEBUG
+//     TCHAR szDebugText[1000];
+// 
+//     wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!添加%s\r\n"), lpString);
+//     OutputDebugString(szDebugText);
+// #endif
 
     return UpdateCache(lpString, ssValue);
 }
