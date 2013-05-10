@@ -842,7 +842,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
             hProgman = FindWindowEx(NULL, hProgman, TEXT("Progman"), TEXT("Program Manager"));
         }
 
-        TerminateProcess(GetCurrentProcess(), 0);
+        KillAllExplorers();
 
         break;
     }
