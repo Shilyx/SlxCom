@@ -14,9 +14,12 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 #define LVH_HANDLEVALUE     3
 #define LVH_FILEPATH        4
 
-#define CMD_REFRESH         1
-#define CMD_CLOSE           2
-#define CMD_FILTER          3
+enum
+{
+    CMD_REFRESH = 101,
+    CMD_CLOSE,
+    CMD_FILTER,
+};
 
 #define WM_REVIEW           (WM_USER + 112)
 #define WM_REFRESH_COMPLETE (WM_USER + 113)
@@ -204,7 +207,11 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
     {
         HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
-        if (LOWORD(wParam) == CMD_REFRESH)
+        if (LOWORD(wParam) == IDCANCEL)
+        {
+            SendMessage(hwndDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
+        }
+        else if (LOWORD(wParam) == CMD_REFRESH)
         {
             bRefreshing = TRUE;
 
