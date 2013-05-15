@@ -55,7 +55,7 @@ DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 
         DWORD dwFileAttributes = GetFileAttributes(szLastPath);
 
-        if(dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+        if(dwFileAttributes != INVALID_FILE_ATTRIBUTES && !IsPathDesktop(szLastPath))
         {
             if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
             {

@@ -1164,6 +1164,18 @@ BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2)
     return lstrcmpi(szLongFilePath1, szLongFilePath2) == 0;
 }
 
+BOOL IsPathDesktop(LPCTSTR lpPath)
+{
+    TCHAR szDesktopPath[MAX_PATH];
+
+    if (SHGetSpecialFolderPath(NULL, szDesktopPath, CSIDL_DESKTOP, FALSE))
+    {
+        return IsSameFilePath(lpPath, szDesktopPath);
+    }
+
+    return FALSE;
+}
+
 BOOL IsWow64ProcessHelper(HANDLE hProcess)
 {
     BOOL bIsWow64 = FALSE;
