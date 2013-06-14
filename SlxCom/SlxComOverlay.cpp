@@ -3,9 +3,10 @@
 #include "SlxComTools.h"
 #include <shlwapi.h>
 
-#define MAX_FILESIZE        (500 * 1024 * 1024)     //自动校验数字签名功能的文件大小限制，500M
+#define MAX_FILESIZE        (200 * 1024 * 1024)     //自动校验数字签名功能的文件大小限制，200M
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
+extern OSVERSIONINFO g_osi;     //SlxCom.cpp
 TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
@@ -94,12 +95,34 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 
             }
         }
-
-        //仅校验大小不超过限制的文件的数字签名
-        if(uliFileSize.QuadPart <= MAX_FILESIZE)
+        else
         {
-            SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
-            SetEvent(m_hTaskEvent);
+            //仅校验大小不超过限制的文件的数字签名
+            if (uliFileSize.QuadPart <= MAX_FILESIZE)
+            {
+                if (g_osi.dwMajorVersion > 5)
+                {
+                    if (IsFileSigned(pwszPath))
+                    {
+                        m_cache.AddCache(szString, SS_1);
+                        return S_OK;
+                    }
+                    else
+                    {
+                        m_cache.AddCache(szString, SS_2);
+                        return S_FALSE;
+                    }
+                }
+                else
+                {
+                    //仅校验大小不超过限制的文件的数字签名
+                    if (uliFileSize.QuadPart <= MAX_FILESIZE)
+                    {
+                        SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
+                        SetEvent(m_hTaskEvent);
+                    }
+                }
+            }
         }
 
         return S_FALSE;

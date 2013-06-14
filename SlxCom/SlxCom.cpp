@@ -37,6 +37,7 @@ HBITMAP g_hUnescapeBmp = NULL;
 HBITMAP g_hAppPathBmp = NULL;
 HBITMAP g_hDriverBmp = NULL;
 HBITMAP g_hUnlockFileBmp = NULL;
+OSVERSIONINFO g_osi = {sizeof(g_osi)};
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
@@ -101,6 +102,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
     {
+        GetVersionEx(&g_osi);
+
         if(IsExplorer())
         {
             FILETIME ftExit, ftKernel, ftUser;

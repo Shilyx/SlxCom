@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 6,5,1,112
- PRODUCTVERSION 6,5,1,112
+ FILEVERSION 6,5,112,806
+ PRODUCTVERSION 6,5,112,806
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,13 +69,14 @@ BEGIN
     BEGIN
         BLOCK "080404b0"
         BEGIN
+            VALUE "CompanyName", "Shilyx Studio"
             VALUE "FileDescription", "SlxCom"
-            VALUE "FileVersion", "6, 5, 1, 112"
+            VALUE "FileVersion", "6, 5, 112, 806"
             VALUE "InternalName", "SlxCom"
-            VALUE "LegalCopyright", "Copyright (C) 2012"
+            VALUE "LegalCopyright", "Copyright (C) 2013"
             VALUE "OriginalFilename", "SlxCom.dll"
             VALUE "ProductName", "SlxCom"
-            VALUE "ProductVersion", "6, 5, 1, 112"
+            VALUE "ProductVersion", "6, 5, 112, 806"
         END
     END
     BLOCK "VarFileInfo"
