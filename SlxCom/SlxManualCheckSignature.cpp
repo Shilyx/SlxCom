@@ -418,6 +418,7 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
                 }
 
                 ListView_SetItemText(hFileList, nIndex, LVH_RESULT, szResult);
+                ListView_Update(hFileList, nIndex);
 
                 break;
             }

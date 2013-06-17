@@ -14,29 +14,46 @@ typedef struct _FILE_MAPPING_STRUCT
 
 static BOOL WINAPI _PeIsPeFile(LPVOID buffer, BOOL* b64)
 {
-    if (!buffer)
-    {
-        return FALSE;
-    }
+    BOOL bRet = FALSE;
 
-    IMAGE_DOS_HEADER* pDosHdr = (IMAGE_DOS_HEADER*)buffer;
-    if (IMAGE_DOS_SIGNATURE != pDosHdr->e_magic)
+    do
     {
-        return FALSE;
-    }
+        if (!buffer)
+        {
+            break;
+        }
 
-    IMAGE_NT_HEADERS32* pNtHdr = (IMAGE_NT_HEADERS32*)((byte*)pDosHdr + pDosHdr->e_lfanew);
-    if (IMAGE_NT_SIGNATURE != pNtHdr->Signature)
-    {
-        return FALSE;;
-    }
+        IMAGE_DOS_HEADER* pDosHdr = (IMAGE_DOS_HEADER*)buffer;
+        if (IMAGE_DOS_SIGNATURE != pDosHdr->e_magic)
+        {
+            break;
+        }
+        if (pDosHdr->e_lfanew > 1024)
+        {
+            break;
+        }
 
-    if (b64)
-    {
-        *b64 = (pNtHdr->FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER64));
-    }
+        IMAGE_NT_HEADERS32* pNtHdr = (IMAGE_NT_HEADERS32*)((byte*)pDosHdr + pDosHdr->e_lfanew);
 
-    return TRUE;
+        if (IsBadReadPtr(pNtHdr, sizeof(void*)))
+        {
+            break;
+        }
+
+        if (IMAGE_NT_SIGNATURE != pNtHdr->Signature)
+        {
+            break;
+        }
+
+        if (b64)
+        {
+            *b64 = (pNtHdr->FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER64));
+        }
+
+        bRet = TRUE;
+    } while (FALSE);
+
+    return bRet;
 }
 
 PFILE_MAPPING_STRUCT WINAPI GdFileMappingFileW(LPCWSTR fileName, BOOL bWrite, DWORD maxViewSize)

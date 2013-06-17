@@ -115,12 +115,8 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
                 }
                 else
                 {
-                    //仅校验大小不超过限制的文件的数字签名
-                    if (uliFileSize.QuadPart <= MAX_FILESIZE)
-                    {
-                        SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
-                        SetEvent(m_hTaskEvent);
-                    }
+                    SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
+                    SetEvent(m_hTaskEvent);
                 }
             }
         }
