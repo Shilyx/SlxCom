@@ -264,7 +264,6 @@ IDI_CONFIG_ICON         ICON                    "res\\Main.ico"
 // Cursor
 //
 
-IDC_POINTER             CURSOR                  "POINTER.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //

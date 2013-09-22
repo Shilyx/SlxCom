@@ -1262,6 +1262,122 @@ BOOL KillAllExplorers()
     return TRUE;
 }
 
+BOOL SetClipboardHtml(const char *html)
+{
+    static UINT format = 0;
+    BOOL bResult = FALSE;
+
+    if (format == 0)
+    {
+        format = RegisterClipboardFormatA("HTML Format");
+
+        if (format == 0)
+        {
+            return bResult;
+        }
+    }
+
+    if (html == NULL)
+    {
+        return bResult;
+    }
+
+    int nSize = lstrlenA(html) + 500;
+    char *buffer = (char *)malloc(nSize);
+
+    if (buffer == NULL)
+    {
+        return bResult;
+    }
+
+    int nStartHtml = 0;
+    int nEndHtml = 0;
+    int nStartFragment = 0;
+    int nEndFragment = 0;
+
+    nEndHtml = wnsprintfA(
+        buffer,
+        nSize,
+        "Version:0.9\r\n"
+        "StartHTML:%08d\r\n"
+        "EndHTML:%08d\r\n"
+        "StartFragment:%08d\r\n"
+        "EndFragment:%08d\r\n"
+        "<html><body>\r\n"
+        "<!--StartFragment -->\r\n"
+        "%s"
+        "<!--EndFragment-->\r\n"
+        "</body>\r\n"
+        "</html>",
+        nStartHtml,
+        nEndHtml,
+        nStartFragment,
+        nEndFragment,
+        html
+        );
+
+    nStartHtml = (int)StrStrA(buffer, "<html") - (int)buffer;
+    nStartFragment = (int)StrStrA(buffer, "<!--StartFrag") - (int)buffer;
+    nEndFragment = (int)StrStrA(buffer, "<!--EndFragment") - (int)buffer;
+
+    if (nStartHtml != 0 &&
+        nEndHtml != 0 &&
+        nStartFragment != 0 &&
+        nEndFragment != 0
+        )
+    {
+        nSize = wnsprintfA(
+            buffer,
+            nSize,
+            "Version:0.9\r\n"
+            "StartHTML:%08d\r\n"
+            "EndHTML:%08d\r\n"
+            "StartFragment:%08d\r\n"
+            "EndFragment:%08d\r\n"
+            "<html><body>\r\n"
+            "<!--StartFragment -->\r\n"
+            "%s"
+            "<!--EndFragment-->\r\n"
+            "</body>\r\n"
+            "</html>",
+            nStartHtml,
+            nEndHtml,
+            nStartFragment,
+            nEndFragment,
+            html
+            );
+
+        if(OpenClipboard(0))
+        {
+            EmptyClipboard();
+
+            HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, nSize + 10);
+
+            if (hText != NULL)
+            {
+                char *lpText = (char *)GlobalLock(hText);
+
+                if (lpText != NULL)
+                {
+                    lstrcpynA(lpText, buffer, nSize + 10);
+                    bResult = TRUE;
+
+                    GlobalUnlock(hText);
+                }
+
+                SetClipboardData(format, hText);
+                GlobalFree(hText);
+            }
+
+            CloseClipboard();
+        }
+    }
+
+    free((void *)buffer);
+
+    return bResult;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     const TCHAR *sz[] = {
