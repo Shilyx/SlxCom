@@ -413,10 +413,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\lib\deelx.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -560,6 +556,22 @@
 			</File>
 			<File
 				RelativePath=".\res\UnlockFile.bmp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="lib"
+			>
+			<File
+				RelativePath=".\lib\charconv.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\charconv.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\deelx.h"
 				>
 			</File>
 		</Filter>
