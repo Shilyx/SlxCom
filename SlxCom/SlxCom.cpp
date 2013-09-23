@@ -37,6 +37,7 @@ HBITMAP g_hUnescapeBmp = NULL;
 HBITMAP g_hAppPathBmp = NULL;
 HBITMAP g_hDriverBmp = NULL;
 HBITMAP g_hUnlockFileBmp = NULL;
+HBITMAP g_hCopyPictureHtmlBmp = NULL;
 OSVERSIONINFO g_osi = {sizeof(g_osi)};
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
@@ -159,6 +160,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_hAppPathBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_APPPATH));
         g_hDriverBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_DRIVER));
         g_hUnlockFileBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNLOCKFILE));
+        g_hCopyPictureHtmlBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COPY_PICTURE_HTML));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

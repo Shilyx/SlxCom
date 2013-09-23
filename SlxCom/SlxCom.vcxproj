@@ -231,6 +231,7 @@
     <ClCompile Include="SlxUnlockFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\CopyPictureHtml.bmp" />
     <None Include="SlxCom.def" />
     <None Include="res\AddToCopy.bmp" />
     <None Include="res\AddToCut.bmp" />

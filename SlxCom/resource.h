@@ -30,6 +30,7 @@
 #define IDR_PAINTMENU                   120
 #define IDB_DRIVER                      121
 #define IDB_UNLOCKFILE                  122
+#define IDB_COPY_PICTURE_HTML           123
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003

@@ -43,5 +43,6 @@ BOOL IsPathDesktop(LPCTSTR lpPath);
 BOOL IsWow64ProcessHelper(HANDLE hProcess);
 BOOL DisableWow64FsRedirection();
 BOOL KillAllExplorers();
+BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths);
 
 #endif

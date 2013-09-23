@@ -93,6 +93,10 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\lib\charconv.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxCom.cpp
 # End Source File
 # Begin Source File
@@ -163,6 +167,10 @@ SOURCE=.\SlxUnlockFile.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=.\lib\charconv.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\resource.h
 # End Source File
 # Begin Source File
@@ -224,6 +232,10 @@ SOURCE=.\SlxUnlockFile.h
 # Begin Source File
 
 SOURCE=.\res\AddToCopy.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\CopyPictureHtml.bmp
 # End Source File
 # Begin Source File
 

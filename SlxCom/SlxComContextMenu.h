@@ -9,6 +9,7 @@ public:
     BOOL bIsFile;
     BOOL bIsDll;
     BOOL bIsJpg;
+    BOOL bIsPicture;
     BOOL bIsRar;
     BOOL bIsEncorated;
     BOOL bRegEventSucceed;
@@ -19,6 +20,7 @@ public:
         bIsFile = FALSE;
         bIsDll = FALSE;
         bIsJpg = FALSE;
+        bIsPicture = FALSE;
         bIsRar = FALSE;
         bIsEncorated = FALSE;
         bRegEventSucceed = FALSE;

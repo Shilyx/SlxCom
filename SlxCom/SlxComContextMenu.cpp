@@ -31,6 +31,7 @@ extern HBITMAP g_hUnescapeBmp;
 extern HBITMAP g_hAppPathBmp;
 extern HBITMAP g_hDriverBmp;
 extern HBITMAP g_hUnlockFileBmp;
+extern HBITMAP g_hCopyPictureHtmlBmp;
 
 volatile HANDLE m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -156,6 +157,16 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
                             else if(lstrcmpi(lpExtension, TEXT(".jpg")) == 0 || lstrcmpi(lpExtension, TEXT(".jpeg")) == 0)
                             {
                                 m_pFiles[uIndex].bIsJpg = TRUE;
+                                m_pFiles[uIndex].bIsPicture = TRUE;
+                            }
+                            else if (lstrcmpi(lpExtension, TEXT(".gif")) == 0 ||
+                                     lstrcmpi(lpExtension, TEXT(".bmp")) == 0 ||
+                                     lstrcmpi(lpExtension, TEXT(".png")) == 0 ||
+                                     lstrcmpi(lpExtension, TEXT(".dib")) == 0 ||
+                                     lstrcmpi(lpExtension, TEXT(".tif")) == 0 ||
+                                     lstrcmpi(lpExtension, TEXT(".tiff")) == 0)
+                            {
+                                m_pFiles[uIndex].bIsPicture = TRUE;
                             }
                             else if(lstrcmpi(lpExtension, TEXT(".rar")) == 0)
                             {
@@ -194,7 +205,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_DRV_START            15
 #define ID_DRV_STOP             16
 #define ID_DRV_UNINSTALL        17
-#define ID_18                   18
+#define ID_COPY_PICTURE_HTML    18
 #define IDCOUNT                 19
 
 //IContextMenu
@@ -214,6 +225,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     BOOL bExistDll = FALSE;
     BOOL bExistFile = FALSE;
     BOOL bExistCom = FALSE;
+    BOOL bExistPicture = FALSE;
 
     for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
     {
@@ -232,7 +244,12 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
             bExistCom = TRUE;
         }
 
-        if(bExistDll * bExistFile * bExistCom)
+        if (!bExistPicture && m_pFiles[uFileIndex].bIsPicture)
+        {
+            bExistPicture = TRUE;
+        }
+
+        if(bExistDll * bExistFile * bExistCom * bExistPicture)
         {
             break;
         }
@@ -244,6 +261,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     //CopyFilePath
     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整路径"));
     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
+
+    //CopyPictureAsHtml
+    if (bExistPicture)
+    {
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPY_PICTURE_HTML, TEXT("复制图片（QQ）"));
+        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPY_PICTURE_HTML, MF_BYCOMMAND, g_hCopyPictureHtmlBmp, g_hCopyPictureHtmlBmp);
+    }
 
     //Dll Register
     if(bExistCom)
@@ -468,6 +492,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_UNESCAPE)
     {
         lpText = "转化文件名为较合适的形式。";
+    }
+    else if (idCmd == ID_COPY_PICTURE_HTML)
+    {
+        lpText = "将图片内容复制到剪贴板，支持在QQ上粘贴。";
     }
 
     if(uFlags & GCS_UNICODE)
@@ -971,6 +999,34 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_DRV_UNINSTALL:
         DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_UNINSTALL);
         break;
+
+    case ID_COPY_PICTURE_HTML:
+    {
+        TCHAR *lpBuffer = (TCHAR *)malloc(m_uFileCount * MAX_PATH * sizeof(TCHAR));
+
+        if (lpBuffer != NULL)
+        {
+            UINT uFileIndex = 0;
+            TCHAR *lpPaths = lpBuffer;
+
+            for (; uFileIndex < m_uFileCount; uFileIndex += 1)
+            {
+                if (m_pFiles[uFileIndex].bIsPicture)
+                {
+                    lstrcpyn(lpPaths, m_pFiles[uFileIndex].szPath, MAX_PATH);
+                    lpPaths += (lstrlen(lpPaths) + 1);
+                }
+            }
+
+            lpPaths[0] = TEXT('\0');
+
+            SetClipboardPicturePathsByHtml(lpBuffer);
+
+            free((void *)lpBuffer);
+        }
+
+        break;
+    }
 
     default:
         return E_INVALIDARG;
