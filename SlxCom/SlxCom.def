@@ -6,6 +6,7 @@ DllRegisterServer	PRIVATE
 DllUnregisterServer	PRIVATE
 
 T
+T2
 ResetExplorer
 SlxComConfig
 BrowserLinkFilePosition

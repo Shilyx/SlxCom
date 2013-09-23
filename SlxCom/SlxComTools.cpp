@@ -9,6 +9,9 @@
 #include <TlHelp32.h>
 #pragma warning(disable: 4786)
 #include <set>
+#include <iostream>
+#include <sstream>
+#include "lib/charconv.h"
 
 using namespace std;
 
@@ -1264,14 +1267,14 @@ BOOL KillAllExplorers()
 
 BOOL SetClipboardHtml(const char *html)
 {
-    static UINT format = 0;
+    static UINT nCbFormat = 0;
     BOOL bResult = FALSE;
 
-    if (format == 0)
+    if (nCbFormat == 0)
     {
-        format = RegisterClipboardFormatA("HTML Format");
+        nCbFormat = RegisterClipboardFormatA("HTML Format");
 
-        if (format == 0)
+        if (nCbFormat == 0)
         {
             return bResult;
         }
@@ -1294,21 +1297,23 @@ BOOL SetClipboardHtml(const char *html)
     int nEndHtml = 0;
     int nStartFragment = 0;
     int nEndFragment = 0;
-
-    nEndHtml = wnsprintfA(
-        buffer,
-        nSize,
+    const char *fmt =
         "Version:0.9\r\n"
         "StartHTML:%08d\r\n"
         "EndHTML:%08d\r\n"
         "StartFragment:%08d\r\n"
         "EndFragment:%08d\r\n"
-        "<html><body>\r\n"
-        "<!--StartFragment -->\r\n"
+        "<!doctype html><html><body>\r\n"
+        "<!--StartFragment-->"
         "%s"
         "<!--EndFragment-->\r\n"
         "</body>\r\n"
-        "</html>",
+        "</html>";
+
+    nEndHtml = wnsprintfA(
+        buffer,
+        nSize,
+        fmt,
         nStartHtml,
         nEndHtml,
         nStartFragment,
@@ -1329,17 +1334,7 @@ BOOL SetClipboardHtml(const char *html)
         nSize = wnsprintfA(
             buffer,
             nSize,
-            "Version:0.9\r\n"
-            "StartHTML:%08d\r\n"
-            "EndHTML:%08d\r\n"
-            "StartFragment:%08d\r\n"
-            "EndFragment:%08d\r\n"
-            "<html><body>\r\n"
-            "<!--StartFragment -->\r\n"
-            "%s"
-            "<!--EndFragment-->\r\n"
-            "</body>\r\n"
-            "</html>",
+            fmt,
             nStartHtml,
             nEndHtml,
             nStartFragment,
@@ -1360,12 +1355,12 @@ BOOL SetClipboardHtml(const char *html)
                 if (lpText != NULL)
                 {
                     lstrcpynA(lpText, buffer, nSize + 10);
-                    bResult = TRUE;
 
                     GlobalUnlock(hText);
                 }
 
-                SetClipboardData(format, hText);
+                bResult = SetClipboardData(nCbFormat, hText) != NULL;
+
                 GlobalFree(hText);
             }
 
@@ -1378,8 +1373,74 @@ BOOL SetClipboardHtml(const char *html)
     return bResult;
 }
 
+BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths)
+{
+    if (lpPaths == NULL)
+    {
+        return FALSE;
+    }
+
+    int nLength = lstrlen(lpPaths);
+
+    stringstream ss;
+    TCHAR szShortPath[MAX_PATH];
+
+    ss<<"<DIV>"<<endl;
+
+    while (nLength > 0)
+    {
+        if (GetShortPathName(lpPaths, szShortPath, RTL_NUMBER_OF(szShortPath)) > 0)
+        {
+            ss<<"<IMG src=\"file"<<":///"<<TtoU(szShortPath)<<"\" >"<<endl;
+        }
+
+        lpPaths += (nLength + 1);
+        nLength = lstrlen(lpPaths);
+    }
+
+    ss<<"</DIV>";
+
+    return SetClipboardHtml(ss.str().c_str());
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
+    char szShortPath[1000];
+
+    GetShortPathNameA("D:\\Backup\\ADMINI~1\\Desktop\\AA717C~1\\大锅饭.gif", szShortPath, MAX_PATH);
+
+    SetClipboardHtml("<DIV>\r\n"
+        "<IMG src=\"file:///C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\3D5AC79D1CEF4B08826F762C95190326.gif\" >\r\n"
+        "<IMG src=\"file:///D:\\Backup\\ADMINI~1\\Desktop\\AA717C~1\\大锅饭.gif\" >\r\n"
+        "</DIV>");
+
+
+    const TCHAR *szPics[] = {
+        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (2).gif"),
+        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (3).gif"),
+        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (4).gif"),
+        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (5).gif"),
+        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\大锅饭.gif"),
+        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (1).gif"),
+    };
+
+    TCHAR *lpBuffer = new TCHAR[RTL_NUMBER_OF(szPics) * MAX_PATH];
+    TCHAR *lpTempBuffer = lpBuffer;
+
+    for (int i = 0; i < RTL_NUMBER_OF(szPics); i += 1)
+    {
+        lstrcpy(lpTempBuffer, szPics[i]);
+         lpTempBuffer += (lstrlen(lpTempBuffer) + 1);
+    }
+
+    lpTempBuffer[0] = TEXT('\0');
+
+    SetClipboardPicturePathsByHtml(lpBuffer);
+
+    delete lpBuffer;
+
+    return;
+
     const TCHAR *sz[] = {
         TEXT("D:\\桌面\\新建文件夹\\复件 aaa.txt"),
         TEXT("D:\\桌面\\新建文件夹\\复件 a(88).aa.txt"),

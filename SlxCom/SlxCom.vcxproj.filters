@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{ce8d1c5a-acf5-4b9d-a152-a2962e4d9f95}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SlxCom.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComConfig.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComContextMenu.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComFactory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComOverlay.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComPeTools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComTools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComWork.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComWork_lvm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComWork_sd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxFileHandles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxManualCheckSignature.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxStringStatusCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxUnlockFile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\charconv.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SlxCom.def">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="res\AddToCopy.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\AddToCut.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\AppPath.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\CheckSignature.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Combine.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\CopyFullPath.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Default.jpg">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Driver.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Install.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\KillExplorer.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Main.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Mark.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\OpenWithNotepad.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="POINTER.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\RunCmdHere.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\TryRun.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\TryRunWithArguments.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Unescape.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Uninstall.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\UnlockFile.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComContextMenu.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComFactory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComOverlay.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComPeTools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComTools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComWork.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComWork_lvm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComWork_sd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxFileHandles.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxManualCheckSignature.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxString.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxStringStatusCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\deelx.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\charconv.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="SlxCom.manifest">
+      <Filter>资源文件</Filter>
+    </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SlxCom.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

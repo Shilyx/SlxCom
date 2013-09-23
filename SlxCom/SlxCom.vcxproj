@@ -214,6 +214,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\charconv.cpp" />
     <ClCompile Include="SlxCom.cpp" />
     <ClCompile Include="SlxComConfig.cpp" />
     <ClCompile Include="SlxComContextMenu.cpp" />
@@ -253,6 +254,7 @@
     <None Include="res\UnlockFile.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\charconv.h" />
     <ClInclude Include="lib\deelx.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SlxComContextMenu.h" />
