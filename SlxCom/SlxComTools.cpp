@@ -525,17 +525,91 @@ BOOL RunCommandWithArguments(LPCTSTR lpFile)
     return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
+BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
+{
+    typedef HRESULT (__stdcall *PSHOpenFolderAndSelectItems)(PCIDLIST_ABSOLUTE, UINT, PCUITEMID_CHILD_ARRAY, DWORD);
+
+    BOOL bResult = FALSE;
+    LPCTSTR lpDllName = TEXT("Shell32.dll");
+    HMODULE hShell32 = GetModuleHandle(lpDllName);
+    PSHOpenFolderAndSelectItems pSHOpenFolderAndSelectItems;
+
+    if (hShell32 == NULL)
+    {
+        hShell32 = LoadLibrary(lpDllName);
+    }
+
+    if (hShell32 == NULL)
+    {
+        return bResult;
+    }
+
+    (PROC&)pSHOpenFolderAndSelectItems = GetProcAddress(hShell32, "SHOpenFolderAndSelectItems");
+
+    if (pSHOpenFolderAndSelectItems != NULL)
+    {
+        IShellFolder* pDesktopFolder = NULL;
+
+        if (SUCCEEDED(SHGetDesktopFolder(&pDesktopFolder)))
+        {
+            LPCITEMIDLIST pidlFolder = NULL;
+            LPCITEMIDLIST pidlFile = NULL;
+            LPITEMIDLIST pidl = NULL;
+            WCHAR szFile[MAX_PATH] = {0};
+            WCHAR szPath[MAX_PATH] = {0};
+
+            lstrcpynW(szFile, TtoW(lpFile).c_str(), RTL_NUMBER_OF(szFile));
+            lstrcpynW(szPath, szFile, RTL_NUMBER_OF(szPath));
+            PathRemoveFileSpecW(szPath);
+
+            if (SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, szPath, NULL, &pidl, NULL)))
+            {
+                pidlFolder = pidl;
+
+                if (SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, szFile, NULL, &pidl, NULL)))
+                {
+                    pidlFile = pidl;
+
+                    CoInitialize(NULL);
+                    bResult = SUCCEEDED(pSHOpenFolderAndSelectItems(pidlFolder, 1, &pidlFile, 0));
+                }
+            }
+
+            if (pidlFolder != NULL)
+            {
+                CoTaskMemFree((void*)pidlFolder);
+            }
+
+            if (pidlFile != NULL)
+            {
+                CoTaskMemFree((void*)pidlFile);
+            }
+
+            pDesktopFolder->Release();
+        }
+    }
+
+    return bResult;
+}
+
 BOOL BrowseForFile(LPCTSTR lpFile)
 {
-    TCHAR szExplorerPath[MAX_PATH];
-    TCHAR szCommandLine[MAX_PATH * 2 + 100];
+    if (SHOpenFolderAndSelectItems(lpFile))
+    {
+        return TRUE;
+    }
+    else
+    {
+        TCHAR szExplorerPath[MAX_PATH];
+        TCHAR szCommandLine[MAX_PATH * 2 + 100];
 
-    GetWindowsDirectory(szExplorerPath, MAX_PATH);
-    PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
+        GetWindowsDirectory(szExplorerPath, MAX_PATH);
+        PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
 
-    wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("%s /n,/select,\"%s\""), szExplorerPath, lpFile);
+        wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("%s /n,/select,\"%s\""), szExplorerPath, lpFile);
 
-    return RunCommand(szCommandLine, NULL);
+        return RunCommand(szCommandLine, NULL);
+    }
 }
 
 void WINAPI ResetExplorer(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
@@ -1417,6 +1491,10 @@ void SafeDebugMessage(LPCTSTR pFormat, ...)
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
+    BrowseForFile(TEXT("D:\\Backup\\Administrator\\Desktop\\Qt程序设计指南(很好的Qt参考书).pdf"));
+
+    return ;
+
     char szShortPath[1000];
 
     GetShortPathNameA("D:\\Backup\\ADMINI~1\\Desktop\\AA717C~1\\大锅饭.gif", szShortPath, MAX_PATH);
