@@ -1403,6 +1403,18 @@ BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths)
     return SetClipboardHtml(ss.str().c_str());
 }
 
+void SafeDebugMessage(LPCTSTR pFormat, ...)
+{
+    TCHAR szBuffer[2000];
+    va_list pArg;
+
+    va_start(pArg, pFormat);
+    wvnsprintf(szBuffer, sizeof(szBuffer) / sizeof(TCHAR), pFormat, pArg);
+    va_end(pArg);
+
+    OutputDebugString(szBuffer);
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     char szShortPath[1000];

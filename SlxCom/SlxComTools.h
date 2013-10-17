@@ -44,5 +44,6 @@ BOOL IsWow64ProcessHelper(HANDLE hProcess);
 BOOL DisableWow64FsRedirection();
 BOOL KillAllExplorers();
 BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths);
+void SafeDebugMessage(LPCTSTR pFormat, ...);
 
 #endif
