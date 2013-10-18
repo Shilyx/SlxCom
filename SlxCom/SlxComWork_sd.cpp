@@ -2,13 +2,13 @@
 #include <Shlwapi.h>
 #include <shldisp.h>
 
-static WNDPROC lpOldWndProc = NULL;
+static WNDPROC lpOldStartButtonProc = NULL;
 
-LRESULT WINAPI NewWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static LRESULT WINAPI NewStartButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     if(uMsg == WM_PAINT)
     {
-        LRESULT lResult = CallWindowProc(lpOldWndProc, hwnd, uMsg, wParam, lParam);
+        LRESULT lResult = CallWindowProc(lpOldStartButtonProc, hwnd, uMsg, wParam, lParam);
 
         HDC hDc = GetDC(hwnd);
 
@@ -51,7 +51,7 @@ LRESULT WINAPI NewWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
     }
 
-    return CallWindowProc(lpOldWndProc, hwnd, uMsg, wParam, lParam);
+    return CallWindowProc(lpOldStartButtonProc, hwnd, uMsg, wParam, lParam);
 }
 
 DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
@@ -103,7 +103,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
                 {
                     hTrayNotifyWnd = hChildWindow;
 
-                    lpOldWndProc = (WNDPROC)SetWindowLongPtr(hTrayNotifyWnd, GWLP_WNDPROC, (LONG_PTR)NewWndProc);
+                    lpOldStartButtonProc = (WNDPROC)SetWindowLongPtr(hTrayNotifyWnd, GWLP_WNDPROC, (LONG_PTR)NewStartButtonProc);
                 }
             }
             else

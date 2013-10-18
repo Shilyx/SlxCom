@@ -7,6 +7,7 @@
 #include "resource.h"
 #include "lib/deelx.h"
 #include <TlHelp32.h>
+#include <shlobj.h>
 #pragma warning(disable: 4786)
 #include <set>
 #include <iostream>
@@ -527,7 +528,7 @@ BOOL RunCommandWithArguments(LPCTSTR lpFile)
 
 BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
 {
-    typedef HRESULT (__stdcall *PSHOpenFolderAndSelectItems)(PCIDLIST_ABSOLUTE, UINT, PCUITEMID_CHILD_ARRAY, DWORD);
+    typedef HRESULT (__stdcall *PSHOpenFolderAndSelectItems)(LPCITEMIDLIST, UINT, LPCITEMIDLIST *, DWORD);
 
     BOOL bResult = FALSE;
     LPCTSTR lpDllName = TEXT("Shell32.dll");
@@ -1491,7 +1492,7 @@ void SafeDebugMessage(LPCTSTR pFormat, ...)
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    BrowseForFile(TEXT("D:\\Backup\\Administrator\\Desktop\\Qt程序设计指南(很好的Qt参考书).pdf"));
+    BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
 
     return ;
 
