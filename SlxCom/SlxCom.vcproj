@@ -387,6 +387,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComWork_ni.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComWork_sd.cpp"
 				>
 			</File>
@@ -442,6 +446,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComWork_lvm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComWork_ni.h"
 				>
 			</File>
 			<File
