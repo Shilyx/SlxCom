@@ -4,23 +4,51 @@
 
 #define NOTIFYWNDCLASS  TEXT("__slxcom_notify_wnd")
 #define WM_CALLBACK     (WM_USER + 112)
+#define ICON_COUNT      10
 
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static NOTIFYICONDATA nid = {sizeof(nid)};
+    static int nIconShowIndex = MAXINT;
+    static HICON arrIcons[ICON_COUNT] = {NULL};
 
     if (uMsg == WM_CREATE)
     {
         LPCREATESTRUCT lpCs = (LPCREATESTRUCT)lParam;
 
+        //load icons
+        int nFirstIconId = IDI_BIRD_0;
+
+        for (int i = 0; i < ICON_COUNT; i += 1)
+        {
+            arrIcons[i] = LoadIcon(lpCs->hInstance, MAKEINTRESOURCE(nFirstIconId + i));
+        }
+
+        //add icon to tray
         nid.hWnd = hWnd;
         nid.uID = 1;
         nid.uCallbackMessage = WM_CALLBACK;
-        nid.hIcon = LoadIcon(lpCs->hInstance, MAKEINTRESOURCE(IDI_CONFIG_ICON));
-        nid.dwState = NIF_TIP | NIF_MESSAGE | NIF_ICON;
+        nid.hIcon = arrIcons[0];
+        nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
         lstrcpyn(nid.szTip, TEXT("SlxCom"), sizeof(nid.szTip));
 
         Shell_NotifyIcon(NIM_ADD, &nid);
+
+        //
+        SetTimer(hWnd, 1, 500, NULL);
+
+        return 0;
+    }
+    else if (uMsg == WM_TIMER)
+    {
+        if (nIconShowIndex < RTL_NUMBER_OF(arrIcons))
+        {
+            nid.hIcon = arrIcons[nIconShowIndex];
+            nid.uFlags = NIF_ICON;
+
+            Shell_NotifyIcon(NIM_MODIFY, &nid);
+            nIconShowIndex += 1;
+        }
     }
     else if (uMsg == WM_CLOSE)
     {
@@ -30,6 +58,17 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     else if (uMsg == WM_DESTROY)
     {
         PostQuitMessage(0);
+    }
+    else if (uMsg == WM_LBUTTONDOWN)
+    {
+        nIconShowIndex = 0;
+    }
+    else if (uMsg == WM_CALLBACK)
+    {
+        if (lParam == WM_RBUTTONUP || lParam == WM_LBUTTONUP)
+        {
+            SetForegroundWindow(hWnd);
+        }
     }
 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);

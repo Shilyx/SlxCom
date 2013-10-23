@@ -232,6 +232,7 @@
     <ClCompile Include="SlxComTools.cpp" />
     <ClCompile Include="SlxComWork.cpp" />
     <ClCompile Include="SlxComWork_lvm.cpp" />
+    <ClCompile Include="SlxComWork_ni.cpp" />
     <ClCompile Include="SlxComWork_sd.cpp" />
     <ClCompile Include="SlxFileHandles.cpp" />
     <ClCompile Include="SlxManualCheckSignature.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="SlxComTools.h" />
     <ClInclude Include="SlxComWork.h" />
     <ClInclude Include="SlxComWork_lvm.h" />
+    <ClInclude Include="SlxComWork_ni.h" />
     <ClInclude Include="SlxComWork_sd.h" />
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />

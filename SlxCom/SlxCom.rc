@@ -250,6 +250,16 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_CONFIG_ICON         ICON                    "res\\Main.ico"
+IDI_BIRD_0              ICON                    "res\\bird\\0.ico"
+IDI_BIRD_1              ICON                    "res\\bird\\1.ico"
+IDI_BIRD_2              ICON                    "res\\bird\\2.ico"
+IDI_BIRD_3              ICON                    "res\\bird\\3.ico"
+IDI_BIRD_4              ICON                    "res\\bird\\4.ico"
+IDI_BIRD_5              ICON                    "res\\bird\\5.ico"
+IDI_BIRD_6              ICON                    "res\\bird\\6.ico"
+IDI_BIRD_7              ICON                    "res\\bird\\7.ico"
+IDI_BIRD_8              ICON                    "res\\bird\\8.ico"
+IDI_BIRD_9              ICON                    "res\\bird\\9.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

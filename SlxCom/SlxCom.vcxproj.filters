@@ -63,6 +63,9 @@
     <ClCompile Include="lib\charconv.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComWork_ni.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -131,6 +134,9 @@
     <None Include="res\CopyPictureHtml.bmp">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\icon1.ico">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -177,6 +183,9 @@
     </ClInclude>
     <ClInclude Include="lib\charconv.h">
       <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComWork_ni.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

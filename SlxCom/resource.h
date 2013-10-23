@@ -31,6 +31,16 @@
 #define IDB_DRIVER                      121
 #define IDB_UNLOCKFILE                  122
 #define IDB_COPY_PICTURE_HTML           123
+#define IDI_BIRD_0                      130
+#define IDI_BIRD_1                      131
+#define IDI_BIRD_2                      132
+#define IDI_BIRD_3                      133
+#define IDI_BIRD_4                      134
+#define IDI_BIRD_5                      135
+#define IDI_BIRD_6                      136
+#define IDI_BIRD_7                      137
+#define IDI_BIRD_8                      138
+#define IDI_BIRD_9                      139
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
@@ -63,7 +73,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        121
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         40017
 #define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
