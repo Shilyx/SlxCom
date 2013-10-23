@@ -35,7 +35,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         Shell_NotifyIcon(NIM_ADD, &nid);
 
         //
-        SetTimer(hWnd, 1, 500, NULL);
+        SetTimer(hWnd, 1, 55, NULL);
 
         return 0;
     }
@@ -106,7 +106,7 @@ static HWND GetTrayNotifyWndInProcess()
 static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
 {
     DWORD dwSleepTime = 1;
-    while (!IsWindow(GetTrayNotifyWndInProcess()))
+ //   while (!IsWindow(GetTrayNotifyWndInProcess()))
     {
         Sleep((dwSleepTime++) * 1000);
     }
