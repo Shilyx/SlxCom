@@ -2,6 +2,7 @@
 #define _SLX_COM_TOOLS_H
 
 #include <Windows.h>
+#include <string>
 
 enum DRIVER_ACTION
 {
@@ -27,6 +28,7 @@ LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
 BOOL SetClipboardText(LPCTSTR lpText);
 BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCTSTR lpFile);
+BOOL BrowseForRegPath(LPCTSTR lpRegPath);
 BOOL BrowseForFile(LPCTSTR lpFile);
 BOOL IsExplorer();
 BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
@@ -45,5 +47,20 @@ BOOL DisableWow64FsRedirection();
 BOOL KillAllExplorers();
 BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths);
 void SafeDebugMessage(LPCTSTR pFormat, ...);
+
+template <typename T>
+std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)
+{
+    if (p != NULL)
+    {
+        str = p;
+    }
+    else
+    {
+        str.clear();
+    }
+
+    return str;
+}
 
 #endif

@@ -4,11 +4,12 @@
 #pragma warning(disable: 4786)
 #include <vector>
 #include <map>
+#include <set>
 #include "lib/charconv.h"
 
 using namespace std;
 
-#define NOTIFYWNDCLASS  TEXT("__slxcom_notify_wnd")
+#define NOTIFYWNDCLASS  TEXT("__slxcom_work_ni_notify_wnd")
 #define WM_CALLBACK     (WM_USER + 112)
 #define ICON_COUNT      10
 #define TIMER_ICON      1
@@ -21,23 +22,10 @@ enum
     SYS_QUIT        = 1,
     SYS_ABOUT,
     SYS_RESETEXPLORER,
+    SYS_WINDOWMANAGER,
+    SYS_UPDATEMENU,
     SYS_MAXVALUE,
 };
-
-template <typename T>
-basic_string<T> &AssignString(basic_string<T> &str, const T *p)
-{
-    if (p != NULL)
-    {
-        str = p;
-    }
-    else
-    {
-        str.clear();
-    }
-
-    return str;
-}
 
 class MenuItem
 {
@@ -45,6 +33,7 @@ public:
     MenuItem() : m_nCmdId(0) { }
     virtual ~MenuItem() { }
     virtual void DoJob(HWND hWindow, HINSTANCE hInstance) = 0;
+    virtual bool operator<(const MenuItem &other) const { return m_nCmdId < other.m_nCmdId;}
 
 protected:
     int m_nCmdId;
@@ -63,7 +52,7 @@ public:
 
     virtual void DoJob(HWND hWindow, HINSTANCE hInstance)
     {
-        MessageBox(hWindow, m_strRegPath.c_str(), m_strText.c_str(), 0);
+        BrowseForRegPath(m_strRegPath.c_str());
     }
 
 protected:
@@ -98,6 +87,11 @@ public:
             NULL
             );
 
+        if (nCmd == 0)
+        {
+            return;
+        }
+
         switch (nCmd)
         {
         case SYS_QUIT:
@@ -120,8 +114,16 @@ public:
             }
             break;
 
+        case SYS_WINDOWMANAGER:
+            MessageBox(m_hWindow, NULL, NULL, MB_SYSTEMMODAL);
+            break;
+
+        case SYS_UPDATEMENU:
+            UpdateMenu();
+            break;
+
         default:
-            if (m_mapMenuItems.count(nCmd) >= 0)
+            if (m_mapMenuItems.find(nCmd) != m_mapMenuItems.end())
             {
                 m_mapMenuItems[nCmd]->DoJob(m_hWindow, m_hInstance);
             }
@@ -131,27 +133,237 @@ public:
 
     void UpdateMenu()
     {
-        BOOL bShiftDown = GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0;
+        m_setMenuItemsRegistry.clear();
+        m_mapMenuItems.clear();
 
         if (m_hMenu != NULL)
         {
             DestroyMenu(m_hMenu);
-            m_hMenu = NULL;
         }
 
+        UINT nMenuId = SYS_MAXVALUE;
         m_hMenu = CreatePopupMenu();
 
-        AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于(&A)"));
+        //主菜单
+        AppendMenu(m_hMenu, MF_STRING | MF_DEFAULT, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
+        AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表位置(&R)"));
+        AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&R)"));
+        AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
+        SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
+        AppendMenu(m_hMenu, MF_STRING, SYS_UPDATEMENU, TEXT("刷新菜单内容(&U)"));
+      //AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于(&A)..."));
         AppendMenu(m_hMenu, MF_STRING, SYS_QUIT, TEXT("不显示托盘图标(&Q)"));
+    }
 
-        if (bShiftDown)
+private:
+    //获取指定注册表路径下的所有子项列表，子项列表中不含路径部分
+    static set<tstring> GetRegAllSubPath(HKEY hRootKey, LPCTSTR lpRegPath)
+    {
+        set<tstring> result;
+        HKEY hKey = NULL;
+
+        if (ERROR_SUCCESS == RegOpenKeyEx(hRootKey, lpRegPath, 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE, &hKey))
         {
-            AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&R)"));
-            SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
+            DWORD dwSubKeyCount = 0;
+            DWORD dwMaxSubKeyLen = 0;
+
+            if (ERROR_SUCCESS == RegQueryInfoKey(
+                hKey,
+                NULL,
+                NULL,
+                NULL,
+                &dwSubKeyCount,
+                &dwMaxSubKeyLen,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL
+                ))
+            {
+                dwMaxSubKeyLen += 1;
+                dwMaxSubKeyLen *= 2;
+
+                TCHAR *szSubKey = (TCHAR *)malloc(dwMaxSubKeyLen);
+
+                if (szSubKey != NULL)
+                {
+                    for (DWORD dwIndex = 0; dwIndex < dwSubKeyCount; dwIndex += 1)
+                    {
+                        DWORD dwSubKeySize = dwMaxSubKeyLen;
+
+                        if (ERROR_SUCCESS == RegEnumKeyEx(hKey, dwIndex, szSubKey, &dwSubKeySize, NULL, NULL, NULL, NULL))
+                        {
+                            result.insert(szSubKey);
+                        }
+                    }
+                }
+
+                if (szSubKey != NULL)
+                {
+                    free((void *)szSubKey);
+                }
+            }
+
+            RegCloseKey(hKey);
         }
 
-        AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
+        return result;
+    }
 
+    //获取指定注册表路径下的所有字符串键值对应表，只关注REG_SZ类型
+    static map<tstring, tstring> GetRegAllSzValuePairs(HKEY hRootKey, LPCTSTR lpRegPath)
+    {
+        map<tstring, tstring> result;
+        HKEY hKey = NULL;
+
+        if (ERROR_SUCCESS == RegOpenKeyEx(hRootKey, lpRegPath, 0, KEY_QUERY_VALUE, &hKey))
+        {
+            DWORD dwValueCount = 0;
+            DWORD dwMaxValueNameLen = 0;
+            DWORD dwMaxDataLen = 0;
+
+            if (ERROR_SUCCESS == RegQueryInfoKey(
+                hKey,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                &dwValueCount,
+                &dwMaxValueNameLen,
+                &dwMaxDataLen,
+                NULL,
+                NULL
+                ))
+            {
+                dwMaxValueNameLen += 1;
+                dwMaxValueNameLen *= 2;
+                dwMaxDataLen += 1;
+
+                TCHAR *szValueName = (TCHAR *)malloc(dwMaxValueNameLen);
+                unsigned char *szData = (unsigned char *)malloc(dwMaxDataLen);
+
+                if (szValueName != NULL && szData != NULL)
+                {
+                    for (DWORD dwIndex = 0; dwIndex < dwValueCount; dwIndex += 1)
+                    {
+                        DWORD dwRegType = REG_NONE;
+                        DWORD dwValueSize = dwMaxValueNameLen;
+                        DWORD dwDataSize = dwMaxDataLen;
+
+                        if (ERROR_SUCCESS == RegEnumValue(
+                            hKey,
+                            dwIndex,
+                            szValueName,
+                            &dwValueSize,
+                            NULL,
+                            &dwRegType,
+                            szData,
+                            &dwDataSize
+                            ))
+                        {
+                            if (dwRegType == REG_SZ)
+                            {
+                                result[szValueName] = (LPCTSTR)szData;
+                            }
+                        }
+                    }
+                }
+
+                if (szValueName != NULL)
+                {
+                    free((void *)szValueName);
+                }
+
+                if (szData != NULL)
+                {
+                    free((void *)szData);
+                }
+            }
+
+            RegCloseKey(hKey);
+        }
+
+        return result;
+    }
+
+    //将指定注册表路径映射为菜单，菜单项ID使用pMenuId指向的值递增使用
+    //bEraseHead如被指定，则删除值中的最前的一个路径段
+    //bHaveChildPath如被指定，则处理子项
+    HMENU RegistryPathToMenu(UINT *pMenuId, HKEY hRootKey, LPCTSTR lpRegPath, BOOL bEraseHead, BOOL bHaveChildPath)
+    {
+        HMENU hPopupMenu = CreatePopupMenu();
+
+        //处理子项
+        if (bHaveChildPath)
+        {
+            set<tstring> setSubPaths = GetRegAllSubPath(hRootKey, lpRegPath);
+            set<tstring>::iterator itSubPath = setSubPaths.begin();
+            for (; itSubPath != setSubPaths.end(); ++itSubPath)
+            {
+                tstring strSubPath = lpRegPath;
+
+                strSubPath += TEXT("\\");
+                strSubPath += *itSubPath;
+
+                AppendMenu(
+                    hPopupMenu,
+                    MF_POPUP,
+                    (UINT)RegistryPathToMenu(pMenuId, hRootKey, strSubPath.c_str(), FALSE, TRUE),
+                    itSubPath->c_str()
+                    );
+            }
+        }
+
+        //处理当前项下的键
+        map<tstring, tstring>::const_iterator itValue;
+        map<tstring, tstring> mapMenu = GetRegAllSzValuePairs(hRootKey, lpRegPath);
+
+        for (itValue = mapMenu.begin(); itValue != mapMenu.end(); ++itValue)
+        {
+            tstring strRegPath = itValue->second;
+
+            if (bEraseHead)
+            {
+                tstring::size_type pos = strRegPath.find(TEXT('\\'));
+                if (pos != strRegPath.npos)
+                {
+                    strRegPath = strRegPath.substr(pos + 1);
+                }
+            }
+
+            if (!itValue->first.empty())        //不处理注册表默认值
+            {
+                AppendMenu(hPopupMenu, MF_STRING, *pMenuId, (itValue->first + TEXT("\t") + itValue->second).c_str());
+                m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, itValue->first.c_str(), strRegPath.c_str())).first;
+                *pMenuId += 1;
+            }
+        }
+
+        return hPopupMenu;
+    }
+
+    HMENU InitRegPathSubMenu(UINT *pMenuId)
+    {
+        LPCTSTR lpSysRegPath = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\Favorites");
+        LPCTSTR lpSlxRegPath = TEXT("Software\\Shilyx Studio\\SlxCom\\RegPath");
+        HMENU hRetMenu = CreatePopupMenu();
+
+        HMENU hSysMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSysRegPath, TRUE, FALSE);
+        AppendMenu(hRetMenu, MF_POPUP, (UINT)hSysMenu, TEXT("注册表编辑器搜藏位置(&F)"));
+
+        HMENU hSlxMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSlxRegPath, FALSE, TRUE);
+        InsertMenu(hSlxMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+        InsertMenu(hSlxMenu, 0, MF_BYPOSITION, *pMenuId, TEXT("配置SlxCom搜藏(&C)..."));
+        m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, NULL, lpSlxRegPath)).first;
+        AppendMenu(hRetMenu, MF_POPUP, (UINT)hSlxMenu, TEXT("SlxCom搜藏位置(&S)"));
+        *pMenuId += 1;
+
+        return hRetMenu;
     }
 
 private:
@@ -159,6 +371,7 @@ private:
     HMENU m_hMenu;
     HINSTANCE m_hInstance;
     map<int, MenuItem *> m_mapMenuItems;
+    set<MenuItemRegistry> m_setMenuItemsRegistry;
 };
 
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -192,7 +405,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
         //
         SetTimer(hWnd, TIMER_ICON, 55, NULL);
-        SetTimer(hWnd, TIMER_MENU, 5003, NULL);
+        SetTimer(hWnd, TIMER_MENU, 60 * 1000 + 52, NULL);
 
         PostMessage(hWnd, WM_TIMER, TIMER_MENU, 0);
 
@@ -240,7 +453,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     }
     else if (uMsg == WM_CALLBACK)
     {
-        if (lParam == WM_RBUTTONUP)
+        if (lParam == WM_RBUTTONUP || lParam == WM_LBUTTONDBLCLK)
         {
             POINT pt;
 
@@ -270,9 +483,7 @@ static HWND GetTrayNotifyWndInProcess()
 
         GetWindowThreadProcessId(hShell_TrayWnd, &dwWindowPid);
 
-#ifndef _DEBUG
         if (dwWindowPid == dwPid)
-#endif
         {
             HWND hTrayNotifyWnd = FindWindowEx(hShell_TrayWnd, NULL, TEXT("TrayNotifyWnd"), NULL);
 
@@ -291,7 +502,7 @@ static HWND GetTrayNotifyWndInProcess()
 static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
 {
     DWORD dwSleepTime = 1;
- //   while (!IsWindow(GetTrayNotifyWndInProcess()))
+    while (!IsWindow(GetTrayNotifyWndInProcess()))
     {
         Sleep((dwSleepTime++) * 1000);
     }
@@ -312,15 +523,15 @@ static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
         0,
         0,
         333,
-        333,
+        55,
         NULL,
         NULL,
         (HINSTANCE)lpParam,
         NULL
         );
 
-    ShowWindow(hMainWnd, SW_SHOW);
-    UpdateWindow(hMainWnd);
+//     ShowWindow(hMainWnd, SW_SHOW);
+//     UpdateWindow(hMainWnd);
 
     MSG msg;
 
@@ -343,6 +554,11 @@ static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
 void StartNotifyIconManager(HINSTANCE hinstDll)
 {
     if (!IsExplorer())
+    {
+        return;
+    }
+
+    if (IsWow64ProcessHelper(GetCurrentProcess()))
     {
         return;
     }

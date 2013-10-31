@@ -407,7 +407,7 @@ BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory)
     STARTUPINFO si = {sizeof(si)};
     PROCESS_INFORMATION pi;
 
-    si.wShowWindow = SW_SHOW;
+    si.wShowWindow = SW_SHOW;   //no use
 
     if(CreateProcess(NULL, lpCommandLine, NULL, NULL, FALSE, 0, NULL, lpCurrentDirectory, &si, &pi))
     {
@@ -524,6 +524,116 @@ INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wP
 BOOL RunCommandWithArguments(LPCTSTR lpFile)
 {
     return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
+}
+
+BOOL BrowseForRegPath(LPCTSTR lpRegPath)
+{
+    if (lpRegPath == NULL || *lpRegPath == TEXT('\0'))
+    {
+        return FALSE;
+    }
+
+    HWND hRegEdit = NULL;
+    DWORD dwRegEditProcessId = 0;
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    if (hSnapshot != NULL && hSnapshot != INVALID_HANDLE_VALUE)
+    {
+        PROCESSENTRY32 pe32 = {sizeof(pe32)};
+
+        if (Process32First(hSnapshot, &pe32))
+        {
+            do 
+            {
+                if (pe32.th32ParentProcessID == GetCurrentProcessId())
+                {
+                    if (0 == lstrcmpi(pe32.szExeFile, TEXT("regedit.exe")))
+                    {
+                        dwRegEditProcessId = pe32.th32ProcessID;
+                        break;
+                    }
+                }
+
+            } while (Process32Next(hSnapshot, &pe32));
+        }
+
+        CloseHandle(hSnapshot);
+    }
+
+    if (dwRegEditProcessId == 0)
+    {
+        TCHAR szCommand[] = TEXT("regedit -m");
+        PROCESS_INFORMATION pi;
+        STARTUPINFO si = {sizeof(si)};
+
+        if (CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        {
+            WaitForInputIdle(pi.hProcess, 2222);
+
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+
+            dwRegEditProcessId = pi.dwProcessId;
+        }
+    }
+
+    if (dwRegEditProcessId != 0)
+    {
+        LPCTSTR lpClassName = TEXT("RegEdit_RegEdit");
+        HWND hWindow = FindWindowEx(NULL, NULL, lpClassName, NULL);
+
+        while (IsWindow(hWindow))
+        {
+            DWORD dwProcessId = 0;
+
+            GetWindowThreadProcessId(hWindow, &dwProcessId);
+
+            if (dwProcessId == dwRegEditProcessId)
+            {
+                hRegEdit = hWindow;
+                break;
+            }
+
+            hWindow = FindWindowEx(NULL, hWindow, lpClassName, NULL);
+        }
+    }
+
+    if (IsWindow(hRegEdit))
+    {
+        HWND hTreeCtrl = FindWindowEx(hRegEdit, NULL, TEXT("SysTreeView32"), NULL);
+
+        if (IsWindow(hTreeCtrl))
+        {
+            LRESULT root = SendMessage(hTreeCtrl, TVM_GETNEXTITEM, TVGN_ROOT, NULL);
+
+            if (root != 0)
+            {
+                SendMessage(hTreeCtrl, TVM_SELECTITEM, TVGN_CARET, root);
+                PostMessage(hTreeCtrl, WM_KEYDOWN, VK_LEFT, 0);
+                PostMessage(hTreeCtrl, WM_KEYUP, VK_LEFT, 0);
+                PostMessage(hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
+                PostMessage(hTreeCtrl, WM_KEYUP, VK_RIGHT, 0);
+
+                LPCTSTR lpChar = lpRegPath;
+                while (*lpChar != TEXT('\0'))
+                {
+                    if (*lpChar == TEXT('\\'))
+                    {
+                        PostMessage(hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
+                        PostMessage(hTreeCtrl, WM_KEYUP, VK_RIGHT, 0);
+                    }
+                    else
+                    {
+                        PostMessage(hTreeCtrl, WM_CHAR, *lpChar, 0);
+                    }
+
+                    lpChar += 1;
+                }
+            }
+        }
+    }
+
+    return TRUE;
 }
 
 BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
