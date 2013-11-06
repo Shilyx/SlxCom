@@ -135,8 +135,23 @@ public:
     MenuMgr(HWND hWindow, HINSTANCE hInstance)
         : m_hWindow(hWindow), m_hInstance(hInstance)
     {
+        m_hMenuFont = GetMenuDefaultFont();
+        m_hMenuDc = CreateCompatibleDC(NULL);
+        m_hOldFont = SelectObject(m_hMenuDc, (HGDIOBJ)m_hMenuFont);
+
         m_hMenu = NULL;
         UpdateMenu();
+    }
+
+    ~MenuMgr()
+    {
+        SelectObject(m_hMenuDc, m_hOldFont);
+        DeleteDC(m_hMenuDc);
+
+        if (m_hMenuFont)
+        {
+            DeleteObject(m_hMenuFont);
+        }
     }
 
     void TrackAndDealPopupMenu(int x, int y)
@@ -402,7 +417,12 @@ private:
 
             if (!itValue->first.empty())        //不处理注册表默认值
             {
-                AppendMenu(hPopupMenu, MF_STRING, *pMenuId, (itValue->first + TEXT("\t") + itValue->second).c_str());
+                TCHAR szShortRegPath[1000];
+
+                lstrcpyn(szShortRegPath, itValue->second.c_str(), RTL_NUMBER_OF(szShortRegPath));
+                PathCompactPathHelper(m_hMenuDc, szShortRegPath, 400);
+
+                AppendMenu(hPopupMenu, MF_STRING, *pMenuId, (itValue->first + TEXT("\t") + szShortRegPath).c_str());
                 m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, itValue->first.c_str(), strRegPath.c_str())).first;
                 *pMenuId += 1;
             }
@@ -437,6 +457,11 @@ private:
     HINSTANCE m_hInstance;
     map<int, MenuItem *> m_mapMenuItems;
     set<MenuItemRegistry> m_setMenuItemsRegistry;
+
+private:
+    HFONT m_hMenuFont;
+    HGDIOBJ m_hOldFont;
+    HDC m_hMenuDc;
 };
 
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -534,7 +534,7 @@ struct BrowserForRegPathParam
     LPCTSTR lpRegPath;
 };
 
-static DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
+DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
 {
     BrowserForRegPathParam *pParam = (BrowserForRegPathParam *)lpParam;
 
@@ -1735,7 +1735,89 @@ BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath)
     return hKey != NULL;
 }
 
+HFONT GetMenuDefaultFont()
+{
+    HFONT hFont = NULL;
+    NONCLIENTMETRICS ncm = {sizeof(ncm)};
 
+    if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0))
+    {
+        hFont = CreateFontIndirect(&ncm.lfMenuFont);
+    }
+
+    return hFont;
+}
+
+static UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight)
+{
+    SIZE size = {0};
+
+    GetTextExtentPoint32(hdc, lpText, lstrlen(lpText), &size);
+
+    if (puHeight != NULL)
+    {
+        *puHeight = (UINT)size.cy;
+    }
+
+    return (UINT)size.cx;
+}
+
+BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
+{
+    if (lpText == NULL || *lpText == TEXT('\0'))
+    {
+        return FALSE;
+    }
+    else if (GetDrawTextSizeInDc(hdc, lpText, NULL) <= dx)
+    {
+        return TRUE;
+    }
+    else if (dx == 0)
+    {
+        *lpText = TEXT('\0');
+        return TRUE;
+    }
+    else
+    {
+        int nLength = lstrlen(lpText);
+        BOOL bBackSlashExist = StrStr(lpText, TEXT("\\")) != NULL;
+        BOOL bRet = PathCompactPath(hdc, lpText, dx);
+
+        if (!bRet)
+        {
+            return FALSE;
+        }
+        else if (GetDrawTextSizeInDc(hdc, lpText, NULL) <= dx)
+        {
+            return TRUE;
+        }
+        else
+        {
+            LPTSTR lpEnd = NULL;
+
+            lstrcpyn(lpText, TEXT(".........................."), nLength + 1);
+            lpEnd = lpText + lstrlen(lpText);
+
+            if (bBackSlashExist && GetDrawTextSizeInDc(hdc, TEXT("...\\..."), NULL) < dx)
+            {
+                lpText[3] = TEXT('\\');
+            }
+
+            while (lpEnd >= lpText)
+            {
+                if (GetDrawTextSizeInDc(hdc, lpText, NULL) < dx)
+                {
+                    return TRUE;
+                }
+
+                lpEnd -= 1;
+                *lpEnd = TEXT('\0');
+            }
+
+            return FALSE;
+        }
+    }
+}
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {

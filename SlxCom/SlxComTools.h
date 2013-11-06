@@ -50,6 +50,8 @@ void SafeDebugMessage(LPCTSTR pFormat, ...);
 HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath);
 BOOL IsRegPathExists(HKEY hRootKey, LPCTSTR lpRegPath);
 BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath);
+HFONT GetMenuDefaultFont();
+BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx);
 
 template <typename T>
 std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)
