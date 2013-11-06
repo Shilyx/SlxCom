@@ -15,6 +15,7 @@ using namespace std;
 #define ICON_COUNT      10
 #define TIMER_ICON      1
 #define TIMER_MENU      2
+#define REG_QUESTION_TITLE  TEXT("处理注册表路径不存在的问题")
 
 extern HBITMAP g_hKillExplorerBmp; //SlxCom.cpp
 
@@ -75,7 +76,7 @@ public:
 
                 int nId = MessageBoxFormat(
                     hWindow,
-                    TEXT("请确认"),
+                    REG_QUESTION_TITLE,
                     MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3,
                     TEXT("%s路径不存在，您可以跳转到最接近的位置或创建这个路径。\r\n\r\n")
                     TEXT("选择“就近”跳转到最接近的位置\r\n")
@@ -597,14 +598,18 @@ static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
 
         if (lpCrs != NULL && lpCrs->message == WM_INITDIALOG)
         {
+            TCHAR szWindowText[100] = TEXT("");
             HWND hYes = GetDlgItem(lpCrs->hwnd, IDYES);
             HWND hNo = GetDlgItem(lpCrs->hwnd, IDNO);
             HWND hCancel = GetDlgItem(lpCrs->hwnd, IDCANCEL);
 
-            if (IsWindow(hYes) && IsWindow(hNo) && IsWindow(hCancel))
+            GetWindowText(lpCrs->hwnd, szWindowText, RTL_NUMBER_OF(szWindowText));
+
+            if (IsWindow(hYes) && IsWindow(hNo) && IsWindow(hCancel) && lstrcmpi(szWindowText, REG_QUESTION_TITLE) == 0)
             {
                 SetDlgItemText(lpCrs->hwnd, IDYES, TEXT("就近(&N)"));
                 SetDlgItemText(lpCrs->hwnd, IDNO, TEXT("创建(&C)"));
+                SetDlgItemText(lpCrs->hwnd, IDCANCEL, TEXT("取消(&Q)"));
             }
         }
     }
@@ -619,10 +624,17 @@ static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
         return 0;
     }
 
-    DWORD dwSleepTime = 1;
-    while (!IsWindow(GetTrayNotifyWndInProcess()))
+    TCHAR szImagePath[MAX_PATH] = TEXT("");
+
+    GetModuleFileName(GetModuleHandle(NULL), szImagePath, RTL_NUMBER_OF(szImagePath));
+
+    if (lstrcmpi(TEXT("rundll32.exe"), PathFindFileName(szImagePath)) != 0)
     {
-        Sleep((dwSleepTime++) * 1000);
+        DWORD dwSleepTime = 1;
+        while (!IsWindow(GetTrayNotifyWndInProcess()))
+        {
+            Sleep((dwSleepTime++) * 1000);
+        }
     }
 
     WNDCLASSEX wcex = {sizeof(wcex)};
