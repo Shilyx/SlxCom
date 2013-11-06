@@ -1,6 +1,7 @@
 #include "SlxComWork_ni.h"
 #include "SlxComTools.h"
 #include "resource.h"
+#include <Shlwapi.h>
 #pragma warning(disable: 4786)
 #include <vector>
 #include <map>
@@ -17,7 +18,10 @@ using namespace std;
 
 extern HBITMAP g_hKillExplorerBmp; //SlxCom.cpp
 
-enum
+static HHOOK g_hMsgHook = NULL;
+static BOOL g_bChangeButtonText = FALSE;
+
+static enum
 {
     SYS_QUIT        = 1,
     SYS_ABOUT,
@@ -52,18 +56,78 @@ public:
 
     virtual void DoJob(HWND hWindow, HINSTANCE hInstance)
     {
-        BrowseForRegPath(m_strRegPath.c_str());
+        LPCTSTR lpRegPath = NULL;
+        HKEY hRootKey = ParseRegPath(m_strRegPath.c_str(), &lpRegPath);
+
+        if (hRootKey == NULL)
+        {
+            MessageBoxFormat(hWindow, NULL, MB_ICONERROR, TEXT("%s不是合法的注册表路径，无法自动导航。"), m_strRegPath.c_str());
+        }
+        else
+        {
+            if (IsRegPathExists(hRootKey, lpRegPath))
+            {
+                BrowseForRegPath(m_strRegPath.c_str());
+            }
+            else
+            {
+                g_bChangeButtonText = TRUE;
+
+                int nId = MessageBoxFormat(
+                    hWindow,
+                    TEXT("请确认"),
+                    MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3,
+                    TEXT("%s路径不存在，您可以跳转到最接近的位置或创建这个路径。\r\n\r\n")
+                    TEXT("选择“就近”跳转到最接近的位置\r\n")
+                    TEXT("选择“创建”自动创建此路径并跳转\r\n"),
+                    m_strRegPath.c_str()
+                    );
+
+                g_bChangeButtonText = FALSE;
+
+                if (nId == IDYES)       //就近
+                {
+                    int len = (lstrlen(lpRegPath) + 1);
+                    TCHAR *szPath = (TCHAR *)malloc(len * sizeof(TCHAR));
+
+                    if (szPath != NULL)
+                    {
+                        lstrcpyn(szPath, lpRegPath, len);
+                        PathRemoveBackslash(szPath);
+
+                        while (!IsRegPathExists(hRootKey, szPath))
+                        {
+                            PathRemoveFileSpec(szPath);
+                        }
+
+                        tstring::size_type pos = m_strRegPath.find(TEXT("\\"));
+
+                        if (pos != m_strRegPath.npos)
+                        {
+                            BrowseForRegPath((m_strRegPath.substr(0, pos + 1) + szPath).c_str());
+                        }
+
+                        free((void *)szPath);
+                    }
+                }
+                else if (nId == IDNO)   //创建
+                {
+                    if (TouchRegPath(hRootKey, lpRegPath))
+                    {
+                        BrowseForRegPath(m_strRegPath.c_str());
+                    }
+                    else
+                    {
+                        MessageBoxFormat(hWindow, NULL, MB_ICONERROR, TEXT("创建%s失败。"), m_strRegPath.c_str());
+                    }
+                }
+            }
+        }
     }
 
 protected:
     tstring m_strRegPath;
 };
-
-// class MenuItemSystem : public MenuItem
-// {
-// public:
-//     MenuItemSystem()
-// };
 
 class MenuMgr
 {
@@ -351,6 +415,7 @@ private:
     {
         LPCTSTR lpSysRegPath = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\Favorites");
         LPCTSTR lpSlxRegPath = TEXT("Software\\Shilyx Studio\\SlxCom\\RegPath");
+        LPCTSTR lpSlxRegPath2 = TEXT("HKEY_CURRENT_USER\\Software\\Shilyx Studio\\SlxCom\\RegPath");
         HMENU hRetMenu = CreatePopupMenu();
 
         HMENU hSysMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSysRegPath, TRUE, FALSE);
@@ -359,7 +424,7 @@ private:
         HMENU hSlxMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSlxRegPath, FALSE, TRUE);
         InsertMenu(hSlxMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
         InsertMenu(hSlxMenu, 0, MF_BYPOSITION, *pMenuId, TEXT("配置SlxCom搜藏(&C)..."));
-        m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, NULL, lpSlxRegPath)).first;
+        m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, NULL, lpSlxRegPath2)).first;
         AppendMenu(hRetMenu, MF_POPUP, (UINT)hSlxMenu, TEXT("SlxCom搜藏位置(&S)"));
         *pMenuId += 1;
 
@@ -377,7 +442,7 @@ private:
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static NOTIFYICONDATA nid = {sizeof(nid)};
-    static int nIconShowIndex = MAXINT;
+    static int nIconShowIndex = INT_MAX;
     static HICON arrIcons[ICON_COUNT] = {NULL};
     static MenuMgr *pMenuMgr = NULL;
 
@@ -499,8 +564,36 @@ static HWND GetTrayNotifyWndInProcess()
     return NULL;
 }
 
+static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    if (nCode >= 0 && g_bChangeButtonText)
+    {
+        LPCWPRETSTRUCT lpCrs = (LPCWPRETSTRUCT)lParam;
+
+        if (lpCrs != NULL && lpCrs->message == WM_INITDIALOG)
+        {
+            HWND hYes = GetDlgItem(lpCrs->hwnd, IDYES);
+            HWND hNo = GetDlgItem(lpCrs->hwnd, IDNO);
+            HWND hCancel = GetDlgItem(lpCrs->hwnd, IDCANCEL);
+
+            if (IsWindow(hYes) && IsWindow(hNo) && IsWindow(hCancel))
+            {
+                SetDlgItemText(lpCrs->hwnd, IDYES, TEXT("就近(&N)"));
+                SetDlgItemText(lpCrs->hwnd, IDNO, TEXT("创建(&C)"));
+            }
+        }
+    }
+
+    return CallNextHookEx(g_hMsgHook, nCode, wParam, lParam);
+}
+
 static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
 {
+    if (g_hMsgHook != NULL)
+    {
+        return 0;
+    }
+
     DWORD dwSleepTime = 1;
     while (!IsWindow(GetTrayNotifyWndInProcess()))
     {
@@ -533,6 +626,8 @@ static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
 //     ShowWindow(hMainWnd, SW_SHOW);
 //     UpdateWindow(hMainWnd);
 
+    g_hMsgHook = SetWindowsHookEx(WH_CALLWNDPROCRET, CallWndRetProc, (HINSTANCE)lpParam, GetCurrentThreadId());
+
     MSG msg;
 
     while (TRUE)
@@ -547,6 +642,9 @@ static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    UnhookWindowsHookEx(g_hMsgHook);
+    g_hMsgHook = NULL;
 
     return 0;
 }

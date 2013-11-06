@@ -526,6 +526,49 @@ BOOL RunCommandWithArguments(LPCTSTR lpFile)
     return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
+struct BrowserForRegPathParam
+{
+    HANDLE hProcess;
+    HWND hRegEdit;
+    HWND hTreeCtrl;
+    LPCTSTR lpRegPath;
+};
+
+static DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
+{
+    BrowserForRegPathParam *pParam = (BrowserForRegPathParam *)lpParam;
+
+    SendMessage(pParam->hRegEdit, WM_COMMAND, 0x10288, 0);
+    WaitForInputIdle(pParam->hProcess, INFINITE);
+
+    for (int i = 0; i < 40; i += 1)
+    {
+        SendMessage(pParam->hTreeCtrl, WM_KEYDOWN, VK_LEFT, 0);
+        WaitForInputIdle(pParam->hProcess, INFINITE);
+    }
+
+    SendMessage(pParam->hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
+    WaitForInputIdle(pParam->hProcess, INFINITE);
+
+    LPCTSTR lpChar = pParam->lpRegPath;
+    while (*lpChar != TEXT('\0'))
+    {
+        if (*lpChar == TEXT('\\'))
+        {
+            SendMessage(pParam->hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
+        }
+        else
+        {
+            SendMessage(pParam->hTreeCtrl, WM_CHAR, *lpChar, 0);
+        }
+
+        WaitForInputIdle(pParam->hProcess, INFINITE);
+        lpChar += 1;
+    }
+
+    return 0;
+}
+
 BOOL BrowseForRegPath(LPCTSTR lpRegPath)
 {
     if (lpRegPath == NULL || *lpRegPath == TEXT('\0'))
@@ -568,7 +611,7 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
 
         if (CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
         {
-            WaitForInputIdle(pi.hProcess, 2222);
+            WaitForInputIdle(pi.hProcess, 2212);
 
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
@@ -604,31 +647,24 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
 
         if (IsWindow(hTreeCtrl))
         {
-            LRESULT root = SendMessage(hTreeCtrl, TVM_GETNEXTITEM, TVGN_ROOT, NULL);
+            BrowserForRegPathParam param;
 
-            if (root != 0)
+            param.hProcess = OpenProcess(SYNCHRONIZE, FALSE, dwRegEditProcessId);
+            param.hRegEdit = hRegEdit;
+            param.hTreeCtrl = hTreeCtrl;
+            param.lpRegPath = lpRegPath;
+
+            if (param.hProcess != NULL)
             {
-                SendMessage(hTreeCtrl, TVM_SELECTITEM, TVGN_CARET, root);
-                PostMessage(hTreeCtrl, WM_KEYDOWN, VK_LEFT, 0);
-                PostMessage(hTreeCtrl, WM_KEYUP, VK_LEFT, 0);
-                PostMessage(hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
-                PostMessage(hTreeCtrl, WM_KEYUP, VK_RIGHT, 0);
+                HANDLE hThread = CreateThread(NULL, 0, BrowserForRegPathProc, (LPVOID)&param, 0, NULL);
 
-                LPCTSTR lpChar = lpRegPath;
-                while (*lpChar != TEXT('\0'))
+                if (WAIT_TIMEOUT == WaitForSingleObject(hThread, 1389))
                 {
-                    if (*lpChar == TEXT('\\'))
-                    {
-                        PostMessage(hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
-                        PostMessage(hTreeCtrl, WM_KEYUP, VK_RIGHT, 0);
-                    }
-                    else
-                    {
-                        PostMessage(hTreeCtrl, WM_CHAR, *lpChar, 0);
-                    }
-
-                    lpChar += 1;
+                    TerminateThread(hThread, 0);
                 }
+
+                CloseHandle(hThread);
+                CloseHandle(param.hProcess);
             }
         }
     }
@@ -1600,74 +1636,110 @@ void SafeDebugMessage(LPCTSTR pFormat, ...)
     OutputDebugString(szBuffer);
 }
 
+HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath)
+{
+    HKEY hResult = NULL;
+    TCHAR szRootKey[100] = TEXT("");
+
+    lstrcpyn(szRootKey, lpWholePath, RTL_NUMBER_OF(szRootKey));
+    LPTSTR lpBackSlash = StrStr(szRootKey, TEXT("\\"));
+
+    if (lpBackSlash != NULL)
+    {
+        *lpBackSlash = TEXT('\0');
+
+        if (lstrcmpi(szRootKey, TEXT("HKEY_CLASSES_ROOT")) == 0 || lstrcmpi(szRootKey, TEXT("HKCR")) == 0)
+        {
+            hResult = HKEY_CLASSES_ROOT;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_CURRENT_USER")) == 0 || lstrcmpi(szRootKey, TEXT("HKCU")) == 0)
+        {
+            hResult = HKEY_CURRENT_USER;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_LOCAL_MACHINE")) == 0 || lstrcmpi(szRootKey, TEXT("HKLM")) == 0)
+        {
+            hResult = HKEY_LOCAL_MACHINE;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_USERS")) == 0 || lstrcmpi(szRootKey, TEXT("HKU")) == 0)
+        {
+            hResult = HKEY_USERS;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_CURRENT_CONFIG")) == 0 || lstrcmpi(szRootKey, TEXT("HKCC")) == 0)
+        {
+            hResult = HKEY_CURRENT_CONFIG;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_PERFORMANCE_DATA")) == 0)
+        {
+            hResult = HKEY_PERFORMANCE_DATA;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_PERFORMANCE_TEXT")) == 0)
+        {
+            hResult = HKEY_PERFORMANCE_TEXT;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_PERFORMANCE_NLSTEXT")) == 0)
+        {
+            hResult = HKEY_PERFORMANCE_NLSTEXT;
+        }
+        else if (lstrcmpi(szRootKey, TEXT("HKEY_DYN_DATA")) == 0)
+        {
+            hResult = HKEY_DYN_DATA;
+        }
+    }
+
+    if (hResult != NULL)
+    {
+        lpBackSlash = StrStr(lpWholePath, TEXT("\\"));
+
+        if (lpBackSlash != NULL)
+        {
+            while (*lpBackSlash == TEXT('\\'))
+            {
+                lpBackSlash += 1;
+            }
+
+            if (lppRegPath != NULL)
+            {
+                *lppRegPath = lpBackSlash;
+            }
+        }
+    }
+
+    return hResult;
+}
+
+BOOL IsRegPathExists(HKEY hRootKey, LPCTSTR lpRegPath)
+{
+    HKEY hKey = NULL;
+
+    RegOpenKeyEx(hRootKey, lpRegPath, 0, READ_CONTROL, &hKey);
+
+    if (hKey != NULL)
+    {
+        RegCloseKey(hKey);
+    }
+
+    return hKey != NULL;
+}
+
+BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath)
+{
+    HKEY hKey = NULL;
+
+    RegCreateKeyEx(hRootKey, lpRegPath, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &hKey, NULL);
+
+    if (hKey != NULL)
+    {
+        RegCloseKey(hKey);
+    }
+
+    return hKey != NULL;
+}
+
+
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
 
     return ;
-
-    char szShortPath[1000];
-
-    GetShortPathNameA("D:\\Backup\\ADMINI~1\\Desktop\\AA717C~1\\大锅饭.gif", szShortPath, MAX_PATH);
-
-    SetClipboardHtml("<DIV>\r\n"
-        "<IMG src=\"file:///C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\3D5AC79D1CEF4B08826F762C95190326.gif\" >\r\n"
-        "<IMG src=\"file:///D:\\Backup\\ADMINI~1\\Desktop\\AA717C~1\\大锅饭.gif\" >\r\n"
-        "</DIV>");
-
-
-    const TCHAR *szPics[] = {
-        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (2).gif"),
-        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (3).gif"),
-        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (4).gif"),
-        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (5).gif"),
-        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\大锅饭.gif"),
-        TEXT("D:\\Backup\\Administrator\\Desktop\\a a\\啊沙发 (1).gif"),
-    };
-
-    TCHAR *lpBuffer = new TCHAR[RTL_NUMBER_OF(szPics) * MAX_PATH];
-    TCHAR *lpTempBuffer = lpBuffer;
-
-    for (int i = 0; i < RTL_NUMBER_OF(szPics); i += 1)
-    {
-        lstrcpy(lpTempBuffer, szPics[i]);
-         lpTempBuffer += (lstrlen(lpTempBuffer) + 1);
-    }
-
-    lpTempBuffer[0] = TEXT('\0');
-
-    SetClipboardPicturePathsByHtml(lpBuffer);
-
-    delete lpBuffer;
-
-    return;
-
-    const TCHAR *sz[] = {
-        TEXT("D:\\桌面\\新建文件夹\\复件 aaa.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 a(88).aa.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 aa[5].a.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本 (10).txt"),
-        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本 (8).txt"),
-        TEXT("D:\\桌面\\新建文件夹\\啊啊啊 - 副本 (7) - 副本.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 (14) aa a.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 (14) aaa.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 (15) aa a.txt"),
-        TEXT("D:\\桌面\\新建(8).文件夹\\复件 (15) aaa.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 (16) aa a.txt"),
-        TEXT("D:\\桌面\\新建文件夹\\复件 (26) aaa.txt"),
-    };
-    TCHAR szO[MAX_PATH];
-
-    for(int nIndex = 0; nIndex < sizeof(sz) / sizeof(sz[0]); nIndex += 1)
-    {
-        if(TryUnescapeFileName(sz[nIndex], szO, MAX_PATH))
-        {
-            TCHAR szText[1000];
-
-            wsprintf(szText, TEXT("%lu %s -> %s\r\n"), nIndex, sz[nIndex], szO);
-
-            OutputDebugString(szText);
-        }
-    }
 }
