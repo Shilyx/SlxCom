@@ -717,6 +717,18 @@ BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
                 {
                     pidlFile = pidl;
 
+                    int nTryCount = 0;
+                    while (!IsWindow(GetTrayNotifyWndInProcess()))
+                    {
+                        Sleep(107);
+                        nTryCount += 1;
+
+                        if (nTryCount > 17)
+                        {
+                            break;
+                        }
+                    }
+
                     CoInitialize(NULL);
                     bResult = SUCCEEDED(pSHOpenFolderAndSelectItems(pidlFolder, 1, &pidlFile, 0));
                 }
@@ -752,145 +764,146 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 
         GetWindowsDirectory(szExplorerPath, MAX_PATH);
         PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
-
         wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("%s /n,/select,\"%s\""), szExplorerPath, lpFile);
+
+        OutputDebugString(TEXT("BrowseForFile by starting new explorer.exe\r\n"));
 
         return RunCommand(szCommandLine, NULL);
     }
 }
 
-void WINAPI ResetExplorer(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
-{
-    int nCmdLineLength = lstrlenA(lpszCmdLine);
-
-    if(nCmdLineLength > 0)
-    {
-        WCHAR *szBuffer = (WCHAR *)HeapAlloc(GetProcessHeap(), 0, (nCmdLineLength + 100) * sizeof(WCHAR));
-
-        if(szBuffer != NULL)
-        {
-            if(wnsprintf(szBuffer, (nCmdLineLength + 100), L"%S", lpszCmdLine) > 0)
-            {
-                int nArgc = 0;
-                LPWSTR *ppArgv = CommandLineToArgvW(szBuffer, &nArgc);
-
-                if(ppArgv != NULL)
-                {
-                    if(nArgc >= 1)
-                    {
-                        DWORD dwProcessId = StrToInt(ppArgv[0]);
-
-                        if(dwProcessId != 0)
-                        {
-                            do
-                            {
-                                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, dwProcessId);
-
-                                if(hProcess == NULL)
-                                {
-                                    MessageBox(hwndStub, TEXT("打开进程失败！"), NULL, MB_ICONERROR | MB_TOPMOST);
-
-                                    break;
-                                }
-
-                                TerminateProcess(hProcess, 0);
-
-                                WaitForSingleObject(hProcess, 5000);
-
-                                DWORD dwExitCode = 0;
-                                GetExitCodeProcess(hProcess, &dwExitCode);
-
-                                if(dwExitCode == STILL_ACTIVE)
-                                {
-                                    MessageBox(hwndStub, TEXT("无法终止进程！"), NULL, MB_ICONERROR | MB_TOPMOST);
-
-                                    break;
-                                }
-
-                                CloseHandle(hProcess);
-
-                                STARTUPINFO si = {sizeof(si)};
-                                PROCESS_INFORMATION pi;
-                                TCHAR szExplorerPath[MAX_PATH];
-
-                                GetWindowsDirectory(szExplorerPath, MAX_PATH);
-                                PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
-
-                                if(CreateProcess(NULL, szExplorerPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-                                {
-                                    if(nArgc >= 2 && lstrlenW(ppArgv[1]) < MAX_PATH)
-                                    {
-                                        WaitForInputIdle(pi.hProcess, 10 * 1000);
-
-                                        TCHAR szFilePath[MAX_PATH];
-                                        DWORD dwFileAttributes = INVALID_FILE_ATTRIBUTES;
-
-                                        wnsprintf(szFilePath, sizeof(szFilePath) / sizeof(TCHAR), TEXT("%ls"), ppArgv[1]);
-
-                                        dwFileAttributes = GetFileAttributes(szFilePath);
-
-                                        if(dwFileAttributes != INVALID_FILE_ATTRIBUTES)
-                                        {
-                                            if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                                            {
-                                                TCHAR szFindMark[MAX_PATH];
-                                                WIN32_FIND_DATA wfd;
-
-                                                lstrcpyn(szFindMark, szFilePath, MAX_PATH);
-                                                PathAppend(szFindMark, TEXT("\\*"));
-
-                                                HANDLE hFind = FindFirstFile(szFindMark, &wfd);
-
-                                                if(hFind != INVALID_HANDLE_VALUE)
-                                                {
-                                                    do 
-                                                    {
-                                                        if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
-                                                        {
-                                                            break;
-                                                        }
-
-                                                    } while (FindNextFile(hFind, &wfd));
-
-                                                    if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
-                                                    {
-                                                        PathAddBackslash(szFilePath);
-                                                        lstrcat(szFilePath, wfd.cFileName);
-                                                    }
-
-                                                    FindClose(hFind);
-                                                }
-                                            }
-
-                                            if(PathFileExists(szFilePath))
-                                            {
-                                                BrowseForFile(szFilePath);
-                                            }
-                                        }
-                                    }
-
-                                    CloseHandle(pi.hThread);
-                                    CloseHandle(pi.hProcess);
-                                }
-                                else
-                                {
-                                    MessageBox(hwndStub, TEXT("无法启动Explorer！"), NULL, MB_ICONERROR | MB_TOPMOST);
-
-                                    break;
-                                }
-                            }
-                            while(FALSE);
-                        }
-                    }
-
-                    LocalFree(ppArgv);
-                }
-            }
-
-            HeapFree(GetProcessHeap(), 0, szBuffer);
-        }
-    }
-}
+// void WINAPI ResetExplorer(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+// {
+//     int nCmdLineLength = lstrlenA(lpszCmdLine);
+// 
+//     if(nCmdLineLength > 0)
+//     {
+//         WCHAR *szBuffer = (WCHAR *)HeapAlloc(GetProcessHeap(), 0, (nCmdLineLength + 100) * sizeof(WCHAR));
+// 
+//         if(szBuffer != NULL)
+//         {
+//             if(wnsprintf(szBuffer, (nCmdLineLength + 100), L"%S", lpszCmdLine) > 0)
+//             {
+//                 int nArgc = 0;
+//                 LPWSTR *ppArgv = CommandLineToArgvW(szBuffer, &nArgc);
+// 
+//                 if(ppArgv != NULL)
+//                 {
+//                     if(nArgc >= 1)
+//                     {
+//                         DWORD dwProcessId = StrToInt(ppArgv[0]);
+// 
+//                         if(dwProcessId != 0)
+//                         {
+//                             do
+//                             {
+//                                 HANDLE hProcess = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, dwProcessId);
+// 
+//                                 if(hProcess == NULL)
+//                                 {
+//                                     MessageBox(hwndStub, TEXT("打开进程失败！"), NULL, MB_ICONERROR | MB_TOPMOST);
+// 
+//                                     break;
+//                                 }
+// 
+//                                 TerminateProcess(hProcess, 0);
+// 
+//                                 WaitForSingleObject(hProcess, 5000);
+// 
+//                                 DWORD dwExitCode = 0;
+//                                 GetExitCodeProcess(hProcess, &dwExitCode);
+// 
+//                                 if(dwExitCode == STILL_ACTIVE)
+//                                 {
+//                                     MessageBox(hwndStub, TEXT("无法终止进程！"), NULL, MB_ICONERROR | MB_TOPMOST);
+// 
+//                                     break;
+//                                 }
+// 
+//                                 CloseHandle(hProcess);
+// 
+//                                 STARTUPINFO si = {sizeof(si)};
+//                                 PROCESS_INFORMATION pi;
+//                                 TCHAR szExplorerPath[MAX_PATH];
+// 
+//                                 GetWindowsDirectory(szExplorerPath, MAX_PATH);
+//                                 PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
+// 
+//                                 if(CreateProcess(NULL, szExplorerPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+//                                 {
+//                                     if(nArgc >= 2 && lstrlenW(ppArgv[1]) < MAX_PATH)
+//                                     {
+//                                         WaitForInputIdle(pi.hProcess, 10 * 1000);
+// 
+//                                         TCHAR szFilePath[MAX_PATH];
+//                                         DWORD dwFileAttributes = INVALID_FILE_ATTRIBUTES;
+// 
+//                                         wnsprintf(szFilePath, sizeof(szFilePath) / sizeof(TCHAR), TEXT("%ls"), ppArgv[1]);
+// 
+//                                         dwFileAttributes = GetFileAttributes(szFilePath);
+// 
+//                                         if(dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+//                                         {
+//                                             if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+//                                             {
+//                                                 TCHAR szFindMark[MAX_PATH];
+//                                                 WIN32_FIND_DATA wfd;
+// 
+//                                                 lstrcpyn(szFindMark, szFilePath, MAX_PATH);
+//                                                 PathAppend(szFindMark, TEXT("\\*"));
+// 
+//                                                 HANDLE hFind = FindFirstFile(szFindMark, &wfd);
+// 
+//                                                 if(hFind != INVALID_HANDLE_VALUE)
+//                                                 {
+//                                                     do 
+//                                                     {
+//                                                         if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
+//                                                         {
+//                                                             break;
+//                                                         }
+// 
+//                                                     } while (FindNextFile(hFind, &wfd));
+// 
+//                                                     if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
+//                                                     {
+//                                                         PathAddBackslash(szFilePath);
+//                                                         lstrcat(szFilePath, wfd.cFileName);
+//                                                     }
+// 
+//                                                     FindClose(hFind);
+//                                                 }
+//                                             }
+// 
+//                                             if(PathFileExists(szFilePath))
+//                                             {
+//                                                 BrowseForFile(szFilePath);
+//                                             }
+//                                         }
+//                                     }
+// 
+//                                     CloseHandle(pi.hThread);
+//                                     CloseHandle(pi.hProcess);
+//                                 }
+//                                 else
+//                                 {
+//                                     MessageBox(hwndStub, TEXT("无法启动Explorer！"), NULL, MB_ICONERROR | MB_TOPMOST);
+// 
+//                                     break;
+//                                 }
+//                             }
+//                             while(FALSE);
+//                         }
+//                     }
+// 
+//                     LocalFree(ppArgv);
+//                 }
+//             }
+// 
+//             HeapFree(GetProcessHeap(), 0, szBuffer);
+//         }
+//     }
+// }
 
 BOOL IsExplorer()
 {
@@ -1817,6 +1830,33 @@ BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
             return FALSE;
         }
     }
+}
+
+HWND GetTrayNotifyWndInProcess()
+{
+    DWORD dwPid = GetCurrentProcessId();
+    HWND hShell_TrayWnd = FindWindowEx(NULL, NULL, TEXT("Shell_TrayWnd"), NULL);
+
+    while (IsWindow(hShell_TrayWnd))
+    {
+        DWORD dwWindowPid = 0;
+
+        GetWindowThreadProcessId(hShell_TrayWnd, &dwWindowPid);
+
+        if (dwWindowPid == dwPid)
+        {
+            HWND hTrayNotifyWnd = FindWindowEx(hShell_TrayWnd, NULL, TEXT("TrayNotifyWnd"), NULL);
+
+            if (IsWindow(hTrayNotifyWnd))
+            {
+                return hTrayNotifyWnd;
+            }
+        }
+
+        hShell_TrayWnd = FindWindowEx(NULL, hShell_TrayWnd, TEXT("Shell_TrayWnd"), NULL);
+    }
+
+    return NULL;
 }
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)

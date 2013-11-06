@@ -563,33 +563,6 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-static HWND GetTrayNotifyWndInProcess()
-{
-    DWORD dwPid = GetCurrentProcessId();
-    HWND hShell_TrayWnd = FindWindowEx(NULL, NULL, TEXT("Shell_TrayWnd"), NULL);
-
-    while (IsWindow(hShell_TrayWnd))
-    {
-        DWORD dwWindowPid = 0;
-
-        GetWindowThreadProcessId(hShell_TrayWnd, &dwWindowPid);
-
-        if (dwWindowPid == dwPid)
-        {
-            HWND hTrayNotifyWnd = FindWindowEx(hShell_TrayWnd, NULL, TEXT("TrayNotifyWnd"), NULL);
-
-            if (IsWindow(hTrayNotifyWnd))
-            {
-                return hTrayNotifyWnd;
-            }
-        }
-
-        hShell_TrayWnd = FindWindowEx(NULL, hShell_TrayWnd, TEXT("Shell_TrayWnd"), NULL);
-    }
-
-    return NULL;
-}
-
 static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode >= 0 && g_bChangeButtonText)

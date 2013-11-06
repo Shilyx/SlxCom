@@ -8,7 +8,6 @@ DllUnregisterServer	PRIVATE
 T
 T2
 T3
-ResetExplorer
 SlxComConfig
 BrowserLinkFilePosition
 UnlockFileFromPathW
