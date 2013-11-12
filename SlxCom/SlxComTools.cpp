@@ -656,6 +656,13 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
 
             if (param.hProcess != NULL)
             {
+                if (IsIconic(hRegEdit))
+                {
+                    ShowWindow(hRegEdit, SW_RESTORE);
+                }
+
+                BringWindowToTop(hRegEdit);
+
                 HANDLE hThread = CreateThread(NULL, 0, BrowserForRegPathProc, (LPVOID)&param, 0, NULL);
 
                 if (WAIT_TIMEOUT == WaitForSingleObject(hThread, 1389))
