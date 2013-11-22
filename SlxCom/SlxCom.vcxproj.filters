@@ -66,6 +66,9 @@
     <ClCompile Include="SlxComWork_ni.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SlxPaintView.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">

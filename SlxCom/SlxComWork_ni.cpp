@@ -29,7 +29,13 @@ static enum
     SYS_RESETEXPLORER,
     SYS_WINDOWMANAGER,
     SYS_UPDATEMENU,
+    SYS_PAINTVIEW,
     SYS_MAXVALUE,
+};
+
+static enum
+{
+    HK_PAINTVIEW = 112,
 };
 
 class MenuItem
@@ -202,6 +208,10 @@ public:
             UpdateMenu();
             break;
 
+        case SYS_PAINTVIEW:
+            PostMessage(m_hWindow, WM_HOTKEY, HK_PAINTVIEW, 0);
+            break;
+
         default:
             if (m_mapMenuItems.find(nCmd) != m_mapMenuItems.end())
             {
@@ -225,15 +235,18 @@ public:
         m_hMenu = CreatePopupMenu();
 
         //主菜单
-        AppendMenu(m_hMenu, MF_STRING | MF_DEFAULT, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
+        AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
+        AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
         AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表位置(&R)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
-        AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&R)"));
+        AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&E)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
         SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
         AppendMenu(m_hMenu, MF_STRING, SYS_UPDATEMENU, TEXT("刷新菜单内容(&U)"));
       //AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于(&A)..."));
         AppendMenu(m_hMenu, MF_STRING, SYS_QUIT, TEXT("不显示托盘图标(&Q)"));
+
+        SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
     }
 
 private:
@@ -471,6 +484,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     static int nIconShowIndex = INT_MAX;
     static HICON arrIcons[ICON_COUNT] = {NULL};
     static MenuMgr *pMenuMgr = NULL;
+    static TCHAR szModulePath[MAX_PATH] = TEXT("");
 
     if (uMsg == WM_CREATE)
     {
@@ -483,6 +497,9 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         {
             arrIcons[i] = LoadIcon(lpCs->hInstance, MAKEINTRESOURCE(nFirstIconId + i));
         }
+
+        //
+        GetModuleFileName(lpCs->hInstance, szModulePath, RTL_NUMBER_OF(szModulePath));
 
         //add icon to tray
         nid.hWnd = hWnd;
@@ -502,6 +519,9 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
         //
         pMenuMgr = new MenuMgr(hWnd, lpCs->hInstance);
+
+        //
+        RegisterHotKey(hWnd, HK_PAINTVIEW, MOD_ALT | MOD_SHIFT, TEXT('P'));
 
         return 0;
     }
@@ -523,8 +543,27 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             pMenuMgr->UpdateMenu();
         }
     }
+    else if (uMsg == WM_HOTKEY)
+    {
+        if (wParam == HK_PAINTVIEW)
+        {
+            TCHAR szCommand[MAX_PATH * 2];
+
+            wnsprintf(
+                szCommand,
+                RTL_NUMBER_OF(szCommand),
+                TEXT("rundll32.exe \"%s\" SlxPaintView"),
+                szModulePath
+                );
+
+            RunCommand(szCommand);
+
+            return 0;
+        }
+    }
     else if (uMsg == WM_CLOSE)
     {
+        UnregisterHotKey(hWnd, HK_PAINTVIEW);
         Shell_NotifyIcon(NIM_DELETE, &nid);
         DestroyWindow(hWnd);
     }
@@ -544,7 +583,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     }
     else if (uMsg == WM_CALLBACK)
     {
-        if (lParam == WM_RBUTTONUP || lParam == WM_LBUTTONDBLCLK)
+        if (lParam == WM_RBUTTONUP)
         {
             POINT pt;
 
@@ -552,6 +591,10 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
             SetForegroundWindow(hWnd);
             pMenuMgr->TrackAndDealPopupMenu(pt.x, pt.y);
+        }
+        else if (lParam == WM_LBUTTONDBLCLK)
+        {
+            PostMessage(hWnd, WM_HOTKEY, HK_PAINTVIEW, 0);
         }
 
         if (nIconShowIndex >= RTL_NUMBER_OF(arrIcons))

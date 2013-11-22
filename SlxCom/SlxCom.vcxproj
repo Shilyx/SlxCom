@@ -236,6 +236,7 @@
     <ClCompile Include="SlxComWork_sd.cpp" />
     <ClCompile Include="SlxFileHandles.cpp" />
     <ClCompile Include="SlxManualCheckSignature.cpp" />
+    <ClCompile Include="SlxPaintView.cpp" />
     <ClCompile Include="SlxStringStatusCache.cpp" />
     <ClCompile Include="SlxUnlockFile.cpp" />
   </ItemGroup>
