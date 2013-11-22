@@ -2,6 +2,7 @@
 #define _SLX_COM_TOOLS_H
 
 #include <Windows.h>
+#pragma warning(disable: 4786)
 #include <string>
 
 enum DRIVER_ACTION
@@ -63,7 +64,7 @@ std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)
     }
     else
     {
-        str.clear();
+        str.erase(str.begin(), str.end());
     }
 
     return str;

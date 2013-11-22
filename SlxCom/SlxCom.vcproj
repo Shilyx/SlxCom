@@ -403,6 +403,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxPaintView.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxStringStatusCache.cpp"
 				>
 			</File>

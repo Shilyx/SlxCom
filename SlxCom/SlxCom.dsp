@@ -143,6 +143,10 @@ SOURCE=.\SlxComWork_lvm.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxComWork_ni.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComWork_sd.cpp
 # End Source File
 # Begin Source File
@@ -152,6 +156,10 @@ SOURCE=.\SlxFileHandles.cpp
 # Begin Source File
 
 SOURCE=.\SlxManualCheckSignature.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxPaintView.cpp
 # End Source File
 # Begin Source File
 
@@ -200,6 +208,10 @@ SOURCE=.\SlxComWork.h
 # Begin Source File
 
 SOURCE=.\SlxComWork_lvm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxComWork_ni.h
 # End Source File
 # Begin Source File
 

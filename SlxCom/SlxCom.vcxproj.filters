@@ -137,6 +137,36 @@
     <None Include="res\CopyPictureHtml.bmp">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\bird\0.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\1.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\2.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\3.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\4.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\5.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\6.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\7.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\8.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bird\9.ico">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

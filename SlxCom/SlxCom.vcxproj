@@ -241,6 +241,16 @@
     <ClCompile Include="SlxUnlockFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\bird\0.ico" />
+    <None Include="res\bird\1.ico" />
+    <None Include="res\bird\2.ico" />
+    <None Include="res\bird\3.ico" />
+    <None Include="res\bird\4.ico" />
+    <None Include="res\bird\5.ico" />
+    <None Include="res\bird\6.ico" />
+    <None Include="res\bird\7.ico" />
+    <None Include="res\bird\8.ico" />
+    <None Include="res\bird\9.ico" />
     <None Include="res\CopyPictureHtml.bmp" />
     <None Include="SlxCom.def" />
     <None Include="res\AddToCopy.bmp" />
