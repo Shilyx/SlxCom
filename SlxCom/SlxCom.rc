@@ -279,18 +279,15 @@ BEGIN
     BEGIN
         MENUITEM "颜色",                          ID_MENU_40015
         MENUITEM SEPARATOR
-        MENUITEM "实线",                          ID_MENU_40001
-        MENUITEM "虚线",                          ID_MENU_40002
-        MENUITEM SEPARATOR
         MENUITEM "细线",                          ID_MENU_40003
         MENUITEM "中线",                          ID_MENU_40004
         MENUITEM "粗线",                          ID_MENU_40005
         MENUITEM "最粗线",                         ID_MENU_40006
+        MENUITEM "自定义\tCtrl+滚轮",                ID_MENU_40017, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "直线",                          ID_MENU_40007
-        MENUITEM "椭圆",                          ID_MENU_40008
-        MENUITEM "矩形",                          ID_MENU_40009
-        MENUITEM "曲线",                          ID_MENU_40010
+        MENUITEM "画线\tF1",                      ID_MENU_40007
+        MENUITEM "画椭圆\tF2",                     ID_MENU_40008
+        MENUITEM "画矩形\tF3",                     ID_MENU_40009
         MENUITEM SEPARATOR
         MENUITEM "撤销(&U)\tCtrl+Z",              ID_MENU_40011
         MENUITEM "重复(&R)\tCtrl+Shift+Z",        ID_MENU_40012
