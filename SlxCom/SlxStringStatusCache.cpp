@@ -1,7 +1,7 @@
 #include "SlxStringStatusCache.h"
 #include <shlwapi.h>
-#include "SlxString.h"
 #pragma warning(disable: 4786)
+#include "lib/charconv.h"
 #include <map>
 
 using namespace std;

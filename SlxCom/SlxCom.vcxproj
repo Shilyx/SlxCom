@@ -289,7 +289,6 @@
     <ClInclude Include="SlxComWork_sd.h" />
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />
-    <ClInclude Include="SlxString.h" />
     <ClInclude Include="SlxStringStatusCache.h" />
   </ItemGroup>
   <ItemGroup>

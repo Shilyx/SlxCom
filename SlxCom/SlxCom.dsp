@@ -227,10 +227,6 @@ SOURCE=.\SlxManualCheckSignature.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\SlxString.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\SlxStringStatusCache.h
 # End Source File
 # Begin Source File

@@ -202,9 +202,6 @@
     <ClInclude Include="SlxManualCheckSignature.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SlxString.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="SlxStringStatusCache.h">
       <Filter>头文件</Filter>
     </ClInclude>

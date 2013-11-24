@@ -6,9 +6,9 @@
 #include "SlxComTools.h"
 #include "SlxComPeTools.h"
 #include "resource.h"
-#include "SlxString.h"
 #include "SlxManualCheckSignature.h"
 #pragma warning(disable: 4786)
+#include "lib/charconv.h"
 #include <map>
 
 using namespace std;

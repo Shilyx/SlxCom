@@ -4,7 +4,7 @@
 #include "resource.h"
 #pragma warning(disable: 4786)
 #include <map>
-#include "SlxString.h"
+#include "lib/charconv.h"
 #include "SlxComOverlay.h"
 
 using namespace std;

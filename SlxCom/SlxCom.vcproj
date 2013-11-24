@@ -469,10 +469,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SlxString.h"
-				>
-			</File>
-			<File
 				RelativePath=".\SlxStringStatusCache.h"
 				>
 			</File>

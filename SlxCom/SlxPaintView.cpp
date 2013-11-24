@@ -55,7 +55,7 @@ void CPaintViewWnd::Show()
         WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
         PAINTVIEWWND_CLASS,
         PAINTVIEWWND_CLASS,
-        WS_POPUP | WS_BORDER,
+        WS_POPUP,
         0,
         0,
         m_nWidth,
@@ -79,6 +79,9 @@ LRESULT CALLBACK CPaintViewWnd::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
     case WM_CREATE:
         pThis = (CPaintViewWnd *)((LPCREATESTRUCT)lParam)->lpCreateParams;
         return TRUE;
+
+    case WM_ERASEBKGND:
+        return 0;
 
     case WM_PAINT:
         pThis->WndProc_Paint(hWnd);
