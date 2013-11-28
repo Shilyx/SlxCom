@@ -1457,8 +1457,9 @@ BOOL DisableWow64FsRedirection()
     return bResult;
 }
 
-VOID InvokeDesktopRefresh()
+BOOL InvokeDesktopRefresh()
 {
+    BOOL bResult = FALSE;
     HWND hProgman = FindWindowEx(NULL, NULL, TEXT("Progman"), TEXT("Program Manager"));
 
     while (IsWindow(hProgman))
@@ -1473,17 +1474,25 @@ VOID InvokeDesktopRefresh()
 
             if (IsWindow(hSHELLDLL_DefView))
             {
-                if (IsWindow(FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"))) ||
-                    IsWindow(FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL))
-                    )
+                HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
+
+                if (!IsWindow(hSysListView32))
                 {
-                    SendMessage(hSHELLDLL_DefView, WM_COMMAND, 0x7103, 0);
+                    hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
+                }
+
+                if (IsWindow(hSysListView32))
+                {
+                    ::PostMessage(hSysListView32, WM_KEYDOWN, VK_F5, 0);
+                    Sleep(888);
                 }
             }
         }
 
         hProgman = FindWindowEx(NULL, hProgman, TEXT("Progman"), TEXT("Program Manager"));
     }
+
+    return bResult;
 }
 
 BOOL KillAllExplorers()
@@ -1533,6 +1542,22 @@ BOOL KillAllExplorers()
     }
 
     return TRUE;
+}
+
+static DWORD __stdcall ResetExplorerProc(LPVOID lpParam)
+{
+    InvokeDesktopRefresh();
+    KillAllExplorers();
+
+    return 0;
+}
+
+BOOL ResetExplorer()
+{
+    HANDLE hThread = CreateThread(NULL, 0, ResetExplorerProc, NULL, 0, NULL);
+    CloseHandle(hThread);
+
+    return hThread != NULL;
 }
 
 BOOL SetClipboardHtml(const char *html)

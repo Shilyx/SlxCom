@@ -836,16 +836,25 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     {
         DWORD dwTimeMark = GetTickCount();
 
-        SHSetTempValue(HKEY_CURRENT_USER,
-            TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPath"),
-            REG_SZ, m_pFiles[0].szPath, (lstrlen(m_pFiles[0].szPath) + 1) * sizeof(TCHAR));
+        SHSetTempValue(
+            HKEY_CURRENT_USER,
+            TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
+            TEXT("SlxLastPath"),
+            REG_SZ,
+            m_pFiles[0].szPath,
+            (lstrlen(m_pFiles[0].szPath) + 1) * sizeof(TCHAR)
+            );
 
-        SHSetTempValue(HKEY_CURRENT_USER,
-            TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPathTime"),
-            REG_DWORD, &dwTimeMark, sizeof(dwTimeMark));
+        SHSetTempValue(
+            HKEY_CURRENT_USER,
+            TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
+            TEXT("SlxLastPathTime"),
+            REG_DWORD,
+            &dwTimeMark,
+            sizeof(dwTimeMark)
+            );
 
-        InvokeDesktopRefresh();
-        KillAllExplorers();
+        ResetExplorer();
 
         break;
     }

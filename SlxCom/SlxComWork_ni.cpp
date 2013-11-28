@@ -196,8 +196,7 @@ public:
                 MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3 | MB_SYSTEMMODAL
                 ))
             {
-                InvokeDesktopRefresh();
-                KillAllExplorers();
+                ResetExplorer();
             }
             break;
 
