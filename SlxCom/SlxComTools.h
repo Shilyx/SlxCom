@@ -45,6 +45,7 @@ BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2);
 BOOL IsPathDesktop(LPCTSTR lpPath);
 BOOL IsWow64ProcessHelper(HANDLE hProcess);
 BOOL DisableWow64FsRedirection();
+VOID InvokeDesktopRefresh();
 BOOL KillAllExplorers();
 BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths);
 void SafeDebugMessage(LPCTSTR pFormat, ...);

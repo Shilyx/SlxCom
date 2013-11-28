@@ -483,7 +483,7 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     }
     else if(idCmd == ID_KILLEXPLORER)
     {
-        lpText = "结束Explorer。";
+        lpText = "结束Explorer，随后系统将自动重新启动Explorer。";
     }
     else if(idCmd == ID_MANUALCHECKSIGNATURE)
     {
@@ -844,32 +844,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
             TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPathTime"),
             REG_DWORD, &dwTimeMark, sizeof(dwTimeMark));
 
-        HWND hProgman = FindWindowEx(NULL, NULL, TEXT("Progman"), TEXT("Program Manager"));
-
-        while (IsWindow(hProgman))
-        {
-            DWORD dwProcessId = 0;
-
-            GetWindowThreadProcessId(hProgman, &dwProcessId);
-
-            if (dwProcessId == GetCurrentProcessId())
-            {
-                HWND hSHELLDLL_DefView = FindWindowEx(hProgman, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
-
-                if (IsWindow(hSHELLDLL_DefView))
-                {
-                    if (IsWindow(FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"))) ||
-                        IsWindow(FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL))
-                        )
-                    {
-                        SendMessage(hSHELLDLL_DefView, WM_COMMAND, 0x7103, 0);
-                    }
-                }
-            }
-
-            hProgman = FindWindowEx(NULL, hProgman, TEXT("Progman"), TEXT("Program Manager"));
-        }
-
+        InvokeDesktopRefresh();
         KillAllExplorers();
 
         break;
