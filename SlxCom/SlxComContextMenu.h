@@ -50,6 +50,7 @@ protected:
     volatile DWORD m_dwRefCount;
     FileInfo *m_pFiles;
     UINT m_uFileCount;
+    BOOL m_bIsBackground;     //QueryContextMenu时且选中项数目为一时确定
 
     BOOL ConvertToShortPaths();
 };

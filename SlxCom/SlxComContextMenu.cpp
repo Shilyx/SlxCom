@@ -39,6 +39,7 @@ static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
 CSlxComContextMenu::CSlxComContextMenu()
 {
     m_dwRefCount = 0;
+    m_bIsBackground = FALSE;
 
     m_pFiles = new FileInfo[1];
     m_uFileCount = 1;
@@ -217,6 +218,24 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     if(m_uFileCount == 0)
     {
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
+    }
+    else if (m_uFileCount == 1)
+    {
+        int nCount = GetMenuItemCount(hmenu);
+        int nMenuIndex = 0;
+
+        for (; nMenuIndex < nCount; nMenuIndex += 1)
+        {
+            TCHAR szText[100] = TEXT("");
+
+            GetMenuString(hmenu, nMenuIndex, szText, RTL_NUMBER_OF(szText), MF_BYPOSITION);
+
+            if (lstrcmpi(szText, TEXT("Ë¢ÐÂ(&E)")) == 0)
+            {
+                m_bIsBackground = TRUE;
+                break;
+            }
+        }
     }
 
     BOOL bShiftDown = GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0;
@@ -835,14 +854,52 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_KILLEXPLORER:
     {
         DWORD dwTimeMark = GetTickCount();
+        TCHAR szPath[MAX_PATH];
+
+        lstrcpyn(szPath, m_pFiles[0].szPath, RTL_NUMBER_OF(szPath));
+
+        if (m_bIsBackground)
+        {
+            PathAppend(szPath, TEXT("\\*"));
+
+            BOOL bFound = FALSE;
+            WIN32_FIND_DATA wfd;
+            HANDLE hFind = FindFirstFile(szPath, &wfd);
+
+            if (hFind != NULL && hFind != INVALID_HANDLE_VALUE)
+            {
+                do 
+                {
+                    if (lstrcmpi(wfd.cFileName, TEXT(".")) != 0 &&
+                        lstrcmpi(wfd.cFileName, TEXT("..")) != 0
+                        )
+                    {
+                        PathRemoveFileSpec(szPath);
+                        StrCatBuff(szPath, TEXT("\\"), RTL_NUMBER_OF(szPath));
+                        StrCatBuff(szPath, wfd.cFileName, RTL_NUMBER_OF(szPath));
+                        bFound = TRUE;
+
+                        break;
+                    }
+
+                } while (FindNextFile(hFind, &wfd));
+
+                FindClose(hFind);
+            }
+
+            if (!bFound)
+            {
+                PathRemoveFileSpec(szPath);
+            }
+        }
 
         SHSetTempValue(
             HKEY_CURRENT_USER,
             TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
             TEXT("SlxLastPath"),
             REG_SZ,
-            m_pFiles[0].szPath,
-            (lstrlen(m_pFiles[0].szPath) + 1) * sizeof(TCHAR)
+            szPath,
+            (lstrlen(szPath) + 1) * sizeof(TCHAR)
             );
 
         SHSetTempValue(

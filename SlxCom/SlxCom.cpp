@@ -45,7 +45,6 @@ DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
     TCHAR szLastPath[MAX_PATH];
     DWORD dwType = REG_NONE;
     DWORD dwSize = sizeof(szLastPath);
-    WIN32_FIND_DATA wfd;
 
     SHGetValue(HKEY_CURRENT_USER,
         TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPath"),
@@ -55,44 +54,9 @@ DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
     {
         WaitForInputIdle(GetCurrentProcess(), INFINITE);
 
-        DWORD dwFileAttributes = GetFileAttributes(szLastPath);
-
-        if(dwFileAttributes != INVALID_FILE_ATTRIBUTES && !IsPathDesktop(szLastPath))
+        if(PathFileExists(szLastPath))
         {
-            if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                TCHAR szFindMark[MAX_PATH];
-
-                lstrcpyn(szFindMark, szLastPath, MAX_PATH);
-                PathAppend(szFindMark, TEXT("\\*"));
-
-                HANDLE hFind = FindFirstFile(szFindMark, &wfd);
-
-                if(hFind != INVALID_HANDLE_VALUE)
-                {
-                    do 
-                    {
-                        if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
-                        {
-                            break;
-                        }
-
-                    } while (FindNextFile(hFind, &wfd));
-
-                    if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
-                    {
-                        PathAddBackslash(szLastPath);
-                        lstrcat(szLastPath, wfd.cFileName);
-                    }
-
-                    FindClose(hFind);
-                }
-            }
-
-            if(PathFileExists(szLastPath))
-            {
-                BrowseForFile(szLastPath);
-            }
+            BrowseForFile(szLastPath);
         }
     }
 
