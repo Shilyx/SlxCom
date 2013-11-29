@@ -111,6 +111,10 @@ SOURCE=.\SlxCom.rc
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxComAbout.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComConfig.cpp
 # End Source File
 # Begin Source File
@@ -183,6 +187,10 @@ SOURCE=.\resource.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxComAbout.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxComContextMenu.h
 # End Source File
 # Begin Source File
@@ -237,30 +245,6 @@ SOURCE=.\SlxUnlockFile.h
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
-# Begin Source File
-
-SOURCE=.\res\AddToCopy.bmp
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\CopyPictureHtml.bmp
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\Default.jpg
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\default1.bin
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\Main.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\Mark.ico
-# End Source File
 # End Group
 # Begin Source File
 

@@ -355,6 +355,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComAbout.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComConfig.cpp"
 				>
 			</File>
@@ -422,6 +426,10 @@
 			>
 			<File
 				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComAbout.h"
 				>
 			</File>
 			<File

@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include "lib/charconv.h"
+#include "SlxComAbout.h"
 
 using namespace std;
 
@@ -22,6 +23,7 @@ extern HBITMAP g_hKillExplorerBmp; //SlxCom.cpp
 
 static HHOOK g_hMsgHook = NULL;
 static BOOL g_bChangeButtonText = FALSE;
+static TCHAR g_szModulePath[MAX_PATH] = TEXT("");
 static struct
 {
     LPCTSTR lpName;
@@ -235,7 +237,7 @@ public:
             break;
 
         case SYS_ABOUT:
-            MessageBox(m_hWindow, TEXT("About"), NULL, 0);
+            SlxComAbout(m_hWindow);
             break;
 
         case SYS_RESETEXPLORER:
@@ -285,6 +287,7 @@ public:
         m_hMenu = CreatePopupMenu();
 
         //主菜单
+        AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于SlxCom(&A)..."));;
 //         AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
         AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
         AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表快捷通道(&R)"));
@@ -552,7 +555,6 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     static int nIconShowIndex = INT_MAX;
     static HICON arrIcons[ICON_COUNT] = {NULL};
     static MenuMgr *pMenuMgr = NULL;
-    static TCHAR szModulePath[MAX_PATH] = TEXT("");
 
     if (uMsg == WM_CREATE)
     {
@@ -567,7 +569,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         }
 
         //
-        GetModuleFileName(lpCs->hInstance, szModulePath, RTL_NUMBER_OF(szModulePath));
+        GetModuleFileName(lpCs->hInstance, g_szModulePath, RTL_NUMBER_OF(g_szModulePath));
 
         //add icon to tray
         nid.hWnd = hWnd;
@@ -621,7 +623,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
                 szCommand,
                 RTL_NUMBER_OF(szCommand),
                 TEXT("rundll32.exe \"%s\" SlxPaintView"),
-                szModulePath
+                g_szModulePath
                 );
 
             RunCommand(szCommand);

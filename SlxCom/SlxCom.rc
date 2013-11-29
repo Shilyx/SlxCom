@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2013,9,23
- PRODUCTVERSION 1,2013,9,23
+ FILEVERSION 1,0,1,916
+ PRODUCTVERSION 1,0,1,916
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -68,13 +68,13 @@ BEGIN
         BLOCK "080404b0"
         BEGIN
             VALUE "CompanyName", "Shilyx Studio"
-            VALUE "FileDescription", "SlxCom"
-            VALUE "FileVersion", "1.2013.9.23"
+            VALUE "FileDescription", "SlxCom是功能丰富的绿色的Explorer便捷插件，通过regsvr32注册后即可使用。2013年11月29日发布。"
+            VALUE "FileVersion", "1.0.1.916"
             VALUE "InternalName", "SlxCom"
-            VALUE "LegalCopyright", "Copyright (C) 2013"
+            VALUE "LegalCopyright", "Copyright Shilyx Studio (C) 2013"
             VALUE "OriginalFilename", "SlxCom.dll"
             VALUE "ProductName", "SlxCom"
-            VALUE "ProductVersion", "1.2013.9.23"
+            VALUE "ProductVersion", "1.0.1.916"
         END
     END
     BLOCK "VarFileInfo"
@@ -91,6 +91,7 @@ END
 
 IDR_ICON                RT_FILE                 "res\\Mark.ico"
 IDR_DEFAULTJPG          RT_FILE                 "res\\Default.jpg"
+IDR_ABOUT               RT_FILE                 "res\\AboutSlxCom.htm"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -114,6 +115,7 @@ IDB_APPPATH             BITMAP                  "res\\AppPath.bmp"
 IDB_DRIVER              BITMAP                  "res\\Driver.bmp"
 IDB_UNLOCKFILE          BITMAP                  "res\\UnlockFile.bmp"
 IDB_COPY_PICTURE_HTML   BITMAP                  "res\\CopyPictureHtml.bmp"
+IDB_ABOUT_LOGO          BITMAP                  "res\\AboutLogo.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -182,6 +184,17 @@ BEGIN
     CONTROL         "",IDC_FILELIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,302,167
 END
 
+IDD_ABOUT DIALOGEX 0, 0, 200, 53
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 SlxCom"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         142,IDC_PICTURE,"Static",SS_BITMAP,7,19,52,14
+    LTEXT           "Static",IDC_BASEINFO,63,7,130,8
+    LTEXT           "Static",IDC_COPYRIGHT,63,22,130,8
+    LTEXT           "Static",IDC_LINK,63,38,130,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -237,6 +250,14 @@ BEGIN
         RIGHTMARGIN, 309
         TOPMARGIN, 7
         BOTTOMMARGIN, 174
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 193
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 46
     END
 END
 #endif    // APSTUDIO_INVOKED

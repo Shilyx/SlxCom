@@ -224,6 +224,7 @@
   <ItemGroup>
     <ClCompile Include="lib\charconv.cpp" />
     <ClCompile Include="SlxCom.cpp" />
+    <ClCompile Include="SlxComAbout.cpp" />
     <ClCompile Include="SlxComConfig.cpp" />
     <ClCompile Include="SlxComContextMenu.cpp" />
     <ClCompile Include="SlxComFactory.cpp" />
@@ -241,6 +242,10 @@
     <ClCompile Include="SlxUnlockFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\AboutLogo.bmp" />
+    <None Include="res\AboutSlxCom.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="res\bird\0.ico" />
     <None Include="res\bird\1.ico" />
     <None Include="res\bird\2.ico" />
@@ -251,6 +256,8 @@
     <None Include="res\bird\7.ico" />
     <None Include="res\bird\8.ico" />
     <None Include="res\bird\9.ico" />
+    <None Include="res\bird\rt_file1.bin" />
+    <None Include="res\bitmap1.bmp" />
     <None Include="res\CopyPictureHtml.bmp" />
     <None Include="SlxCom.def" />
     <None Include="res\AddToCopy.bmp" />
@@ -278,6 +285,7 @@
     <ClInclude Include="lib\charconv.h" />
     <ClInclude Include="lib\deelx.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SlxComAbout.h" />
     <ClInclude Include="SlxComContextMenu.h" />
     <ClInclude Include="SlxComFactory.h" />
     <ClInclude Include="SlxComOverlay.h" />

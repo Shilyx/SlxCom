@@ -54,6 +54,7 @@ BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath);
 HFONT GetMenuDefaultFont();
 BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx);
 HWND GetTrayNotifyWndInProcess();
+BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize);
 
 template <typename T>
 std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)

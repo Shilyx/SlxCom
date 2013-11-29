@@ -9,6 +9,7 @@
 
 #pragma comment(lib, "RpcRt4.lib")
 #pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Version.lib")
 
 #if !defined(UNICODE) || !defined(_UNICODE)
 #error Need UNICODE & _UNICODE pre-defined

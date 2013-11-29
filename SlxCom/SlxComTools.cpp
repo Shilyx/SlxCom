@@ -1920,6 +1920,36 @@ HWND GetTrayNotifyWndInProcess()
     return NULL;
 }
 
+BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize)
+{
+    TCHAR szPath[MAX_PATH];
+    char verBuffer[1000];
+    VS_FIXEDFILEINFO *pVerFixedInfo = {0};
+    UINT uLength;
+
+    GetModuleFileName(hModule, szPath, RTL_NUMBER_OF(szPath));
+
+    if (GetFileVersionInfo(szPath, 0, sizeof(verBuffer), verBuffer))
+    {
+        if (VerQueryValue(verBuffer, TEXT("\\"), (LPVOID *)&pVerFixedInfo, &uLength))
+        {
+            wnsprintf(
+                szVersionString,
+                nSize,
+                TEXT("%d.%d.%d.%d"),
+                pVerFixedInfo->dwFileVersionMS >> 16,
+                pVerFixedInfo->dwFileVersionMS & 0xffff,
+                pVerFixedInfo->dwFileVersionLS >> 16,
+                pVerFixedInfo->dwFileVersionLS & 0xffff
+                );
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
