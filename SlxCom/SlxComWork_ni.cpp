@@ -10,17 +10,67 @@
 
 using namespace std;
 
-#define NOTIFYWNDCLASS  TEXT("__slxcom_work_ni_notify_wnd")
-#define WM_CALLBACK     (WM_USER + 112)
-#define ICON_COUNT      10
-#define TIMER_ICON      1
-#define TIMER_MENU      2
+#define NOTIFYWNDCLASS      TEXT("__slxcom_work_ni_notify_wnd")
+#define WM_CALLBACK         (WM_USER + 112)
+#define ICON_COUNT          10
+#define TIMER_ICON          1
+#define TIMER_MENU          2
 #define REG_QUESTION_TITLE  TEXT("处理注册表路径不存在的问题")
+#define COMPACT_WIDTH       400
 
 extern HBITMAP g_hKillExplorerBmp; //SlxCom.cpp
 
 static HHOOK g_hMsgHook = NULL;
 static BOOL g_bChangeButtonText = FALSE;
+static struct
+{
+    LPCTSTR lpName;
+    LPCTSTR lpPath;
+} g_szBuildinRegPaths[] = {
+    { TEXT("系统Run"),          TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run")},
+#ifdef _WIN64
+    { TEXT("系统Run(32)"),      TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run")},
+#endif
+    { TEXT("用户Run"),          TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run")},
+#ifdef _WIN64
+    { TEXT("用户Run(32)"),      TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run")},
+#endif
+    { TEXT("系统WinLogon"),     TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon")},
+#ifdef _WIN64
+    { TEXT("系统WinLogon(32)"), TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon")},
+#endif
+    { TEXT("用户WinLogon"),     TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon")},
+#ifdef _WIN64
+    { TEXT("用户WinLogon(32)"), TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon")},
+#endif
+    { TEXT("系统Windows"),      TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows")},
+#ifdef _WIN64
+    { TEXT("系统Windows(32)"),  TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows")},
+#endif
+    { TEXT("用户Windows"),      TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows")},
+#ifdef _WIN64
+    { TEXT("用户Windows(32)"),  TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows")},
+#endif
+    { TEXT("系统Explorer"),     TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer")},
+#ifdef _WIN64
+    { TEXT("系统Explorer(32)"), TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer")},
+#endif
+    { TEXT("用户Explorer"),     TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer")},
+#ifdef _WIN64
+    { TEXT("用户Explorer(32)"), TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer")},
+#endif
+    { TEXT("系统IE"),           TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Internet Explorer")},
+#ifdef _WIN64
+    { TEXT("系统IE(32)"),       TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Internet Explorer")},
+#endif
+    { TEXT("用户IE"),           TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Internet Explorer")},
+#ifdef _WIN64
+    { TEXT("用户IE(32)"),       TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Microsoft\\Internet Explorer")},
+#endif
+    { TEXT("Session Manager"), TEXT("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager")},
+    { TEXT("映像劫持"),          TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options")},
+    { TEXT("已知dll"),          TEXT("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\KnownDLLs")},
+};
 
 static enum
 {
@@ -235,9 +285,9 @@ public:
         m_hMenu = CreatePopupMenu();
 
         //主菜单
-        AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
+//         AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
         AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
-        AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表位置(&R)"));
+        AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表快捷通道(&R)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&E)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
@@ -246,7 +296,7 @@ public:
       //AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于(&A)..."));
         AppendMenu(m_hMenu, MF_STRING, SYS_QUIT, TEXT("不显示托盘图标(&Q)"));
 
-        SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
+//         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
     }
 
 private:
@@ -434,7 +484,7 @@ private:
                 TCHAR szShortRegPath[1000];
 
                 lstrcpyn(szShortRegPath, itValue->second.c_str(), RTL_NUMBER_OF(szShortRegPath));
-                PathCompactPathHelper(m_hMenuDc, szShortRegPath, 400);
+                PathCompactPathHelper(m_hMenuDc, szShortRegPath, COMPACT_WIDTH);
 
                 AppendMenu(hPopupMenu, MF_STRING, *pMenuId, (itValue->first + TEXT("\t") + szShortRegPath).c_str());
                 m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, itValue->first.c_str(), strRegPath.c_str())).first;
@@ -451,6 +501,24 @@ private:
         LPCTSTR lpSlxRegPath = TEXT("Software\\Shilyx Studio\\SlxCom\\RegPath");
         LPCTSTR lpSlxRegPath2 = TEXT("HKEY_CURRENT_USER\\Software\\Shilyx Studio\\SlxCom\\RegPath");
         HMENU hRetMenu = CreatePopupMenu();
+
+        HMENU hBuildinMenu = CreatePopupMenu();
+        for (int index = 0; index < RTL_NUMBER_OF(g_szBuildinRegPaths); index += 1)
+        {
+            TCHAR szShortRegPath[1000];
+
+            lstrcpyn(szShortRegPath, g_szBuildinRegPaths[index].lpPath, RTL_NUMBER_OF(szShortRegPath));
+            PathCompactPathHelper(m_hMenuDc, szShortRegPath, COMPACT_WIDTH);
+
+            AppendMenu(hBuildinMenu, MF_STRING, *pMenuId, (tstring(g_szBuildinRegPaths[index].lpName) + TEXT("\t") + szShortRegPath).c_str());
+            m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, g_szBuildinRegPaths[index].lpName, g_szBuildinRegPaths[index].lpPath)).first;
+            *pMenuId += 1;
+        }
+
+        if (GetMenuItemCount(hBuildinMenu) > 0)
+        {
+            AppendMenu(hRetMenu, MF_POPUP, (UINT)hBuildinMenu, TEXT("注册表常用位置(&B)"));
+        }
 
         HMENU hSysMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSysRegPath, TRUE, FALSE);
         AppendMenu(hRetMenu, MF_POPUP, (UINT)hSysMenu, TEXT("注册表编辑器搜藏位置(&F)"));
@@ -592,10 +660,10 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             SetForegroundWindow(hWnd);
             pMenuMgr->TrackAndDealPopupMenu(pt.x, pt.y);
         }
-        else if (lParam == WM_LBUTTONDBLCLK)
-        {
-            PostMessage(hWnd, WM_HOTKEY, HK_PAINTVIEW, 0);
-        }
+//         else if (lParam == WM_LBUTTONDBLCLK)
+//         {
+//             PostMessage(hWnd, WM_HOTKEY, HK_PAINTVIEW, 0);
+//         }
 
         if (nIconShowIndex >= RTL_NUMBER_OF(arrIcons))
         {
