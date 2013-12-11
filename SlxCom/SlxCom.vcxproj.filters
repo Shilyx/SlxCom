@@ -72,6 +72,9 @@
     <ClCompile Include="SlxComAbout.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComDirShortcut.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -173,11 +176,13 @@
     <None Include="res\bird\rt_file1.bin">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="res\AboutSlxCom.htm" />
     <None Include="res\bitmap1.bmp">
       <Filter>资源文件</Filter>
     </None>
     <None Include="res\AboutLogo.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\AboutSlxCom.htm">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
@@ -228,6 +233,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SlxComAbout.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComDirShortcut.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

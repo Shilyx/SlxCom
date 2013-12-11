@@ -43,8 +43,9 @@
 #define IDI_BIRD_9                      139
 #define IDR_ABOUT                       140
 #define IDD_ABOUT                       141
-#define IDB_BITMAP1                     142
 #define IDB_ABOUT_LOGO                  142
+#define IDD_DIRSHORTCUTMGR              143
+#define IDD_ADDEDIT_DIR_ITEM            144
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
@@ -60,6 +61,8 @@
 #define IDC_COPYRIGHT                   1013
 #define IDC_LINK                        1014
 #define IDC_PICTURE                     1015
+#define IDC_TREE                        1016
+#define IDC_LIST                        1017
 #define ID_MENU_40001                   40001
 #define ID_MENU_40002                   40002
 #define ID_MENU_40003                   40003
@@ -82,9 +85,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        143
+#define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1016
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

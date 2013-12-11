@@ -8,6 +8,7 @@ DllUnregisterServer	PRIVATE
 T
 T2
 T3
+T4
 SlxComConfig
 BrowserLinkFilePosition
 UnlockFileFromPathW

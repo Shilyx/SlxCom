@@ -227,6 +227,7 @@
     <ClCompile Include="SlxComAbout.cpp" />
     <ClCompile Include="SlxComConfig.cpp" />
     <ClCompile Include="SlxComContextMenu.cpp" />
+    <ClCompile Include="SlxComDirShortcut.cpp" />
     <ClCompile Include="SlxComFactory.cpp" />
     <ClCompile Include="SlxComOverlay.cpp" />
     <ClCompile Include="SlxComPeTools.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="SlxComAbout.h" />
     <ClInclude Include="SlxComContextMenu.h" />
+    <ClInclude Include="SlxComDirShortcut.h" />
     <ClInclude Include="SlxComFactory.h" />
     <ClInclude Include="SlxComOverlay.h" />
     <ClInclude Include="SlxComPeTools.h" />
