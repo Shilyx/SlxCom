@@ -399,6 +399,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxCrypto.c"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxFileHandles.cpp"
 				>
 			</File>
@@ -466,6 +470,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComWork_sd.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxCrypto.h"
 				>
 			</File>
 			<File
