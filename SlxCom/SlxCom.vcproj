@@ -495,6 +495,50 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
+				RelativePath=".\res\bird\0.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\1.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\2.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\3.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\4.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\5.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\6.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\7.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\8.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bird\9.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\AboutLogo.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\AddToCopy.bmp"
 				>
 			</File>
@@ -516,6 +560,10 @@
 			</File>
 			<File
 				RelativePath=".\res\CopyFullPath.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\CopyPictureHtml.bmp"
 				>
 			</File>
 			<File
@@ -599,6 +647,11 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\res\AboutSlxCom.htm"
+			DeploymentContent="true"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -56,6 +56,10 @@ STDMETHODIMP CSlxComContextMenu::QueryInterface(REFIID riid, void **ppv)
     {
         *ppv = static_cast<IContextMenu *>(this);
     }
+    else if(riid == IID_IShellPropSheetExt)
+    {
+        *ppv = static_cast<IShellPropSheetExt *>(this);
+    }
     else if(riid == IID_IUnknown)
     {
         *ppv = static_cast<IShellExtInit *>(this);
@@ -1076,6 +1080,94 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     return S_OK;
 }
 
+INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_INITDIALOG:
+    {
+        SafeDebugMessage(TEXT("WM_INITDIALOG %d\n"), lParam);
+        break;
+    }
+
+    case WM_NOTIFY:
+    {
+        NMHDR *phdr = (NMHDR *)lParam;
+
+        if (phdr->code == PSN_APPLY)
+        {
+            OutputDebugString(TEXT("PSN_APPLY"));
+        }
+
+        break;
+    }
+
+    case WM_LBUTTONDBLCLK:
+        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
+        break;
+
+    default:
+        break;
+    }
+    return FALSE;
+}
+
+UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+{
+    switch (uMsg)
+    {
+    case PSPCB_ADDREF:
+        break;
+
+    case PSPCB_CREATE:
+        break;
+
+    case PSPCB_RELEASE:
+        break;
+
+    default:
+        break;
+    }
+
+    return TRUE;
+}
+
+STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam)
+{
+    if (!ShouldAddPropSheet())
+    {
+        return E_NOTIMPL;        
+    }
+
+    PROPSHEETPAGE psp = {sizeof(psp)};
+    HPROPSHEETPAGE hPage;
+
+    psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
+    psp.hInstance   = g_hinstDll;
+    psp.pszTemplate = MAKEINTRESOURCE(IDD_HASHPAGE);
+    psp.pszTitle    = TEXT("¹þÏ£");
+    psp.pfnDlgProc  = PropSheetDlgProc;
+    psp.lParam      = (LPARAM)1111;
+    psp.pfnCallback = PropSheetCallback;
+
+    hPage = CreatePropertySheetPage(&psp);
+
+    if (NULL != hPage)
+    {
+        if (!pfnAddPage(hPage, lParam))
+        {
+            DestroyPropertySheetPage(hPage);
+        }
+    }
+
+    return S_OK;
+}
+
+STDMETHODIMP CSlxComContextMenu::ReplacePage(UINT uPageID, LPFNADDPROPSHEETPAGE pfnReplacePage, LPARAM lParam)
+{
+    return E_NOTIMPL;
+}
+
 BOOL CSlxComContextMenu::ConvertToShortPaths()
 {
     TCHAR szFilePathTemp[MAX_PATH];
@@ -1089,67 +1181,21 @@ BOOL CSlxComContextMenu::ConvertToShortPaths()
     return TRUE;
 }
 
+BOOL CSlxComContextMenu::ShouldAddPropSheet()
+{
+    if (m_uFileCount == 1 && m_pFiles[0].bIsFile)
+    {
+        return TRUE;
+    }
+
+    if (m_uFileCount == 2 && m_pFiles[0].bIsFile && m_pFiles[1].bIsFile)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    DrvAction(hwndStub, TEXT("D:\\Administrator\\Desktop\\Tools\\InstDrv\\MySYS.sys"), DA_INSTALL);
-    return;
-
-    map<tstring, HWND> m;
-
-    m[TEXT("aaaaaaaaaa")] = 0;
-    m[TEXT("aaaaaaaaa1")] = 0;
-    m[TEXT("aaaaaaaaa2")] = 0;
-    m[TEXT("aaaaaaaaa3")] = 0;
-    m[TEXT("aaaaaa1aaa")] = 0;
-    m[TEXT("aaaaaa1aa1")] = 0;
-    m[TEXT("aaaaaa1aa2")] = 0;
-    m[TEXT("aaaaaa1aa3")] = 0;
-
-//     IStream *pStream = NULL;
-// 
-//     if (S_OK == CreateStreamOnHGlobal(NULL, TRUE, &pStream))
-//     {
-//         HGLOBAL hGlobal = NULL;
-// 
-//         if (S_OK == GetHGlobalFromStream(pStream, &hGlobal))
-//         {
-//             while (TRUE)
-//             {
-//                 pStream->Write("AAAAAAAAAAAAAAAAAAAAAA", 10, NULL);
-// 
-//                 LPVOID lpBuffer = GlobalLock(hGlobal);
-// 
-//                 OutputDebugString(NULL);
-//             }
-//         }
-// 
-//         pStream->Release();
-//     }
-
-//     OPENFILENAME ofn = {sizeof(ofn)};
-// 
-//     ofn.hInstance = GetModuleHandle(NULL);
-// 
-//     ofn.lStructSize = sizeof(OPENFILENAME); 
-//     ofn.hwndOwner = NULL; 
-//     ofn.lpstrFile = NULL; 
-//     ofn.nMaxFile = 10000; 
-//     ofn.lpstrFilter = TEXT("All/0*.*/0Text/0*.TXT/0"); 
-//     ofn.nFilterIndex = 1; 
-//     ofn.lpstrFileTitle = NULL; 
-//     ofn.nMaxFileTitle = 0; 
-//     ofn.lpstrInitialDir = NULL; 
-//     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST; 
-// 
-//     // Display the Open dialog box.  
-// 
-//     GetOpenFileName(&ofn);
-// 
-//     DialogBoxParam(
-//         g_hinstDll,
-//         MAKEINTRESOURCE(IDD_MANUALCHECKSIGNATURE_DIALOG),
-//         NULL,
-//         CSlxComContextMenu::ManualCheckSignatureDialogProc,
-//         (LPARAM)&m
-//         );
 }

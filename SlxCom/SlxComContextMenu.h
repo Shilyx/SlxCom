@@ -28,7 +28,7 @@ public:
     }
 };
 
-class CSlxComContextMenu : public IContextMenu, public IShellExtInit
+class CSlxComContextMenu : public IContextMenu, public IShellExtInit, public IShellPropSheetExt
 {
 public:
     CSlxComContextMenu();
@@ -46,6 +46,13 @@ public:
     STDMETHOD(GetCommandString)(UINT_PTR idCmd, UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax);
     STDMETHOD(InvokeCommand)(LPCMINVOKECOMMANDINFO pici);
 
+    //IShellPropSheetExt
+    STDMETHOD(AddPages)(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam);
+    STDMETHOD(ReplacePage)(UINT uPageID, LPFNADDPROPSHEETPAGE pfnReplacePage, LPARAM lParam);
+
+    static INT_PTR CALLBACK PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    static UINT CALLBACK PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp); 
+
 protected:
     volatile DWORD m_dwRefCount;
     FileInfo *m_pFiles;
@@ -53,6 +60,7 @@ protected:
     BOOL m_bIsBackground;     //QueryContextMenu时且选中项数目为一时确定
 
     BOOL ConvertToShortPaths();
+    BOOL ShouldAddPropSheet();
 };
 
 #endif

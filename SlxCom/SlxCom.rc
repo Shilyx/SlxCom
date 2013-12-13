@@ -13,11 +13,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(简体，中国) resources
+// 中文(中华人民共和国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
+#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -195,23 +197,10 @@ BEGIN
     LTEXT           "Static",IDC_LINK,63,38,130,8
 END
 
-IDD_DIRSHORTCUTMGR DIALOGEX 0, 0, 415, 186
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-EXSTYLE WS_EX_ACCEPTFILES
-CAPTION "Dialog"
+IDD_HASHPAGE DIALOGEX 0, 0, 226, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,7,126,172
-    CONTROL         "",IDC_LIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,138,7,270,172
-END
-
-IDD_ADDEDIT_DIR_ITEM DIALOGEX 0, 0, 229, 114
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Dialog"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,107,93,50,14
-    PUSHBUTTON      "取消",IDCANCEL,172,93,50,14
 END
 
 
@@ -221,7 +210,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_RUNWITHARGUMENTS, DIALOG
     BEGIN
@@ -279,20 +268,12 @@ BEGIN
         BOTTOMMARGIN, 46
     END
 
-    IDD_DIRSHORTCUTMGR, DIALOG
+    IDD_HASHPAGE, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 408
+        RIGHTMARGIN, 219
         TOPMARGIN, 7
-        BOTTOMMARGIN, 179
-    END
-
-    IDD_ADDEDIT_DIR_ITEM, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 222
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 107
+        BOTTOMMARGIN, 204
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -329,7 +310,7 @@ IDI_BIRD_9              ICON                    "res\\bird\\9.ico"
 // Menu
 //
 
-IDR_PAINTMENU MENU
+IDR_PAINTMENU MENU 
 BEGIN
     POPUP "Menu"
     BEGIN
@@ -355,7 +336,7 @@ BEGIN
     END
 END
 
-#endif    // 中文(简体，中国) resources
+#endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

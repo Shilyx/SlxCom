@@ -213,6 +213,11 @@ STDAPI DllRegisterServer(void)
     SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("*\\shellex\\PropertySheetHandlers\\%s"),
+        APPNAME);
+    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
     SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
@@ -251,6 +256,11 @@ STDAPI DllUnregisterServer(void)
         TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
         APPNAME);
     SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("*\\shellex\\PropertySheetHandlers\\%s"),
+        APPNAME);
+    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("*\\shellex\\ContextMenuHandlers\\%s"),

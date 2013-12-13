@@ -69,7 +69,7 @@ STDMETHODIMP CSlxComFactory::CreateInstance(IUnknown * pUnkOuter, REFIID riid, v
 
         return hr;
     }
-    else if(riid == IID_IShellExtInit || riid == IID_IContextMenu)
+    else if(riid == IID_IShellExtInit || riid == IID_IContextMenu || riid == IID_IShellPropSheetExt)
     {
         CSlxComContextMenu *pContextMenu = new CSlxComContextMenu;
 
