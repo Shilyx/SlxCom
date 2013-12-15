@@ -236,6 +236,7 @@
     <ClCompile Include="SlxComWork_lvm.cpp" />
     <ClCompile Include="SlxComWork_ni.cpp" />
     <ClCompile Include="SlxComWork_sd.cpp" />
+    <ClCompile Include="SlxCrypto.c" />
     <ClCompile Include="SlxFileHandles.cpp" />
     <ClCompile Include="SlxManualCheckSignature.cpp" />
     <ClCompile Include="SlxPaintView.cpp" />
@@ -297,6 +298,7 @@
     <ClInclude Include="SlxComWork_lvm.h" />
     <ClInclude Include="SlxComWork_ni.h" />
     <ClInclude Include="SlxComWork_sd.h" />
+    <ClInclude Include="SlxCrypto.h" />
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />
     <ClInclude Include="SlxStringStatusCache.h" />

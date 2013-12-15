@@ -62,7 +62,6 @@
 #define IDC_COPYRIGHT                   1013
 #define IDC_LINK                        1014
 #define IDC_PICTURE                     1015
-#define IDC_CHECK1                      1016
 #define IDC_UPPERCASE                   1016
 #define IDC_MD5                         1022
 #define IDC_CRC32                       1023
@@ -71,8 +70,8 @@
 #define IDC_COMPARE                     1026
 #define IDC_CRC32_2                     1027
 #define IDC_SHA1_2                      1028
-#define IDC_COMPARE2                    1029
 #define IDC_STOP                        1029
+#define IDC_STOP_2                      1030
 #define IDC_FILESIZE                    1031
 #define IDC_FILESIZE_2                  1032
 #define ID_MENU_40001                   40001

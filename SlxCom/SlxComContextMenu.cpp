@@ -1080,13 +1080,51 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     return S_OK;
 }
 
+//////////////////////////////////////////////////////////////////////////
+struct PropSheetDlgParam
+{
+    TCHAR szFilePath[MAX_PATH];
+    TCHAR szFilePath_2[MAX_PATH];
+
+    PropSheetDlgParam()
+    {
+        szFilePath[0] = TEXT('\0');
+        szFilePath_2[0] = TEXT('\0');
+    }
+};
+
+struct HashCalcProcParam
+{
+    HWND hwndDlg;
+    HWND hwndMd5;
+    HWND hwndSha1;
+    HWND hwndCrc32;
+    HWND hwndStop;
+};
+
+DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
+{
+    return 0;
+}
+
 INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
     case WM_INITDIALOG:
     {
-        SafeDebugMessage(TEXT("WM_INITDIALOG %d\n"), lParam);
+        LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
+        PropSheetDlgParam *pPropSheetDlgParam = (PropSheetDlgParam *)pPsp->lParam;
+
+        SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->szFilePath);
+        SetDlgItemText(hwndDlg, IDC_FILEPATH_2, pPropSheetDlgParam->szFilePath_2);
+
+        if (lstrlen(pPropSheetDlgParam->szFilePath_2) > 0)
+        {
+
+        }
+
+        SafeDebugMessage(TEXT("WM_INITDIALOG %d\n"), pPsp->lParam);
         break;
     }
 
@@ -1102,8 +1140,33 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         break;
     }
 
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDC_COMPARE:
+            break;
+
+        case IDC_STOP:
+            break;
+
+        case IDC_STOP_2:
+            break;
+
+        default:
+            break;
+        }
+        break;
+
     case WM_LBUTTONDBLCLK:
         SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
+        break;
+
+    case WM_CLOSE:
+        OutputDebugString(TEXT("WM_CLOSE"));
+        break;
+
+    case WM_DESTROY:
+        OutputDebugString(TEXT("WM_DESTROY"));
         break;
 
     default:
@@ -1120,9 +1183,12 @@ UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROP
         break;
 
     case PSPCB_CREATE:
+        OutputDebugString(TEXT("PSPCB_CREATE"));
         break;
 
     case PSPCB_RELEASE:
+        OutputDebugString(TEXT("PSPCB_RELEASE"));
+        delete (PropSheetDlgParam *)pPsp->lParam;
         break;
 
     default:
@@ -1141,13 +1207,21 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
 
     PROPSHEETPAGE psp = {sizeof(psp)};
     HPROPSHEETPAGE hPage;
+    PropSheetDlgParam *pPropSheetDlgParam = new PropSheetDlgParam;
+
+    lstrcpyn(pPropSheetDlgParam->szFilePath, m_pFiles[0].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath));
+
+    if (m_uFileCount > 1)
+    {
+        lstrcpyn(pPropSheetDlgParam->szFilePath_2, m_pFiles[1].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath_2));
+    }
 
     psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
     psp.hInstance   = g_hinstDll;
     psp.pszTemplate = MAKEINTRESOURCE(IDD_HASHPAGE);
-    psp.pszTitle    = TEXT("¹þÏ£");
+    psp.pszTitle    = TEXT("ÎÄ¼þ¹þÏ£");
     psp.pfnDlgProc  = PropSheetDlgProc;
-    psp.lParam      = (LPARAM)1111;
+    psp.lParam      = (LPARAM)pPropSheetDlgParam;
     psp.pfnCallback = PropSheetCallback;
 
     hPage = CreatePropertySheetPage(&psp);

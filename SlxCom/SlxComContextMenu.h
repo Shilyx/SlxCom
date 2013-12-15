@@ -50,6 +50,7 @@ public:
     STDMETHOD(AddPages)(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam);
     STDMETHOD(ReplacePage)(UINT uPageID, LPFNADDPROPSHEETPAGE pfnReplacePage, LPARAM lParam);
 
+    static DWORD CALLBACK HashCalcProc(LPVOID lpParam);
     static INT_PTR CALLBACK PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
     static UINT CALLBACK PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp); 
 
