@@ -1305,6 +1305,13 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
             GetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA) == GetCurrentThreadId()
             )
         {
+            if (!!GetWindowLongPtr(pCalcParam->hwndDlg, GWLP_USERDATA))
+            {
+                CharUpperBuff(szMd5, RTL_NUMBER_OF(szMd5));
+                CharUpperBuff(szSha1, RTL_NUMBER_OF(szSha1));
+                CharUpperBuff(szCrc32, RTL_NUMBER_OF(szCrc32));
+            }
+
             SetWindowText(pCalcParam->hwndMd5, szMd5);
             SetWindowText(pCalcParam->hwndSha1, szSha1);
             SetWindowText(pCalcParam->hwndCrc32, szCrc32);
