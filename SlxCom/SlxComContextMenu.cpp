@@ -6,6 +6,7 @@
 #include "SlxComTools.h"
 #include "SlxComPeTools.h"
 #include "resource.h"
+#include "SlxCrypto.h"
 #include "SlxManualCheckSignature.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
@@ -1081,6 +1082,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 }
 
 //////////////////////////////////////////////////////////////////////////
+#define DEFAULT_MAP_SIZE    (4 * 1024 * 1024)
+#define STATUS_COMPUTING    TEXT("计算中...")
+#define STATUS_HALTED       TEXT("计算过程已被中止。")
+#define STATUS_ERROR        TEXT("计算中遇到错误。")
+
 enum
 {
     WM_ADDCOMPARE = WM_USER + 24,
@@ -1102,6 +1108,7 @@ struct HashCalcProcParam
 {
     TCHAR szFile[MAX_PATH];
     HWND hwndDlg;
+    HWND hwndFileSize;
     HWND hwndMd5;
     HWND hwndSha1;
     HWND hwndCrc32;
@@ -1112,12 +1119,202 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 {
     HashCalcProcParam *pCalcParam = (HashCalcProcParam *)lpParam;
 
-    if (pCalcParam != NULL)
+    if (pCalcParam != NULL &&
+        IsWindow(pCalcParam->hwndStop) &&
+        GetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA) == GetCurrentThreadId()
+        )
     {
+        //提取文件大小
+        WIN32_FILE_ATTRIBUTE_DATA wfad = {0};
+        ULARGE_INTEGER uliFileSize;
+        TCHAR szSizeStringWithBytes[128];
+
+        GetFileAttributesEx(pCalcParam->szFile, GetFileExInfoStandard, &wfad);
+        uliFileSize.HighPart = wfad.nFileSizeHigh;
+        uliFileSize.LowPart = wfad.nFileSizeLow;
+
+        if (uliFileSize.QuadPart == 0)
+        {
+            SetWindowText(pCalcParam->hwndFileSize, TEXT("0 字节"));
+        }
+        else
+        {
+            lstrcpyn(szSizeStringWithBytes + 64, TEXT(" 字节"), 64);
+            TCHAR *pChar = szSizeStringWithBytes + 64 - 1;
+            int index = 0;
+
+            while (TRUE)
+            {
+                *pChar-- = TEXT('0') + uliFileSize.QuadPart % 10;
+                uliFileSize.QuadPart /= 10;
+                index += 1;
+                ;
+                if (uliFileSize.QuadPart == 0)
+                {
+                    break;
+                }
+
+                if (index % 3 == 0)
+                {
+                    *pChar-- = TEXT(',');
+                }
+            }
+
+            SetWindowText(pCalcParam->hwndFileSize, pChar + 1);
+        }
+
+        uliFileSize.HighPart = wfad.nFileSizeHigh;
+        uliFileSize.LowPart = wfad.nFileSizeLow;
+
+        //设定初始显示文本
+        TCHAR szMd5[100] = STATUS_COMPUTING;
+        TCHAR szSha1[100] = STATUS_COMPUTING;
+        TCHAR szCrc32[100] = STATUS_COMPUTING;
+
+        SetWindowText(pCalcParam->hwndMd5, szMd5);
+        SetWindowText(pCalcParam->hwndSha1, szSha1);
+        SetWindowText(pCalcParam->hwndCrc32, szCrc32);
+
+        //显示停止按钮
+        SetWindowText(pCalcParam->hwndStop, TEXT("停止(已完成0%)"));
         ShowWindow(pCalcParam->hwndStop, SW_SHOW);
+
+        //密码库Init
+        md5_ctx md5;
+        sha1_ctx sha1;
+        crc32_ctx crc32;
+
+        md5_init(&md5);
+        sha1_init(&sha1);
+        crc32_init(&crc32);
+
+        //开始计算
+        BOOL bError = FALSE;
+        if (uliFileSize.QuadPart > 0)
+        {
+            HANDLE hFile = CreateFile(pCalcParam->szFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+            if (hFile != INVALID_HANDLE_VALUE)
+            {
+                HANDLE hFileMapping = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
+
+                if (hFileMapping != NULL)
+                {
+                    ULARGE_INTEGER uliOffset = {0};
+                    ULARGE_INTEGER uliBytesLeft = {0};
+
+                    uliBytesLeft.QuadPart = uliFileSize.QuadPart;
+
+                    while (uliOffset.QuadPart < uliFileSize.QuadPart)
+                    {
+                        DWORD dwAllocationBaseSize = DEFAULT_MAP_SIZE;
+                        DWORD dwBytesToMap = dwAllocationBaseSize;
+
+                        if (uliBytesLeft.QuadPart < dwBytesToMap)
+                        {
+                            dwBytesToMap = uliBytesLeft.LowPart;
+                        }
+
+                        LPVOID lpBuffer = MapViewOfFile(
+                            hFileMapping,
+                            FILE_MAP_READ,
+                            uliOffset.HighPart,
+                            uliOffset.LowPart,
+                            dwBytesToMap
+                            );
+
+                        if (lpBuffer == NULL)
+                        {
+                            bError = TRUE;
+                            break;
+                        }
+
+                        md5_update(&md5, (const unsigned char *)lpBuffer, dwBytesToMap);
+                        sha1_update(&sha1, (const unsigned char *)lpBuffer, dwBytesToMap);
+                        crc32_update(&crc32, (const unsigned char *)lpBuffer, dwBytesToMap);
+
+                        UnmapViewOfFile(lpBuffer);
+
+                        uliOffset.QuadPart += dwBytesToMap;
+                        uliBytesLeft.QuadPart -= dwBytesToMap;
+
+                        //进度信息
+                        if (IsWindow(pCalcParam->hwndStop) &&
+                            GetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA) == GetCurrentThreadId()
+                            )
+                        {
+                            TCHAR szCtrlText[100] = TEXT("");
+
+                            wnsprintf(szCtrlText, RTL_NUMBER_OF(szCtrlText), TEXT("停止(已完成%u%%)"), uliOffset.QuadPart * 100 / uliFileSize.QuadPart);
+                            SetWindowText(pCalcParam->hwndStop, szCtrlText);
+                        }
+                        else
+                        {
+                            bError = TRUE;
+                            break;
+                        }
+                    }
+
+                    CloseHandle(hFileMapping);
+                }
+                else
+                {
+                    bError = TRUE;
+                }
+
+                CloseHandle(hFile);
+            }
+            else
+            {
+                bError = TRUE;
+            }
+        }
+
+        //密码库Final
+        if (!bError)
+        {
+            int index;
+            uint8_t uMd5[16];
+            uint8_t uSha1[20];
+            uint32_t uCrc32;
+
+            md5_final(uMd5, &md5);
+            sha1_final(uSha1, &sha1);
+            crc32_final(&uCrc32, &crc32);
+
+            for (index = 0; index < RTL_NUMBER_OF(uMd5); index += 1)
+            {
+                wnsprintf(szMd5 + index * 2, 3, TEXT("%02x"), uMd5[index]);
+            }
+
+            for (index = 0; index < RTL_NUMBER_OF(uSha1); index += 1)
+            {
+                wnsprintf(szSha1 + index * 2, 3, TEXT("%02x"), uSha1[index]);
+            }
+
+            wnsprintf(szCrc32, RTL_NUMBER_OF(szCrc32), TEXT("%08x"), uCrc32);
+        }
+        else
+        {
+            lstrcpyn(szMd5, STATUS_ERROR, RTL_NUMBER_OF(szMd5));
+            lstrcpyn(szSha1, STATUS_ERROR, RTL_NUMBER_OF(szSha1));
+            lstrcpyn(szCrc32, STATUS_ERROR, RTL_NUMBER_OF(szCrc32));
+        }
+
+        if (IsWindow(pCalcParam->hwndStop) &&
+            GetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA) == GetCurrentThreadId()
+            )
+        {
+            SetWindowText(pCalcParam->hwndMd5, szMd5);
+            SetWindowText(pCalcParam->hwndSha1, szSha1);
+            SetWindowText(pCalcParam->hwndCrc32, szCrc32);
+            ShowWindow(pCalcParam->hwndStop, SW_HIDE);
+        }
 
         free(pCalcParam);
     }
+
+    SafeDebugMessage(TEXT("HashCalcProc线程%lu结束\n"), GetCurrentThreadId());
     return 0;
 }
 
@@ -1131,7 +1328,6 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         PropSheetDlgParam *pPropSheetDlgParam = (PropSheetDlgParam *)pPsp->lParam;
 
         SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->szFilePath);
-        SetDlgItemText(hwndDlg, IDC_FILEPATH_2, pPropSheetDlgParam->szFilePath_2);
 
         if (lstrlen(pPropSheetDlgParam->szFilePath) > 0)
         {
@@ -1141,6 +1337,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
             {
                 lstrcpyn(pCalcParam->szFile, pPropSheetDlgParam->szFilePath, RTL_NUMBER_OF(pCalcParam->szFile));
                 pCalcParam->hwndDlg = hwndDlg;
+                pCalcParam->hwndFileSize = GetDlgItem(hwndDlg, IDC_FILESIZE);
                 pCalcParam->hwndMd5 = GetDlgItem(hwndDlg, IDC_MD5);
                 pCalcParam->hwndSha1 = GetDlgItem(hwndDlg, IDC_SHA1);
                 pCalcParam->hwndCrc32 = GetDlgItem(hwndDlg, IDC_CRC32);
@@ -1155,7 +1352,6 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
             SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)pPropSheetDlgParam->szFilePath_2, 0);
         }
 
-        SafeDebugMessage(TEXT("WM_INITDIALOG %d\n"), pPsp->lParam);
         break;
     }
 
@@ -1186,6 +1382,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         {
             lstrcpyn(pCalcParam->szFile, lpCompareFile, RTL_NUMBER_OF(pCalcParam->szFile));
             pCalcParam->hwndDlg = hwndDlg;
+            pCalcParam->hwndFileSize = GetDlgItem(hwndDlg, IDC_FILESIZE_2);
             pCalcParam->hwndMd5 = GetDlgItem(hwndDlg, IDC_MD5_2);
             pCalcParam->hwndSha1 = GetDlgItem(hwndDlg, IDC_SHA1_2);
             pCalcParam->hwndCrc32 = GetDlgItem(hwndDlg, IDC_CRC32_2);
@@ -1225,12 +1422,48 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         switch (LOWORD(wParam))
         {
         case IDC_COMPARE:
+        {
+            OPENFILENAME ofn = {OPENFILENAME_SIZE_VERSION_400};
+            TCHAR szFilter[128];
+            TCHAR szFilePath[MAX_PATH] = TEXT("");
+
+            wnsprintf(
+                szFilter,
+                RTL_NUMBER_OF(szFilter),
+                TEXT("All files (*.*)%c*.*%c"),
+                TEXT('\0'),
+                TEXT('\0')
+                );
+
+            ofn.hwndOwner = hwndDlg;
+            ofn.Flags = OFN_HIDEREADONLY;
+            ofn.hInstance = g_hinstDll;
+            ofn.lpstrFilter = szFilter;
+            ofn.lpstrTitle = TEXT("打开要对比的文件");
+            ofn.lpstrFile = szFilePath;
+            ofn.nMaxFile = RTL_NUMBER_OF(szFilePath);
+
+            if (GetOpenFileName(&ofn))
+            {
+                SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)szFilePath, 0);
+            }
             break;
+        }
 
         case IDC_STOP:
+            SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_STOP), GWLP_USERDATA, 0);
+            ShowWindow(GetDlgItem(hwndDlg, IDC_STOP), SW_HIDE);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_MD5), STATUS_HALTED);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_SHA1), STATUS_HALTED);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_CRC32), STATUS_HALTED);
             break;
 
         case IDC_STOP_2:
+            SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_STOP_2), GWLP_USERDATA, 0);
+            ShowWindow(GetDlgItem(hwndDlg, IDC_STOP_2), SW_HIDE);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_MD5_2), STATUS_HALTED);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_SHA1_2), STATUS_HALTED);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_CRC32_2), STATUS_HALTED);
             break;
 
         default:
@@ -1262,7 +1495,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
                 }
                 else if (dwAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 {
-                    MessageBox(hwndDlg, TEXT("仅支持同文件进行对比，而不是文件夹"), NULL, MB_ICONERROR);
+                    MessageBox(hwndDlg, TEXT("仅支持同文件进行对比，而不是文件夹。"), NULL, MB_ICONERROR);
                 }
                 else
                 {
@@ -1275,15 +1508,32 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         break;
 
     case WM_LBUTTONDBLCLK:
-        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
-        break;
+    {
+        int nIds[] = {
+            IDC_MD5,
+            IDC_SHA1,
+            IDC_CRC32,
+            IDC_MD5_2,
+            IDC_SHA1_2,
+            IDC_CRC32_2,
+        };
+        DWORD (WINAPI *CharChangeBuff[])(LPTSTR lpsz, DWORD cchLength) = {CharUpperBuff, CharLowerBuff};
+        BOOL bCaseStatus = !!GetWindowLongPtr(hwndDlg, GWLP_USERDATA);
+        TCHAR szBuffer[128];
+        int index = 0;
 
-    case WM_CLOSE:
-        OutputDebugString(TEXT("WM_CLOSE"));
+        for (; index < RTL_NUMBER_OF(nIds); index += 1)
+        {
+            GetDlgItemText(hwndDlg, nIds[index], szBuffer, RTL_NUMBER_OF(szBuffer));
+            CharChangeBuff[bCaseStatus](szBuffer, RTL_NUMBER_OF(szBuffer));
+            SetDlgItemText(hwndDlg, nIds[index], szBuffer);
+        }
+
+        SetWindowLongPtr(hwndDlg, GWLP_USERDATA, !bCaseStatus);
         break;
+    }
 
     case WM_DESTROY:
-        OutputDebugString(TEXT("WM_DESTROY"));
         break;
 
     default:
@@ -1300,11 +1550,9 @@ UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROP
         break;
 
     case PSPCB_CREATE:
-        OutputDebugString(TEXT("PSPCB_CREATE"));
         break;
 
     case PSPCB_RELEASE:
-        OutputDebugString(TEXT("PSPCB_RELEASE"));
         delete (PropSheetDlgParam *)pPsp->lParam;
         break;
 
