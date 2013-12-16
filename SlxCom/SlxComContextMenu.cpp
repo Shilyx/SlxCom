@@ -1081,6 +1081,12 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 }
 
 //////////////////////////////////////////////////////////////////////////
+enum
+{
+    WM_ADDCOMPARE = WM_USER + 24,
+    WM_STARTCALC,
+};
+
 struct PropSheetDlgParam
 {
     TCHAR szFilePath[MAX_PATH];
@@ -1088,13 +1094,13 @@ struct PropSheetDlgParam
 
     PropSheetDlgParam()
     {
-        szFilePath[0] = TEXT('\0');
-        szFilePath_2[0] = TEXT('\0');
+        ZeroMemory(this, sizeof(*this));
     }
 };
 
 struct HashCalcProcParam
 {
+    TCHAR szFile[MAX_PATH];
     HWND hwndDlg;
     HWND hwndMd5;
     HWND hwndSha1;
@@ -1104,6 +1110,14 @@ struct HashCalcProcParam
 
 DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 {
+    HashCalcProcParam *pCalcParam = (HashCalcProcParam *)lpParam;
+
+    if (pCalcParam != NULL)
+    {
+        ShowWindow(pCalcParam->hwndStop, SW_SHOW);
+
+        free(pCalcParam);
+    }
     return 0;
 }
 
@@ -1119,12 +1133,79 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->szFilePath);
         SetDlgItemText(hwndDlg, IDC_FILEPATH_2, pPropSheetDlgParam->szFilePath_2);
 
+        if (lstrlen(pPropSheetDlgParam->szFilePath) > 0)
+        {
+            HashCalcProcParam *pCalcParam = (HashCalcProcParam *)malloc(sizeof(HashCalcProcParam));
+
+            if (pCalcParam != NULL)
+            {
+                lstrcpyn(pCalcParam->szFile, pPropSheetDlgParam->szFilePath, RTL_NUMBER_OF(pCalcParam->szFile));
+                pCalcParam->hwndDlg = hwndDlg;
+                pCalcParam->hwndMd5 = GetDlgItem(hwndDlg, IDC_MD5);
+                pCalcParam->hwndSha1 = GetDlgItem(hwndDlg, IDC_SHA1);
+                pCalcParam->hwndCrc32 = GetDlgItem(hwndDlg, IDC_CRC32);
+                pCalcParam->hwndStop = GetDlgItem(hwndDlg, IDC_STOP);
+
+                PostMessage(hwndDlg, WM_STARTCALC, 0, (LPARAM)pCalcParam);
+            }
+        }
+
         if (lstrlen(pPropSheetDlgParam->szFilePath_2) > 0)
         {
-
+            SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)pPropSheetDlgParam->szFilePath_2, 0);
         }
 
         SafeDebugMessage(TEXT("WM_INITDIALOG %d\n"), pPsp->lParam);
+        break;
+    }
+
+    case WM_STARTCALC:
+    {
+        HashCalcProcParam *pCalcParam = (HashCalcProcParam *)lParam;
+
+        if (pCalcParam != NULL)
+        {
+            DWORD dwThreadId = 0;
+            HANDLE hThread = CreateThread(NULL, 0, HashCalcProc, (LPVOID)pCalcParam, CREATE_SUSPENDED, &dwThreadId);
+
+            SetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA, dwThreadId);
+            ResumeThread(hThread);
+        }
+
+        break;
+    }
+
+    case WM_ADDCOMPARE:
+    {
+        LPCTSTR lpCompareFile = (LPCTSTR)wParam;
+        HashCalcProcParam *pCalcParam = (HashCalcProcParam *)malloc(sizeof(HashCalcProcParam));
+
+        SetDlgItemText(hwndDlg, IDC_FILEPATH_2, lpCompareFile);
+
+        if (pCalcParam != NULL)
+        {
+            lstrcpyn(pCalcParam->szFile, lpCompareFile, RTL_NUMBER_OF(pCalcParam->szFile));
+            pCalcParam->hwndDlg = hwndDlg;
+            pCalcParam->hwndMd5 = GetDlgItem(hwndDlg, IDC_MD5_2);
+            pCalcParam->hwndSha1 = GetDlgItem(hwndDlg, IDC_SHA1_2);
+            pCalcParam->hwndCrc32 = GetDlgItem(hwndDlg, IDC_CRC32_2);
+            pCalcParam->hwndStop = GetDlgItem(hwndDlg, IDC_STOP_2);
+
+            PostMessage(hwndDlg, WM_STARTCALC, 0, (LPARAM)pCalcParam);
+        }
+
+        //更新到双文件界面
+        HWND hBegin = GetWindow(GetDlgItem(hwndDlg, IDC_COMPARE), GW_HWNDNEXT);
+        HWND hEnd = GetDlgItem(hwndDlg, IDC_STOP_2);
+
+        while (hBegin != hEnd)
+        {
+            ShowWindow(hBegin, SW_SHOW);
+            hBegin = GetWindow(hBegin, GW_HWNDNEXT);
+        }
+
+        SetDlgItemText(hwndDlg, IDC_COMPARE, TEXT("换一个文件对比(&C)..."));
+
         break;
     }
 
@@ -1154,6 +1235,42 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
 
         default:
             break;
+        }
+        break;
+
+    case WM_DROPFILES:
+        if (wParam != 0)
+        {
+            HDROP hDrop = (HDROP)wParam;
+            int nFileCount = DragQueryFile(hDrop, -1, NULL, 0);
+
+            if (nFileCount != 1)
+            {
+                MessageBox(hwndDlg, TEXT("仅支持同单个文件进行比较。"), NULL, MB_ICONERROR);
+            }
+            else
+            {
+                TCHAR szFilePath[MAX_PATH] = TEXT("");
+                DWORD dwAttributes;
+
+                DragQueryFile(hDrop, 0, szFilePath, RTL_NUMBER_OF(szFilePath));
+                dwAttributes = GetFileAttributes(szFilePath);
+
+                if (dwAttributes == INVALID_FILE_ATTRIBUTES)
+                {
+                    MessageBox(hwndDlg, TEXT("待比较的文件不存在。"), NULL, MB_ICONERROR);
+                }
+                else if (dwAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                {
+                    MessageBox(hwndDlg, TEXT("仅支持同文件进行对比，而不是文件夹"), NULL, MB_ICONERROR);
+                }
+                else
+                {
+                    SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)szFilePath, 0);
+                }
+            }
+
+            DragFinish(hDrop);
         }
         break;
 

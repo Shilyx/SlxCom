@@ -74,6 +74,7 @@
 #define IDC_STOP_2                      1030
 #define IDC_FILESIZE                    1031
 #define IDC_FILESIZE_2                  1032
+#define IDC_ABOUT                       1033
 #define ID_MENU_40001                   40001
 #define ID_MENU_40002                   40002
 #define ID_MENU_40003                   40003
@@ -98,7 +99,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_CONTROL_VALUE         1034
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
