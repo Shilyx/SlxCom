@@ -7,6 +7,7 @@
 #include "SlxComPeTools.h"
 #include "resource.h"
 #include "SlxCrypto.h"
+#include "SlxComAbout.h"
 #include "SlxManualCheckSignature.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
@@ -1471,6 +1472,10 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
             SetWindowText(GetDlgItem(hwndDlg, IDC_MD5_2), STATUS_HALTED);
             SetWindowText(GetDlgItem(hwndDlg, IDC_SHA1_2), STATUS_HALTED);
             SetWindowText(GetDlgItem(hwndDlg, IDC_CRC32_2), STATUS_HALTED);
+            break;
+
+        case IDC_ABOUT:
+            SlxComAbout(hwndDlg);
             break;
 
         default:
