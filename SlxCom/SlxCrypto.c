@@ -235,6 +235,7 @@ void md5_final(uint8_t digest[16], md5_ctx *ctx)
 /** Hash a single 512-bit block. This is the core of the algorithm. */
 void SHA1Transform(uint32_t state[5], const unsigned char buffer[64])
 {
+    unsigned char buffer_copy[64];
     uint32_t a, b, c, d, e;
     typedef union
     {
@@ -242,7 +243,10 @@ void SHA1Transform(uint32_t state[5], const unsigned char buffer[64])
         uint32_t l[16];
     } CHAR64LONG16;
 
-    CHAR64LONG16* block = (CHAR64LONG16 *)(const CHAR64LONG16 *)buffer;
+    CHAR64LONG16* block = (CHAR64LONG16 *)(const CHAR64LONG16 *)buffer_copy;
+
+    /** Copy buffer to workspace*/
+    memcpy(buffer_copy, buffer, 64);
 
     /** Copy ctx->state[] to working vars */
     a = state[0];
