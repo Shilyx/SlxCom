@@ -1580,16 +1580,17 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
                 GetDlgItemText(hwndDlg, nIds[index], szText, RTL_NUMBER_OF(szText));
                 GetDlgItemText(hwndDlg, nIds[index2], szText2, RTL_NUMBER_OF(szText2));
 
-                if (0 != lstrcmpi(szText, szText2))
+                if (IsWindowVisible(GetDlgItem(hwndDlg, nIds[index2])) && 0 != lstrcmpi(szText, szText2))
                 {
-                    SetTextColor(hDc, RGB(0, 0, 178));
+                    SetTextColor(hDc, RGB(0, 0, 99));
+                    SetBkMode(hDc, TRANSPARENT);
                 }
 
-                break;
+                return (BOOL)GetStockObject(WHITE_BRUSH);
             }
         }
 
-        return (BOOL)GetStockObject(WHITE_BRUSH);
+        break;
     }
 
     case WM_DESTROY:
