@@ -1431,6 +1431,11 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
     }
 
     case WM_COMMAND:
+        if (HIWORD(wParam) == EN_CHANGE)
+        {
+            InvalidateRect(hwndDlg, NULL, TRUE);
+        }
+
         switch (LOWORD(wParam))
         {
         case IDC_COMPARE:
@@ -1547,6 +1552,44 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
 
         SetWindowLongPtr(hwndDlg, GWLP_USERDATA, !bCaseStatus);
         break;
+    }
+
+    case WM_CTLCOLORSTATIC:
+    {
+        int nIds[] = {
+            IDC_FILESIZE,
+            IDC_FILESIZE_2,
+            IDC_MD5,
+            IDC_MD5_2,
+            IDC_SHA1,
+            IDC_SHA1_2,
+            IDC_CRC32,
+            IDC_CRC32_2,
+        };
+        TCHAR szText[256], szText2[256];
+        HDC hDc = (HDC)wParam;
+        int index = 0, index2;
+
+        for (; index < RTL_NUMBER_OF(nIds); index += 1)
+        {
+            if (lParam == (LPARAM)GetDlgItem(hwndDlg, nIds[index]))
+            {
+                index = index / 2 * 2;
+                index2 = index + 1;
+
+                GetDlgItemText(hwndDlg, nIds[index], szText, RTL_NUMBER_OF(szText));
+                GetDlgItemText(hwndDlg, nIds[index2], szText2, RTL_NUMBER_OF(szText2));
+
+                if (0 != lstrcmpi(szText, szText2))
+                {
+                    SetTextColor(hDc, RGB(0, 0, 178));
+                }
+
+                break;
+            }
+        }
+
+        return (BOOL)GetStockObject(WHITE_BRUSH);
     }
 
     case WM_DESTROY:
