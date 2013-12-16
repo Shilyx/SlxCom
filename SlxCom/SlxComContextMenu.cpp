@@ -48,6 +48,11 @@ CSlxComContextMenu::CSlxComContextMenu()
     lstrcpy(m_pFiles[0].szPath, TEXT("1:\\"));
 }
 
+CSlxComContextMenu::~CSlxComContextMenu()
+{
+    delete []m_pFiles;
+}
+
 STDMETHODIMP CSlxComContextMenu::QueryInterface(REFIID riid, void **ppv)
 {
     if(riid == IID_IShellExtInit)
@@ -1644,7 +1649,7 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
     psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
     psp.hInstance   = g_hinstDll;
     psp.pszTemplate = MAKEINTRESOURCE(IDD_HASHPAGE);
-    psp.pszTitle    = TEXT("文件哈希");
+    psp.pszTitle    = TEXT("校验");
     psp.pfnDlgProc  = PropSheetDlgProc;
     psp.lParam      = (LPARAM)pPropSheetDlgParam;
     psp.pfnCallback = PropSheetCallback;

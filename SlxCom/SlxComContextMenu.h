@@ -32,6 +32,7 @@ class CSlxComContextMenu : public IContextMenu, public IShellExtInit, public ISh
 {
 public:
     CSlxComContextMenu();
+    ~CSlxComContextMenu();
 
     //IUnknow Method
     STDMETHOD(QueryInterface)(REFIID, void**);
