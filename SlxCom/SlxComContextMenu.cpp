@@ -1176,9 +1176,13 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         SetWindowText(pCalcParam->hwndSha1, szSha1);
         SetWindowText(pCalcParam->hwndCrc32, szCrc32);
 
-        //显示停止按钮
+        //设置停止按钮文本，对较大文件显示停止按钮
         SetWindowText(pCalcParam->hwndStop, TEXT("停止(已完成0%)"));
-        ShowWindow(pCalcParam->hwndStop, SW_SHOW);
+
+        if (uliFileSize.QuadPart > 8 * 1024 * 1024)
+        {
+            ShowWindow(pCalcParam->hwndStop, SW_SHOW);
+        }
 
         //密码库Init
         md5_ctx md5;
