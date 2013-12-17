@@ -1123,6 +1123,7 @@ struct HashCalcProcParam
 
 DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 {
+    TCHAR szFilePath_Debug[MAX_PATH] = TEXT("");
     HashCalcProcParam *pCalcParam = (HashCalcProcParam *)lpParam;
 
     if (pCalcParam != NULL &&
@@ -1130,6 +1131,9 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         GetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA) == GetCurrentThreadId()
         )
     {
+        //
+        lstrcpyn(szFilePath_Debug, pCalcParam->szFile, RTL_NUMBER_OF(szFilePath_Debug));
+
         //提取文件大小
         WIN32_FILE_ATTRIBUTE_DATA wfad = {0};
         ULARGE_INTEGER uliFileSize;
@@ -1182,7 +1186,7 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         SetWindowText(pCalcParam->hwndCrc32, szCrc32);
 
         //设置停止按钮文本，对较大文件显示停止按钮
-        SetWindowText(pCalcParam->hwndStop, TEXT("停止(已完成0%)"));
+        SetWindowText(pCalcParam->hwndStop, TEXT("停止计算(已完成0%)"));
 
         if (uliFileSize.QuadPart > 8 * 1024 * 1024)
         {
@@ -1255,7 +1259,7 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
                         {
                             TCHAR szCtrlText[100] = TEXT("");
 
-                            wnsprintf(szCtrlText, RTL_NUMBER_OF(szCtrlText), TEXT("停止(已完成%u%%)"), uliOffset.QuadPart * 100 / uliFileSize.QuadPart);
+                            wnsprintf(szCtrlText, RTL_NUMBER_OF(szCtrlText), TEXT("停止计算(已完成%u%%)"), uliOffset.QuadPart * 100 / uliFileSize.QuadPart);
                             SetWindowText(pCalcParam->hwndStop, szCtrlText);
                         }
                         else
@@ -1331,7 +1335,7 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         free(pCalcParam);
     }
 
-    SafeDebugMessage(TEXT("HashCalcProc线程%lu结束\n"), GetCurrentThreadId());
+    SafeDebugMessage(TEXT("HashCalcProc线程%lu结束，文件“%s”\n"), GetCurrentThreadId(), szFilePath_Debug);
     return 0;
 }
 
@@ -1369,7 +1373,8 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
             SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)pPropSheetDlgParam->szFilePath_2, 0);
         }
 
-        break;
+        SetFocus(GetDlgItem(hwndDlg, IDC_MD5));
+        return FALSE;
     }
 
     case WM_STARTCALC:
@@ -1531,7 +1536,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
 
             DragFinish(hDrop);
         }
-        break;
+        return TRUE;
 
     case WM_LBUTTONDBLCLK:
     {
@@ -1604,6 +1609,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
     default:
         break;
     }
+
     return FALSE;
 }
 
