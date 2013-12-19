@@ -1185,13 +1185,12 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         SetWindowText(pCalcParam->hwndSha1, szSha1);
         SetWindowText(pCalcParam->hwndCrc32, szCrc32);
 
-        //设置停止按钮文本，对较大文件显示停止按钮
-        SetWindowText(pCalcParam->hwndStop, TEXT("停止计算(已完成0%)"));
+        //设置停止按钮文本，超过一定时间未计算完毕则显示按钮
+        BOOL bShowStop = FALSE;
+        DWORD dwTickCountMark = GetTickCount();
+        const DWORD dwTimeToShowStop = 987;
 
-        if (uliFileSize.QuadPart > 8 * 1024 * 1024)
-        {
-            ShowWindow(pCalcParam->hwndStop, SW_SHOW);
-        }
+        SetWindowText(pCalcParam->hwndStop, TEXT("停止计算(已完成0%)"));
 
         //密码库Init
         md5_ctx md5;
@@ -1261,6 +1260,12 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 
                             wnsprintf(szCtrlText, RTL_NUMBER_OF(szCtrlText), TEXT("停止计算(已完成%u%%)"), uliOffset.QuadPart * 100 / uliFileSize.QuadPart);
                             SetWindowText(pCalcParam->hwndStop, szCtrlText);
+
+                            if (!bShowStop && GetTickCount() - dwTickCountMark > dwTimeToShowStop)
+                            {
+                                bShowStop = TRUE;
+                                ShowWindow(pCalcParam->hwndStop, SW_SHOW);
+                            }
                         }
                         else
                         {
