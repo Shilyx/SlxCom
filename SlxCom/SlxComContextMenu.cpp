@@ -1158,7 +1158,7 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
                 *pChar-- = TEXT('0') + uliFileSize.QuadPart % 10;
                 uliFileSize.QuadPart /= 10;
                 index += 1;
-                ;
+
                 if (uliFileSize.QuadPart == 0)
                 {
                     break;
@@ -1345,6 +1345,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
     {
     case WM_INITDIALOG:
     {
+        RECT rect;
         LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
         PropSheetDlgParam *pPropSheetDlgParam = (PropSheetDlgParam *)pPsp->lParam;
 
@@ -1373,9 +1374,71 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
             SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)pPropSheetDlgParam->szFilePath_2, 0);
         }
 
-        SetFocus(GetDlgItem(hwndDlg, IDC_MD5));
+        //IDC_ABOUT的用户数据用来标识对话框的本来宽度
+        //hwndDlg的用户数据用来标识哈希值的大小写
+        GetClientRect(hwndDlg, &rect);
+        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, rect.right - rect.left);
+        SetWindowLongPtr(hwndDlg, GWLP_USERDATA, FALSE);
+
         return FALSE;
     }
+
+    case WM_SIZE:
+        if (IsWindow(GetDlgItem(hwndDlg, IDC_ABOUT)))
+        {
+            RECT rectDlg;
+            int nOldWidth = GetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA);
+            int nAddPart = 0;
+
+            GetClientRect(hwndDlg, &rectDlg);
+            nAddPart = rectDlg.right - rectDlg.left - nOldWidth;
+
+            if (nOldWidth != 0 && nAddPart != 0)
+            {
+                int nIds[] = {
+                    IDC_FILEPATH,
+                    IDC_FILESIZE,
+                    IDC_MD5,
+                    IDC_SHA1,
+                    IDC_CRC32,
+                    IDC_STOP,
+                    IDC_FILEPATH_2,
+                    IDC_FILESIZE_2,
+                    IDC_MD5_2,
+                    IDC_SHA1_2,
+                    IDC_CRC32_2,
+                    IDC_STOP_2,
+                    IDC_COMPARE,
+                    IDC_ABOUT,
+                };
+                HDWP hDwp = BeginDeferWindowPos(RTL_NUMBER_OF(nIds));
+                RECT rect;
+
+                if (hDwp != NULL)
+                {
+                    for (int index = 0; index < RTL_NUMBER_OF(nIds); index += 1)
+                    {
+                        HWND hCtrl = GetDlgItem(hwndDlg, nIds[index]);
+
+                        GetWindowRect(hCtrl, &rect);
+                        ScreenToClient(hwndDlg, (LPPOINT)&rect);
+                        ScreenToClient(hwndDlg, (LPPOINT)&rect + 1);
+
+                        if (nIds[index] == IDC_COMPARE || nIds[index] == IDC_ABOUT)
+                        {
+                            DeferWindowPos(hDwp, hCtrl, NULL, rect.left + nAddPart, rect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+                        }
+                        else
+                        {
+                            DeferWindowPos(hDwp, hCtrl, NULL, 0, 0, rect.right - rect.left + nAddPart, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOMOVE);
+                        }
+                    }
+
+                    EndDeferWindowPos(hDwp);
+                }
+            }
+        }
+        break;
 
     case WM_STARTCALC:
     {
