@@ -176,12 +176,6 @@
     <None Include="res\bird\9.ico">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="res\bird\rt_file1.bin">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bitmap1.bmp">
-      <Filter>资源文件</Filter>
-    </None>
     <None Include="res\AboutLogo.bmp">
       <Filter>资源文件</Filter>
     </None>

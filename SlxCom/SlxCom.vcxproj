@@ -258,8 +258,6 @@
     <None Include="res\bird\7.ico" />
     <None Include="res\bird\8.ico" />
     <None Include="res\bird\9.ico" />
-    <None Include="res\bird\rt_file1.bin" />
-    <None Include="res\bitmap1.bmp" />
     <None Include="res\CopyPictureHtml.bmp" />
     <None Include="SlxCom.def" />
     <None Include="res\AddToCopy.bmp" />
