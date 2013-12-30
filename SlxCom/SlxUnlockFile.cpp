@@ -382,7 +382,6 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
 
                         BrowseForFile(szFilePath);
                     }
-                    
                 }
                 else if (lpNmHdr->code == NM_RCLICK)
                 {
