@@ -1950,6 +1950,33 @@ BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize)
     return FALSE;
 }
 
+BOOL IsAdminMode()
+{
+    BOOL bIsElevated = FALSE;
+    HANDLE hToken = NULL;
+
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+    {
+        DWORD dwReturnLength = 0;
+        struct
+        {
+            DWORD TokenIsElevated;
+        } te;
+
+        if (GetTokenInformation(hToken, (TOKEN_INFORMATION_CLASS)20, &te, sizeof(te), &dwReturnLength))
+        {
+            if (dwReturnLength == sizeof(te))
+            {
+                bIsElevated = !!te.TokenIsElevated;
+            }
+        }
+
+        CloseHandle(hToken);
+    }
+
+    return bIsElevated;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));

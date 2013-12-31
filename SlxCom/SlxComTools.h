@@ -55,6 +55,7 @@ HFONT GetMenuDefaultFont();
 BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx);
 HWND GetTrayNotifyWndInProcess();
 BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize);
+BOOL IsAdminMode();
 
 template <typename T>
 std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)

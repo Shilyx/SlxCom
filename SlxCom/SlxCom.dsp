@@ -155,6 +155,10 @@ SOURCE=.\SlxComWork_sd.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SlxCrypto.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\SlxFileHandles.cpp
 # End Source File
 # Begin Source File
@@ -224,6 +228,10 @@ SOURCE=.\SlxComWork_ni.h
 # Begin Source File
 
 SOURCE=.\SlxComWork_sd.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SlxCrypto.h
 # End Source File
 # Begin Source File
 

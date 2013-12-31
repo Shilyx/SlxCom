@@ -162,13 +162,9 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-VOID ConfigBrowserLinkFilePosition(BOOL bInstall)
+LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
 {
-    OSVERSIONINFO osi = {sizeof(osi)};
-
-    GetVersionEx(&osi);
-
-    if(osi.dwMajorVersion <= 5)
+    if (g_osi.dwMajorVersion <= 5)
     {
         if(bInstall)
         {
@@ -184,7 +180,7 @@ VOID ConfigBrowserLinkFilePosition(BOOL bInstall)
                 szDllPath
                 );
 
-            SHSetValue(
+            return SHSetValue(
                 HKEY_CLASSES_ROOT,
                 TEXT("lnkfile\\shell\\打开文件位置(&B)\\command"),
                 NULL,
@@ -195,55 +191,92 @@ VOID ConfigBrowserLinkFilePosition(BOOL bInstall)
         }
         else
         {
-            SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("lnkfile\\shell\\打开文件位置(&B)"));
+            return SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("lnkfile\\shell\\打开文件位置(&B)"));
         }
     }
+
+    return ERROR_SUCCESS;
 }
 
 STDAPI DllRegisterServer(void)
 {
     TCHAR szRegPath[1000];
     TCHAR szDllPath[MAX_PATH];
+    int nSumValue = 0;
 
     GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
         APPNAME);
-    SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("*\\shellex\\PropertySheetHandlers\\%s"),
         APPNAME);
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("CLSID\\%s\\InprocServer32"),
         g_lpGuidSlxCom);
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
-    SHSetValue(HKEY_CLASSES_ROOT, szRegPath, TEXT("ThreadingModel"), REG_SZ, TEXT("Apartment"), 20);
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, TEXT("ThreadingModel"), REG_SZ, TEXT("Apartment"), 20);
 
-    ConfigBrowserLinkFilePosition(TRUE);
+    nSumValue += !!ConfigBrowserLinkFilePosition(TRUE);
+
+    if (nSumValue > 2)
+    {
+        if (g_osi.dwMajorVersion >= 6 && !IsAdminMode())
+        {
+            if (IDYES == MessageBox(
+                NULL,
+                TEXT("注册未完全成功，是否尝试以管理员方式注册？\r\n\r\n")
+                TEXT("您也可以手动尝试以管理员方式运行regsvr32程序来解决问题。\r\n")
+                TEXT("点击“是”尝试以管理员方式运行注册工具。"),
+#ifdef _WIN64
+                TEXT("注册SlxCom 64位"),
+#else
+                TEXT("注册SlxCom 32位"),
+#endif
+                MB_YESNOCANCEL | MB_ICONQUESTION
+                ))
+            {
+                TCHAR szRegSvr32[MAX_PATH];
+
+                GetSystemDirectory(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
+                PathAppend(szRegSvr32, TEXT("\\regsvr32.exe"));
+                PathQuoteSpaces(szDllPath);
+
+                ShellExecute(NULL, TEXT("runas"), szRegSvr32, szDllPath, NULL, SW_SHOW);
+            }
+
+            ExitProcess(0);
+        }
+        else
+        {
+            return S_FALSE;
+        }
+    }
 
     return S_OK;
 }
@@ -251,43 +284,82 @@ STDAPI DllRegisterServer(void)
 STDAPI DllUnregisterServer(void)
 {
     TCHAR szRegPath[1000];
+    int nSumValue = 0;
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
         APPNAME);
-    SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("*\\shellex\\PropertySheetHandlers\\%s"),
         APPNAME);
-    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
-    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("CLSID\\%s"),
         g_lpGuidSlxCom);
-    SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
-    ConfigBrowserLinkFilePosition(FALSE);
+    nSumValue += !!ConfigBrowserLinkFilePosition(FALSE);
+
+    if (nSumValue != ERROR_SUCCESS)
+    {
+        if (g_osi.dwMajorVersion >= 6 && !IsAdminMode())
+        {
+            if (IDYES == MessageBox(
+                NULL,
+                TEXT("卸载未完全成功，是否尝试以管理员方式卸载？\r\n\r\n")
+                TEXT("您也可以手动尝试以管理员方式运行regsvr32程序来解决问题。\r\n")
+                TEXT("点击“是”尝试以管理员方式运行卸载工具。"),
+#ifdef _WIN64
+                TEXT("卸载SlxCom 64位"),
+#else
+                TEXT("卸载SlxCom 32位"),
+#endif
+                MB_YESNOCANCEL | MB_ICONQUESTION
+                ))
+            {
+                TCHAR szRegSvr32[MAX_PATH];
+                TCHAR szDllPath[MAX_PATH + 20];
+
+                GetSystemDirectory(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
+                PathAppend(szRegSvr32, TEXT("\\regsvr32.exe"));
+
+                GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+                PathQuoteSpaces(szDllPath);
+                StrCatBuff(szDllPath, TEXT(" /u"), RTL_NUMBER_OF(szDllPath));
+
+                ShellExecute(NULL, TEXT("runas"), szRegSvr32, szDllPath, NULL, SW_SHOW);
+            }
+
+            ExitProcess(0);
+        }
+        else
+        {
+            return S_FALSE;
+        }
+    }
 
     return S_OK;
 }
