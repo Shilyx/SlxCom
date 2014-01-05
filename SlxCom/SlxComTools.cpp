@@ -665,7 +665,7 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
 
                 HANDLE hThread = CreateThread(NULL, 0, BrowserForRegPathProc, (LPVOID)&param, 0, NULL);
 
-                if (WAIT_TIMEOUT == WaitForSingleObject(hThread, 1389))
+                if (WAIT_TIMEOUT == WaitForSingleObject(hThread, 9876))
                 {
                     TerminateThread(hThread, 0);
                 }
