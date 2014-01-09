@@ -12,12 +12,17 @@
 using namespace std;
 
 #define NOTIFYWNDCLASS      TEXT("__slxcom_work_ni_notify_wnd")
-#define WM_CALLBACK         (WM_USER + 112)
 #define ICON_COUNT          10
 #define TIMER_ICON          1
 #define TIMER_MENU          2
 #define REG_QUESTION_TITLE  TEXT("处理注册表路径不存在的问题")
 #define COMPACT_WIDTH       400
+
+static enum
+{
+    WM_CALLBACK = WM_USER + 112,
+    WM_HIDEICON,
+};
 
 extern HBITMAP g_hKillExplorerBmp; //SlxCom.cpp
 
@@ -76,7 +81,8 @@ static struct
 
 static enum
 {
-    SYS_QUIT        = 1,
+    SYS_QUIT = 1,
+    SYS_HIDEICON,
     SYS_ABOUT,
     SYS_RESETEXPLORER,
     SYS_WINDOWMANAGER,
@@ -88,6 +94,7 @@ static enum
 static enum
 {
     HK_PAINTVIEW = 112,
+    HK_PINWINDOW,
 };
 
 class MenuItem
@@ -236,6 +243,10 @@ public:
             PostMessage(m_hWindow, WM_SYSCOMMAND, SC_CLOSE, 0);
             break;
 
+        case SYS_HIDEICON:
+            PostMessage(m_hWindow, WM_HIDEICON, 0, 0);
+            break;
+
         case SYS_ABOUT:
             SlxComAbout(m_hWindow);
             break;
@@ -297,7 +308,7 @@ public:
         SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
         AppendMenu(m_hMenu, MF_STRING, SYS_UPDATEMENU, TEXT("刷新菜单内容(&U)"));
       //AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于(&A)..."));
-        AppendMenu(m_hMenu, MF_STRING, SYS_QUIT, TEXT("不显示托盘图标(&Q)"));
+        AppendMenu(m_hMenu, MF_STRING, SYS_HIDEICON, TEXT("不显示托盘图标(&Q)"));
 
 //         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
     }
@@ -549,6 +560,48 @@ private:
     HDC m_hMenuDc;
 };
 
+static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
+{
+    HWND hForegroundWindow = GetForegroundWindow();
+    HWND hDesktopWindow = GetDesktopWindow();
+
+    if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow))
+    {
+        LONG_PTR nExStyle = GetWindowLongPtr(hForegroundWindow, GWL_EXSTYLE);
+        TCHAR szNewWindowText[4096];
+        LPTSTR lpWindowText = szNewWindowText;
+
+        if (nExStyle & WS_EX_TOPMOST)
+        {
+            lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("取消置顶<<<<"));
+            SetWindowPos(hForegroundWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        }
+        else
+        {
+            lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已置顶>>>>"));
+            SetWindowPos(hForegroundWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        }
+
+        if (GetWindowTextLength(hForegroundWindow) < RTL_NUMBER_OF(szNewWindowText) - 100)
+        {
+            GetWindowText(hForegroundWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
+            SetWindowText(hForegroundWindow, szNewWindowText);
+
+            for (int i = 0; i < 3; i += 1)
+            {
+                FlashWindow(hForegroundWindow, TRUE);
+                Sleep(300);
+                FlashWindow(hForegroundWindow, TRUE);
+            }
+
+            Sleep(500);
+            SetWindowText(hForegroundWindow, lpWindowText);
+        }
+    }
+
+    return 0;
+}
+
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static NOTIFYICONDATA nid = {sizeof(nid)};
@@ -591,7 +644,15 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         pMenuMgr = new MenuMgr(hWnd, lpCs->hInstance);
 
         //
-        RegisterHotKey(hWnd, HK_PAINTVIEW, MOD_ALT | MOD_SHIFT, TEXT('P'));
+        if (!RegisterHotKey(hWnd, HK_PAINTVIEW, MOD_ALT | MOD_SHIFT, TEXT('P')))
+        {
+            SafeDebugMessage(TEXT("SlxCom 桌面画板快捷键注册失败%lu。\r\n"), GetLastError());
+        }
+
+        if (!RegisterHotKey(hWnd, HK_PINWINDOW, MOD_ALT | MOD_CONTROL, TEXT('T')))
+        {
+            SafeDebugMessage(TEXT("SlxCom 窗口置顶快捷键注册失败%lu。\r\n"), GetLastError());
+        }
 
         return 0;
     }
@@ -630,10 +691,16 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
             return 0;
         }
+        else if (wParam == HK_PINWINDOW)
+        {
+            HANDLE hThread = CreateThread(NULL, 0, PinWindowProc, NULL, 0, NULL);
+            CloseHandle(hThread);
+        }
     }
     else if (uMsg == WM_CLOSE)
     {
         UnregisterHotKey(hWnd, HK_PAINTVIEW);
+        UnregisterHotKey(hWnd, HK_PINWINDOW);
         Shell_NotifyIcon(NIM_DELETE, &nid);
         DestroyWindow(hWnd);
     }
@@ -671,6 +738,10 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         {
             nIconShowIndex = 0;
         }
+    }
+    else if (uMsg == WM_HIDEICON)
+    {
+        Shell_NotifyIcon(NIM_DELETE, &nid);
     }
 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);

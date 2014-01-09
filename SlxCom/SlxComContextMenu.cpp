@@ -1392,7 +1392,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         if (IsWindow(GetDlgItem(hwndDlg, IDC_ABOUT)))
         {
             RECT rectDlg;
-            int nOldWidth = GetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA);
+            int nOldWidth = (int)GetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA);
             int nAddPart = 0;
 
             GetClientRect(hwndDlg, &rectDlg);
