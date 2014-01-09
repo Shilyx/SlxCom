@@ -1099,12 +1099,12 @@ enum
     WM_STARTCALC,
 };
 
-struct PropSheetDlgParam
+struct HashPropSheetDlgParam
 {
     TCHAR szFilePath[MAX_PATH];
     TCHAR szFilePath_2[MAX_PATH];
 
-    PropSheetDlgParam()
+    HashPropSheetDlgParam()
     {
         ZeroMemory(this, sizeof(*this));
     }
@@ -1344,13 +1344,13 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
     return 0;
 }
 
-BOOL CALLBACK CSlxComContextMenu::EnumChildProc(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK CSlxComContextMenu::EnumChildSetFontProc(HWND hwnd, LPARAM lParam)
 {
     SendMessage(hwnd, WM_SETFONT, lParam, 0);
     return TRUE;
 }
 
-INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -1358,7 +1358,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
     {
         RECT rect;
         LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
-        PropSheetDlgParam *pPropSheetDlgParam = (PropSheetDlgParam *)pPsp->lParam;
+        HashPropSheetDlgParam *pPropSheetDlgParam = (HashPropSheetDlgParam *)pPsp->lParam;
 
         //
         HWND hParent = GetParent(hwndDlg);
@@ -1367,7 +1367,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         {
             HFONT hFont = (HFONT)SendMessage(hParent, WM_GETFONT, 0, 0);
 
-            EnumChildWindows(hwndDlg, EnumChildProc, (LPARAM)hFont);
+            EnumChildWindows(hwndDlg, EnumChildSetFontProc, (LPARAM)hFont);
         }
 
         //
@@ -1698,7 +1698,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
     return FALSE;
 }
 
-UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+UINT CALLBACK CSlxComContextMenu::HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
 {
     switch (uMsg)
     {
@@ -1709,7 +1709,7 @@ UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROP
         break;
 
     case PSPCB_RELEASE:
-        delete (PropSheetDlgParam *)pPsp->lParam;
+        delete (HashPropSheetDlgParam *)pPsp->lParam;
         break;
 
     default:
@@ -1721,41 +1721,41 @@ UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROP
 
 STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam)
 {
-    if (!ShouldAddChecksumPropSheet())
+    if (ShouldAddHashPropSheet())
     {
-        return E_NOTIMPL;        
-    }
+        PROPSHEETPAGE psp = {sizeof(psp)};
+        HPROPSHEETPAGE hPage;
+        HashPropSheetDlgParam *pPropSheetDlgParam = new HashPropSheetDlgParam;
 
-    PROPSHEETPAGE psp = {sizeof(psp)};
-    HPROPSHEETPAGE hPage;
-    PropSheetDlgParam *pPropSheetDlgParam = new PropSheetDlgParam;
+        lstrcpyn(pPropSheetDlgParam->szFilePath, m_pFiles[0].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath));
 
-    lstrcpyn(pPropSheetDlgParam->szFilePath, m_pFiles[0].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath));
-
-    if (m_uFileCount > 1)
-    {
-        lstrcpyn(pPropSheetDlgParam->szFilePath_2, m_pFiles[1].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath_2));
-    }
-
-    psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
-    psp.hInstance   = g_hinstDll;
-    psp.pszTemplate = MAKEINTRESOURCE(IDD_HASHPAGE);
-    psp.pszTitle    = TEXT("校验");
-    psp.pfnDlgProc  = PropSheetDlgProc;
-    psp.lParam      = (LPARAM)pPropSheetDlgParam;
-    psp.pfnCallback = PropSheetCallback;
-
-    hPage = CreatePropertySheetPage(&psp);
-
-    if (NULL != hPage)
-    {
-        if (!pfnAddPage(hPage, lParam))
+        if (m_uFileCount > 1)
         {
-            DestroyPropertySheetPage(hPage);
+            lstrcpyn(pPropSheetDlgParam->szFilePath_2, m_pFiles[1].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath_2));
         }
+
+        psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
+        psp.hInstance   = g_hinstDll;
+        psp.pszTemplate = MAKEINTRESOURCE(IDD_HASHPAGE);
+        psp.pszTitle    = TEXT("校验");
+        psp.pfnDlgProc  = HashPropSheetDlgProc;
+        psp.lParam      = (LPARAM)pPropSheetDlgParam;
+        psp.pfnCallback = HashPropSheetCallback;
+
+        hPage = CreatePropertySheetPage(&psp);
+
+        if (NULL != hPage)
+        {
+            if (!pfnAddPage(hPage, lParam))
+            {
+                DestroyPropertySheetPage(hPage);
+            }
+        }
+
+        return S_OK;
     }
 
-    return S_OK;
+    return E_NOTIMPL;
 }
 
 STDMETHODIMP CSlxComContextMenu::ReplacePage(UINT uPageID, LPFNADDPROPSHEETPAGE pfnReplacePage, LPARAM lParam)
@@ -1776,7 +1776,7 @@ BOOL CSlxComContextMenu::ConvertToShortPaths()
     return TRUE;
 }
 
-BOOL CSlxComContextMenu::ShouldAddChecksumPropSheet()
+BOOL CSlxComContextMenu::ShouldAddHashPropSheet()
 {
     if (m_uFileCount == 1 && m_pFiles[0].bIsFile)
     {
