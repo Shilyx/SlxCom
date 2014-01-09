@@ -52,6 +52,7 @@ public:
     STDMETHOD(ReplacePage)(UINT uPageID, LPFNADDPROPSHEETPAGE pfnReplacePage, LPARAM lParam);
 
     static DWORD CALLBACK HashCalcProc(LPVOID lpParam);
+    static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
     static INT_PTR CALLBACK PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
     static UINT CALLBACK PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp); 
 
@@ -62,7 +63,7 @@ protected:
     BOOL m_bIsBackground;     //QueryContextMenu时且选中项数目为一时确定
 
     BOOL ConvertToShortPaths();
-    BOOL ShouldAddPropSheet();
+    BOOL ShouldAddChecksumPropSheet();
 };
 
 #endif

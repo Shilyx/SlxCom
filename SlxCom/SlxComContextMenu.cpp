@@ -1344,6 +1344,12 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
     return 0;
 }
 
+BOOL CALLBACK CSlxComContextMenu::EnumChildProc(HWND hwnd, LPARAM lParam)
+{
+    SendMessage(hwnd, WM_SETFONT, lParam, 0);
+    return TRUE;
+}
+
 INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -1354,6 +1360,17 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
         LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
         PropSheetDlgParam *pPropSheetDlgParam = (PropSheetDlgParam *)pPsp->lParam;
 
+        //
+        HWND hParent = GetParent(hwndDlg);
+
+        if (IsWindow(hParent))
+        {
+            HFONT hFont = (HFONT)SendMessage(hParent, WM_GETFONT, 0, 0);
+
+            EnumChildWindows(hwndDlg, EnumChildProc, (LPARAM)hFont);
+        }
+
+        //
         SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->szFilePath);
 
         if (lstrlen(pPropSheetDlgParam->szFilePath) > 0)
@@ -1491,7 +1508,7 @@ INT_PTR CALLBACK CSlxComContextMenu::PropSheetDlgProc(HWND hwndDlg, UINT uMsg, W
             hBegin = GetWindow(hBegin, GW_HWNDNEXT);
         }
 
-        SetDlgItemText(hwndDlg, IDC_COMPARE, TEXT("换一个文件对比(&C)..."));
+        SetDlgItemText(hwndDlg, IDC_COMPARE, TEXT("更换文件对比(&C)..."));
 
         break;
     }
@@ -1704,7 +1721,7 @@ UINT CALLBACK CSlxComContextMenu::PropSheetCallback(HWND hwnd, UINT uMsg, LPPROP
 
 STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam)
 {
-    if (!ShouldAddPropSheet())
+    if (!ShouldAddChecksumPropSheet())
     {
         return E_NOTIMPL;        
     }
@@ -1759,7 +1776,7 @@ BOOL CSlxComContextMenu::ConvertToShortPaths()
     return TRUE;
 }
 
-BOOL CSlxComContextMenu::ShouldAddPropSheet()
+BOOL CSlxComContextMenu::ShouldAddChecksumPropSheet()
 {
     if (m_uFileCount == 1 && m_pFiles[0].bIsFile)
     {
