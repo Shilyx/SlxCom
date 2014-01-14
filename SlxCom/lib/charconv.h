@@ -7,6 +7,7 @@
 
 #pragma warning(disable: 4786)
 #include <string>
+#include <sstream>
 
 // 四种类型，四种简写如下：
 // A: string   mbcs字符串
@@ -39,8 +40,10 @@ typedef string strutf8;
 //tstring类型定义
 #ifdef _UNICODE
 typedef wstring tstring;
+typedef wstringstream tstringstream;
 #else
 typedef string tstring;
+typedef stringstream tstringstream;
 #endif
 _STD_END
 
