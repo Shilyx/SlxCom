@@ -253,7 +253,67 @@ SOURCE=.\SlxUnlockFile.h
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=.\res\bird\0.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\1.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\2.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\3.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\4.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\5.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\6.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\7.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\8.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bird\9.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\AboutLogo.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Default.jpg
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Main.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Mark.ico
+# End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\res\AboutSlxCom.htm
+# End Source File
 # Begin Source File
 
 SOURCE=.\SlxCom.manifest

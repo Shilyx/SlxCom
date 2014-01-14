@@ -1344,12 +1344,6 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
     return 0;
 }
 
-BOOL CALLBACK CSlxComContextMenu::EnumChildSetFontProc(HWND hwnd, LPARAM lParam)
-{
-    SendMessage(hwnd, WM_SETFONT, lParam, 0);
-    return TRUE;
-}
-
 INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -1719,8 +1713,487 @@ UINT CALLBACK CSlxComContextMenu::HashPropSheetCallback(HWND hwnd, UINT uMsg, LP
     return TRUE;
 }
 
+//////////////////////////////////////////////////////////////////////////
+struct FileTimePropSheetDlgParam
+{
+    FileInfo *pFiles;
+    UINT uFileCount;
+
+    FileTimePropSheetDlgParam(FileInfo *pFiles, UINT uFileCount)
+    {
+        if (uFileCount > 0)
+        {
+            this->pFiles = (FileInfo *)malloc(uFileCount * sizeof(pFiles[0]));
+            this->uFileCount = uFileCount;
+
+            if (this->pFiles != NULL && pFiles != NULL)
+            {
+                memcpy(this->pFiles, pFiles, uFileCount * sizeof(pFiles[0]));
+            }
+        }
+        else
+        {
+            pFiles = NULL;
+            uFileCount = 0;
+        }
+    }
+
+    ~FileTimePropSheetDlgParam()
+    {
+        if (pFiles != NULL)
+        {
+            free((void *)pFiles);
+        }
+    }
+};
+
+void FileTimeSetToFileObject(
+    LPCTSTR lpPath,
+    BOOL bIsFile,
+    BOOL bSubDirIncluded,
+    const FILETIME *pftCreated,
+    const FILETIME *pftModified,
+    const FILETIME *pftAccessed,
+    tstringstream &ssError
+    )
+{
+    if (pftCreated == NULL || pftModified == NULL || pftAccessed == NULL)
+    {
+        return;
+    }
+
+    if (!bIsFile && bSubDirIncluded)
+    {
+        tstring strPath = lpPath;
+        WIN32_FIND_DATA wfd;
+        HANDLE hFind = FindFirstFile((strPath + TEXT("\\*")).c_str(), &wfd);
+
+        if (hFind != NULL && hFind != INVALID_HANDLE_VALUE)
+        {
+            do 
+            {
+                if (lstrcmpi(wfd.cFileName, TEXT("..")) != 0 &&
+                    lstrcmpi(wfd.cFileName, TEXT(".")) != 0
+                    )
+                {
+                    FileTimeSetToFileObject(
+                        (strPath + TEXT("\\") + wfd.cFileName).c_str(),
+                        wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY,
+                        bSubDirIncluded,
+                        pftCreated,
+                        pftModified,
+                        pftAccessed,
+                        ssError
+                        );
+                }
+
+            } while (FindNextFile(hFind, &wfd));
+
+            FindClose(hFind);
+        }
+    }
+
+    HANDLE hFileObject = INVALID_HANDLE_VALUE;
+    FILETIME ftCreated = {0};
+    FILETIME ftModified = {0};
+    FILETIME ftAccessed = {0};
+
+    if (bIsFile)
+    {
+        hFileObject = CreateFile(lpPath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    }
+    else
+    {
+        hFileObject = CreateFile(lpPath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
+
+    if (hFileObject == INVALID_HANDLE_VALUE)
+    {
+        ssError<<TEXT("“")<<lpPath<<TEXT("”打开文件失败，错误码")<<GetLastError()<<TEXT("\r\n");
+    }
+    else
+    {
+        do
+        {
+            if (pftCreated == NULL || pftModified == NULL || pftAccessed == NULL)
+            {
+                if (!GetFileTime(hFileObject, &ftCreated, &ftModified, &ftAccessed))
+                {
+                    ssError<<TEXT("“")<<lpPath<<TEXT("”获取文件原时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
+                    break;
+                }
+            }
+
+            if (pftCreated == NULL)
+            {
+                pftCreated = &ftCreated;
+            }
+
+            if (pftModified == NULL)
+            {
+                pftModified = &ftModified;
+            }
+
+            if (pftAccessed == NULL)
+            {
+                pftAccessed = &ftAccessed;
+            }
+
+            if (!SetFileTime(hFileObject, pftCreated, pftModified, pftAccessed))
+            {
+                ssError<<TEXT("“")<<lpPath<<TEXT("”设置文件新时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
+            }
+            // TODO : delete
+            else
+            {
+                SafeDebugMessage(TEXT("成功！！：%s\r\n"), lpPath);
+            }
+
+        } while (FALSE);
+
+        CloseHandle(hFileObject);
+    }
+}
+
+BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles, UINT uFileCount)
+{
+    BOOL bSubDirIncluded = IsDlgButtonChecked(hwndDlg, IDC_SUBDIR);
+    SYSTEMTIME stNow, stCreated, stModified, stAccessed, stForTime;
+    FILETIME ftNow, ftCreated, ftModified, ftAccessed;
+    FILETIME *pftCreated = NULL;
+    FILETIME *pftModified = NULL;
+    FILETIME *pftAccessed = NULL;
+    UINT uFileIndex = 0;
+    tstringstream ssError;
+
+    GetSystemTime(&stNow);
+    SystemTimeToFileTime(&stNow, &ftNow);
+
+#define INIT_FILETIME_POINTER(str1, str2) do                                                                        \
+    {                                                                                                               \
+        if (IsDlgButtonChecked(hwndDlg, IDC_NOW_##str1))                                                            \
+        {                                                                                                           \
+            pft##str2 = &ftNow;                                                                                     \
+        }                                                                                                           \
+        else if (GDT_VALID == SendDlgItemMessage(hwndDlg, IDC_DATE_##str1, DTM_GETSYSTEMTIME, 0, (LPARAM)&st##str2))\
+        {                                                                                                           \
+            SendDlgItemMessage(hwndDlg, IDC_TIME_##str1, DTM_GETSYSTEMTIME, 0, (LPARAM)&stForTime);                 \
+                                                                                                                    \
+            st##str2.wHour = stForTime.wHour;                                                                       \
+            st##str2.wMinute = stForTime.wMinute;                                                                   \
+            st##str2.wSecond = stForTime.wSecond;                                                                   \
+            st##str2.wMilliseconds = stForTime.wMilliseconds;                                                       \
+                                                                                                                    \
+            SystemTimeToFileTime(&st##str2, &ft##str2);                                                             \
+            LocalFileTimeToFileTime(&ft##str2, &ft##str2);                                                          \
+                                                                                                                    \
+            pft##str2 = &ft##str2;                                                                                  \
+        }                                                                                                           \
+    } while (FALSE)
+
+    INIT_FILETIME_POINTER(CREATED, Created);
+    INIT_FILETIME_POINTER(MODIFIED, Modified);
+    INIT_FILETIME_POINTER(ACCESSED, Accessed);
+
+    for (; uFileIndex < uFileCount; uFileIndex += 1)
+    {
+        FileTimeSetToFileObject(
+            pFiles[uFileIndex].szPath,
+            pFiles[uFileIndex].bIsFile,
+            bSubDirIncluded,
+            pftCreated,
+            pftModified,
+            pftAccessed,
+            ssError
+            );
+    }
+
+    if (!ssError.str().empty())
+    {
+        if (IDYES == MessageBox(
+            hwndDlg,
+            TEXT("任务执行完毕，一部分文件时间没有修改成功。\r\n\r\n")
+            TEXT("选择“是”查看错误列表。"),
+            NULL,
+            MB_ICONERROR | MB_YESNO
+            ))
+        {
+            tstring strError = ssError.str();
+
+            if (strError.size() < 2000)
+            {
+                MessageBox(hwndDlg, strError.c_str(), TEXT("错误信息"), MB_ICONINFORMATION);
+            }
+            else
+            {
+                // todo: 保存到文件
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (uMsg == WM_COMMAND && (
+        LOWORD(wParam) == IDC_NOW_CREATED ||
+        LOWORD(wParam) == IDC_NOW_MODIFIED ||
+        LOWORD(wParam) == IDC_NOW_ACCESSED) ||
+        uMsg == WM_NOTIFY &&
+        lParam != 0 &&
+        DTN_DATETIMECHANGE == ((LPNMHDR)lParam)->code
+        )
+    {
+        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
+    }
+
+    switch (uMsg)
+    {
+    case WM_INITDIALOG:
+    {
+        LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
+        FileTimePropSheetDlgParam *pPropSheetDlgParam = (FileTimePropSheetDlgParam *)pPsp->lParam;
+
+        //
+        HWND hParent = GetParent(hwndDlg);
+
+        if (IsWindow(hParent))
+        {
+            HFONT hFont = (HFONT)SendMessage(hParent, WM_GETFONT, 0, 0);
+            EnumChildWindows(hwndDlg, EnumChildSetFontProc, (LPARAM)hFont);
+        }
+
+        //
+        DWORD dwFileCount = 0;
+        DWORD dwDirectoryCount = 0;
+
+        if (pPropSheetDlgParam->uFileCount == 1)
+        {
+            SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->pFiles[0].szPath);
+
+            if (pPropSheetDlgParam->pFiles[0].bIsFile)
+            {
+                dwFileCount += 1;
+            }
+            else
+            {
+                dwDirectoryCount += 1;
+            }
+        }
+        else
+        {
+            UINT uIndex = 0;
+            TCHAR szText[MAX_PATH];
+
+            for (; uIndex < pPropSheetDlgParam->uFileCount; uIndex += 1)
+            {
+                if (pPropSheetDlgParam->pFiles[uIndex].bIsFile)
+                {
+                    dwFileCount += 1;
+                }
+                else
+                {
+                    dwDirectoryCount += 1;
+                }
+            }
+
+            wnsprintf(szText, RTL_NUMBER_OF(szText), TEXT("%lu个文件，%lu个文件夹"), dwFileCount, dwDirectoryCount);
+            SetDlgItemText(hwndDlg, IDC_FILEPATH, szText);
+        }
+
+        if (dwDirectoryCount == 0)
+        {
+            ShowWindow(GetDlgItem(hwndDlg, IDC_SUBDIR), SW_HIDE);
+        }
+        else if (dwFileCount == 0)
+        {
+            SendDlgItemMessage(hwndDlg, IDC_SUBDIR, BM_SETCHECK, BST_CHECKED, 0);
+        }
+
+        // hwndDlg的用户数据为pPropSheetDlgParam
+        // IDC_ABOUT的用户数据为修改标识
+        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
+        SetWindowLongPtr(hwndDlg, GWLP_USERDATA, (LONG_PTR)pPropSheetDlgParam);
+
+        return FALSE;
+    }
+
+    case WM_LBUTTONDOWN:
+        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
+        break;
+
+    case WM_RBUTTONDOWN:
+        SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
+        break;
+
+    case WM_NOTIFY:
+        if (lParam != 0)
+        {
+            NMHDR *phdr = (NMHDR *)lParam;
+
+            if (phdr->code == PSN_APPLY)
+            {
+                if (GetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA))
+                {
+                    FileTimePropSheetDlgParam *pPropSheetDlgParam = (FileTimePropSheetDlgParam *)GetWindowLongPtr(hwndDlg, GWLP_USERDATA);
+
+                    if (FileTimePropSheetDoSave(hwndDlg, pPropSheetDlgParam->pFiles, pPropSheetDlgParam->uFileCount))
+                    {
+                        SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+                        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
+                    }
+                    else
+                    {
+                        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+                        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
+                    }
+                }
+                else
+                {
+                    SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+                }
+            }
+            else if (phdr->code == DTN_DATETIMECHANGE)
+            {
+                LPNMDATETIMECHANGE lpChange = (LPNMDATETIMECHANGE)phdr;
+
+                switch (phdr->idFrom)
+                {
+                case IDC_DATE_CREATED:
+                    if (lpChange->dwFlags == GDT_NONE)
+                    {
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_CREATED), FALSE);
+                    }
+                    else
+                    {
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_CREATED), TRUE);
+                        SendDlgItemMessage(hwndDlg, IDC_NOW_CREATED, BM_SETCHECK, BST_UNCHECKED, 0);
+                    }
+                    break;
+
+                case IDC_DATE_MODIFIED:
+                    if (lpChange->dwFlags == GDT_NONE)
+                    {
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_MODIFIED), FALSE);
+                    }
+                    else
+                    {
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_MODIFIED), TRUE);
+                        SendDlgItemMessage(hwndDlg, IDC_NOW_MODIFIED, BM_SETCHECK, BST_UNCHECKED, 0);
+                    }
+                    break;
+
+                case IDC_DATE_ACCESSED:
+                    if (lpChange->dwFlags == GDT_NONE)
+                    {
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_ACCESSED), FALSE);
+                    }
+                    else
+                    {
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_ACCESSED), TRUE);
+                        SendDlgItemMessage(hwndDlg, IDC_NOW_ACCESSED, BM_SETCHECK, BST_UNCHECKED, 0);
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+        break;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDC_ABOUT:
+            SlxComAbout(hwndDlg);
+            break;
+
+        case IDC_NOW_CREATED:
+            SendDlgItemMessage(hwndDlg, IDC_DATE_CREATED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
+            EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_CREATED), FALSE);
+            break;
+
+        case IDC_NOW_MODIFIED:
+            SendDlgItemMessage(hwndDlg, IDC_DATE_MODIFIED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
+            EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_MODIFIED), FALSE);
+            break;
+
+        case IDC_NOW_ACCESSED:
+            SendDlgItemMessage(hwndDlg, IDC_DATE_ACCESSED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
+            EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_ACCESSED), FALSE);
+            break;
+
+        default:
+            break;
+        }
+        break;
+
+    case WM_DESTROY:
+        break;
+
+    default:
+        break;
+    }
+
+    return FALSE;
+}
+
+UINT CALLBACK CSlxComContextMenu::FileTimePropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+{
+    switch (uMsg)
+    {
+    case PSPCB_ADDREF:
+        break;
+
+    case PSPCB_CREATE:
+        break;
+
+    case PSPCB_RELEASE:
+        delete (HashPropSheetDlgParam *)pPsp->lParam;
+        break;
+
+    default:
+        break;
+    }
+
+    return TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
 STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam)
 {
+    if (ShouldAddFileTimePropSheet())
+    {
+        PROPSHEETPAGE psp = {sizeof(psp)};
+        HPROPSHEETPAGE hPage;
+        FileTimePropSheetDlgParam *pPropSheetDlgParam = new FileTimePropSheetDlgParam(m_pFiles, m_uFileCount);
+
+        psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
+        psp.hInstance   = g_hinstDll;
+        psp.pszTemplate = MAKEINTRESOURCE(IDD_FILETIMEPAGE);
+        psp.pszTitle    = TEXT("文件时间");
+        psp.pfnDlgProc  = FileTimePropSheetDlgProc;
+        psp.lParam      = (LPARAM)pPropSheetDlgParam;
+        psp.pfnCallback = FileTimePropSheetCallback;
+
+        hPage = CreatePropertySheetPage(&psp);
+
+        if (NULL != hPage)
+        {
+            if (!pfnAddPage(hPage, lParam))
+            {
+                DestroyPropertySheetPage(hPage);
+            }
+        }
+
+        return S_OK;
+    }
+
     if (ShouldAddHashPropSheet())
     {
         PROPSHEETPAGE psp = {sizeof(psp)};
@@ -1763,6 +2236,12 @@ STDMETHODIMP CSlxComContextMenu::ReplacePage(UINT uPageID, LPFNADDPROPSHEETPAGE 
     return E_NOTIMPL;
 }
 
+BOOL CALLBACK CSlxComContextMenu::EnumChildSetFontProc(HWND hwnd, LPARAM lParam)
+{
+    SendMessage(hwnd, WM_SETFONT, lParam, 0);
+    return TRUE;
+}
+
 BOOL CSlxComContextMenu::ConvertToShortPaths()
 {
     TCHAR szFilePathTemp[MAX_PATH];
@@ -1789,6 +2268,11 @@ BOOL CSlxComContextMenu::ShouldAddHashPropSheet()
     }
 
     return FALSE;
+}
+
+BOOL CSlxComContextMenu::ShouldAddFileTimePropSheet()
+{
+    return m_uFileCount > 0;
 }
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)

@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by SlxCom.rc
+// Microsoft Visual C++ 生成的包含文件。
+// 供 SlxCom.rc 使用
 //
 #define IDR_ICON                        104
 #define IDC_POINTER                     104
@@ -46,6 +46,7 @@
 #define IDB_BITMAP1                     142
 #define IDB_ABOUT_LOGO                  142
 #define IDD_HASHPAGE                    143
+#define IDD_FILETIMEPAGE                144
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
@@ -75,6 +76,16 @@
 #define IDC_FILESIZE                    1031
 #define IDC_FILESIZE_2                  1032
 #define IDC_ABOUT                       1033
+#define IDC_DATE_CREATED                1037
+#define IDC_TIME_CREATED                1038
+#define IDC_DATE_MODIFIED               1039
+#define IDC_TIME_MODIFIED               1040
+#define IDC_DATE_ACCESSED               1041
+#define IDC_TIME_ACCESSED               1042
+#define IDC_NOW_CREATED                 1043
+#define IDC_NOW_MODIFIED                1044
+#define IDC_NOW_ACCESSED                1045
+#define IDC_SUBDIR                      1046
 #define ID_MENU_40001                   40001
 #define ID_MENU_40002                   40002
 #define ID_MENU_40003                   40003
@@ -99,7 +110,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1034
+#define _APS_NEXT_CONTROL_VALUE         1047
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

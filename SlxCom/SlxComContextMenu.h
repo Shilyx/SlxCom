@@ -53,9 +53,15 @@ public:
 
     static BOOL CALLBACK EnumChildSetFontProc(HWND hwnd, LPARAM lParam);
 
+    // 校验 属性页
     static DWORD CALLBACK HashCalcProc(LPVOID lpParam);
     static INT_PTR CALLBACK HashPropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    static UINT CALLBACK HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp); 
+    static UINT CALLBACK HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp);
+
+    // 文件时间 属性页
+    static BOOL FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles, UINT uFileCount);
+    static INT_PTR CALLBACK FileTimePropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    static UINT CALLBACK FileTimePropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp);
 
 protected:
     volatile DWORD m_dwRefCount;
@@ -65,6 +71,7 @@ protected:
 
     BOOL ConvertToShortPaths();
     BOOL ShouldAddHashPropSheet();
+    BOOL ShouldAddFileTimePropSheet();
 };
 
 #endif
