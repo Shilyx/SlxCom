@@ -269,9 +269,7 @@ BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath
 
                 if(lpBuffer != NULL && dwResSize > 0)
                 {
-                    DWORD dwBytesWritten = 0;
-
-                    bSucceed = WriteFile(hFile, lpBuffer, dwResSize, &dwBytesWritten, NULL);
+                    bSucceed = WriteFileHelper(hFile, lpBuffer, dwResSize);
                 }
             }
         }
