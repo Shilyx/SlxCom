@@ -11,6 +11,7 @@
 #include "SlxManualCheckSignature.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
+#include <list>
 #include <map>
 
 using namespace std;
@@ -1762,6 +1763,12 @@ void FileTimeSetToFileObject(
         return;
     }
 
+    list<tstring> listDirs;
+    list<tstring> listFiles;
+    list<tstring>::const_iterator it;
+
+    listFiles.push_back(lpPath);
+
     if (!bIsFile && bSubDirIncluded)
     {
         tstring strPath = lpPath;
@@ -1776,15 +1783,14 @@ void FileTimeSetToFileObject(
                     lstrcmpi(wfd.cFileName, TEXT(".")) != 0
                     )
                 {
-                    FileTimeSetToFileObject(
-                        (strPath + TEXT("\\") + wfd.cFileName).c_str(),
-                        wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY,
-                        bSubDirIncluded,
-                        pftCreated,
-                        pftModified,
-                        pftAccessed,
-                        ssError
-                        );
+                    if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                    {
+                        listDirs.push_back(strPath + TEXT("\\") + wfd.cFileName);
+                    }
+                    else
+                    {
+                        listFiles.push_back(strPath + TEXT("\\") + wfd.cFileName);
+                    }
                 }
 
             } while (FindNextFile(hFind, &wfd));
@@ -1793,65 +1799,76 @@ void FileTimeSetToFileObject(
         }
     }
 
-    HANDLE hFileObject = INVALID_HANDLE_VALUE;
-    FILETIME ftCreated = {0};
-    FILETIME ftModified = {0};
-    FILETIME ftAccessed = {0};
+    for (it = listDirs.begin(); it != listDirs.end(); ++it)
+    {
+        FileTimeSetToFileObject(
+            it->c_str(),
+            FALSE,
+            bSubDirIncluded,
+            pftCreated,
+            pftModified,
+            pftAccessed,
+            ssError
+            );
+    }
 
-    if (bIsFile)
+    for (it = listFiles.begin(); it != listFiles.end(); ++it)
     {
-        hFileObject = CreateFile(lpPath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-    }
-    else
-    {
-        hFileObject = CreateFile(lpPath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-    }
+        HANDLE hFileObject = INVALID_HANDLE_VALUE;
+        FILETIME ftCreated = {0};
+        FILETIME ftModified = {0};
+        FILETIME ftAccessed = {0};
 
-    if (hFileObject == INVALID_HANDLE_VALUE)
-    {
-        ssError<<TEXT("“")<<lpPath<<TEXT("”打开文件失败，错误码")<<GetLastError()<<TEXT("\r\n");
-    }
-    else
-    {
-        do
+        if (!bIsFile && it == listFiles.begin())
         {
-            if (pftCreated == NULL || pftModified == NULL || pftAccessed == NULL)
+            hFileObject = CreateFile(it->c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+        }
+        else
+        {
+            hFileObject = CreateFile(it->c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+        }
+
+        if (hFileObject == INVALID_HANDLE_VALUE)
+        {
+            ssError<<TEXT("“")<<it->c_str()<<TEXT("”打开文件失败，错误码")<<GetLastError()<<TEXT("\r\n");
+        }
+        else
+        {
+            do
             {
-                if (!GetFileTime(hFileObject, &ftCreated, &ftModified, &ftAccessed))
+                if (pftCreated == NULL || pftModified == NULL || pftAccessed == NULL)
                 {
-                    ssError<<TEXT("“")<<lpPath<<TEXT("”获取文件原时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
-                    break;
+                    if (!GetFileTime(hFileObject, &ftCreated, &ftModified, &ftAccessed))
+                    {
+                        ssError<<TEXT("“")<<it->c_str()<<TEXT("”获取文件原时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
+                        break;
+                    }
                 }
-            }
 
-            if (pftCreated == NULL)
-            {
-                pftCreated = &ftCreated;
-            }
+                if (pftCreated == NULL)
+                {
+                    pftCreated = &ftCreated;
+                }
 
-            if (pftModified == NULL)
-            {
-                pftModified = &ftModified;
-            }
+                if (pftModified == NULL)
+                {
+                    pftModified = &ftModified;
+                }
 
-            if (pftAccessed == NULL)
-            {
-                pftAccessed = &ftAccessed;
-            }
+                if (pftAccessed == NULL)
+                {
+                    pftAccessed = &ftAccessed;
+                }
 
-            if (!SetFileTime(hFileObject, pftCreated, pftModified, pftAccessed))
-            {
-                ssError<<TEXT("“")<<lpPath<<TEXT("”设置文件新时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
-            }
-            // TODO : delete
-            else
-            {
-                SafeDebugMessage(TEXT("成功！！：%s\r\n"), lpPath);
-            }
+                if (!SetFileTime(hFileObject, pftCreated, pftModified, pftAccessed))
+                {
+                    ssError<<TEXT("“")<<it->c_str()<<TEXT("”设置文件新时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
+                }
 
-        } while (FALSE);
+            } while (FALSE);
 
-        CloseHandle(hFileObject);
+            CloseHandle(hFileObject);
+        }
     }
 }
 
@@ -1920,13 +1937,57 @@ BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles,
         {
             tstring strError = ssError.str();
 
-            if (strError.size() < 2000)
+            if (strError.size() < 1000)
             {
                 MessageBox(hwndDlg, strError.c_str(), TEXT("错误信息"), MB_ICONINFORMATION);
             }
             else
             {
-                // todo: 保存到文件
+                TCHAR szTempPath[MAX_PATH] = TEXT("");
+                TCHAR szTempFilePath[MAX_PATH] = TEXT("");
+
+                GetTempPath(RTL_NUMBER_OF(szTempPath), szTempPath);
+                GetTempFileName(szTempPath, TEXT("SlxCom"), 0, szTempFilePath);
+
+                BOOL bWriteSucceed = FALSE;
+                HANDLE hFile = CreateFile(szTempFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+                if (hFile != INVALID_HANDLE_VALUE)
+                {
+                    unsigned char bom[] = {0xef, 0xbb, 0xbf};
+                    strutf8 strErrorUtf8 = TtoU(strError);
+
+                    bWriteSucceed = WriteFileHelper(hFile, bom, sizeof(bom)) && WriteFileHelper(hFile, strErrorUtf8.c_str(), strErrorUtf8.size());
+                    CloseHandle(hFile);
+                }
+
+                if (!bWriteSucceed)
+                {
+                    MessageBox(hwndDlg, TEXT("错误信息保存到文件失败"), NULL, MB_ICONERROR);
+                }
+                else
+                {
+                    TCHAR szCommand[MAX_PATH + 1024];
+                    STARTUPINFO si = {sizeof(si)};
+                    PROCESS_INFORMATION pi;
+
+                    PathQuoteSpaces(szTempFilePath);
+                    wnsprintf(szCommand, RTL_NUMBER_OF(szCommand), TEXT("notepad %s"), szTempFilePath);
+
+                    if (CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+                    {
+                        WaitForInputIdle(pi.hProcess, 10 * 1000);
+
+                        CloseHandle(pi.hProcess);
+                        CloseHandle(pi.hThread);
+                    }
+                    else
+                    {
+                        MessageBox(hwndDlg, TEXT("启动记事本查看错误信息失败"), NULL, MB_ICONERROR);
+                    }
+                }
+
+                DeleteFile(szTempFilePath);
             }
         }
     }

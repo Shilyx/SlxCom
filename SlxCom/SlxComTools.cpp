@@ -1977,6 +1977,24 @@ BOOL IsAdminMode()
     return bIsElevated;
 }
 
+BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite)
+{
+    DWORD dwBytesWritten = 0;
+
+    while (dwBytesToWrite > 0)
+    {
+        if (!WriteFile(hFile, lpBuffer, dwBytesToWrite, &dwBytesWritten, NULL))
+        {
+            return FALSE;
+        }
+
+        (LPCSTR &)lpBuffer += dwBytesWritten;
+        dwBytesToWrite -= dwBytesWritten;
+    }
+
+    return TRUE;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
