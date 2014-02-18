@@ -935,10 +935,10 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
     // xp
     // (.+?\\)++(?<kill>复件( \(([1-9][0-9]|[1-9])\))? )[^\.\\\n]+\.[^\.\\\n]+
     // 点前加(数字)或[数字]
-    // (.+?\\)++.+?((?<kill>\(([1-9][0-9]|[1-9])\))|(?<kill>\[([1-9][0-9]|[1-9])\]))\..+
+    // (.+?\\)++.+?((?<kill> *\(([1-9][0-9]|[1-9])\))|(?<kill> *\[([1-9][0-9]|[1-9])\]))\..+
     static CRegexpT<TCHAR> regWin7    (TEXT("(.+?\\\\)++.+?(?<kill>( \\- 副本(( \\(([1-9][0-9]{2}|[1-9][0-9]|[1-9])\\))|))+)\\..+"));
     static CRegexpT<TCHAR> regXp      (TEXT("(.+?\\\\)++(?<kill>复件( \\(([1-9][0-9]|[1-9])\\))? )[^\\.\\\\\\n]+\\.[^\\.\\\\\\n]+"));
-    static CRegexpT<TCHAR> regDownload(TEXT("(.+?\\\\)++.+?((?<kill>\\(([1-9][0-9]|[1-9])\\))|(?<kill>\\[([1-9][0-9]|[1-9])\\]))\\..+"));
+    static CRegexpT<TCHAR> regDownload(TEXT("(.+?\\\\)++.+?((?<kill> *\\(([1-9][0-9]|[1-9])\\))|(?<kill> *\\[([1-9][0-9]|[1-9])\\]))\\..+"));
 
     static int nGroupKillWin7     = regWin7.    GetNamedGroupNumber(TEXT("kill"));
     static int nGroupKillXp       = regXp.      GetNamedGroupNumber(TEXT("kill"));
