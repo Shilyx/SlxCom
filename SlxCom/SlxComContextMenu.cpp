@@ -1957,7 +1957,7 @@ BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles,
                     unsigned char bom[] = {0xef, 0xbb, 0xbf};
                     strutf8 strErrorUtf8 = TtoU(strError);
 
-                    bWriteSucceed = WriteFileHelper(hFile, bom, sizeof(bom)) && WriteFileHelper(hFile, strErrorUtf8.c_str(), strErrorUtf8.size());
+                    bWriteSucceed = WriteFileHelper(hFile, bom, sizeof(bom)) && WriteFileHelper(hFile, strErrorUtf8.c_str(), (DWORD)strErrorUtf8.size());
                     CloseHandle(hFile);
                 }
 

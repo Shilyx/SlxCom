@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 SlxCom.rc 使用
+// Microsoft Visual C++ generated include file.
+// Used by SlxCom.rc
 //
 #define IDR_ICON                        104
 #define IDC_POINTER                     104
@@ -47,6 +47,8 @@
 #define IDB_ABOUT_LOGO                  142
 #define IDD_HASHPAGE                    143
 #define IDD_FILETIMEPAGE                144
+#define IDD_CLIPBOARD_DIALOG            145
+#define IDR_CLIPBOARDMENU               146
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
@@ -86,6 +88,8 @@
 #define IDC_NOW_MODIFIED                1044
 #define IDC_NOW_ACCESSED                1045
 #define IDC_SUBDIR                      1046
+#define IDC_TYPES                       1047
+#define IDC_CONTENT                     1048
 #define ID_MENU_40001                   40001
 #define ID_MENU_40002                   40002
 #define ID_MENU_40003                   40003
@@ -103,14 +107,46 @@
 #define ID_MENU_40015                   40015
 #define ID_MENU_40016                   40016
 #define ID_MENU_40017                   40017
+#define ID_40018                        40018
+#define ID_40019                        40019
+#define ID_40020                        40020
+#define ID_40021                        40021
+#define ID_40022                        40022
+#define ID_40023                        40023
+#define ID_40024                        40024
+#define ID_40025                        40025
+#define ID_40026                        40026
+#define ID_40027                        40027
+#define ID_40028                        40028
+#define ID_40029                        40029
+#define ID_40030                        40030
+#define ID_40031                        40031
+#define ID_40032                        40032
+#define ID_40033                        40033
+#define ID_40034                        40034
+#define ID_40035                        40035
+#define ID_SAVE                         40036
+#define ID_QUIT                         40037
+#define ID_REFRESH                      40038
+#define ID_AUTOREFRESH                  40039
+#define ID_HEXMODE                      40040
+#define ID_UNICODE_FORMAT               40041
+#define ID_UNICODE_BE_FORMAT            40042
+#define ID_UTF8_FORMAT                  40043
+#define ID_ANSI_FORMAT                  40044
+#define ID_ABOUT                        40045
+#define ID_STREAM                       40046
+#define ID_STRING                       40047
+#define ID_WSTRING                      40048
+#define ID_TSTRING                      40049
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        144
-#define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1047
+#define _APS_NEXT_RESOURCE_VALUE        147
+#define _APS_NEXT_COMMAND_VALUE         40050
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

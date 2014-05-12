@@ -13,11 +13,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(简体，中国) resources
+// 中文(中华人民共和国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
+#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -249,6 +251,16 @@ BEGIN
     CONTROL         "包含子目录中的文件",IDC_SUBDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,61,105,88,10
 END
 
+IDD_CLIPBOARD_DIALOG DIALOGEX 0, 0, 316, 183
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+MENU IDR_CLIPBOARDMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_CONTENT,96,7,213,169,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    CONTROL         "",IDC_TYPES,"SysTreeView32",WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,7,84,169
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -256,7 +268,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_RUNWITHARGUMENTS, DIALOG
     BEGIN
@@ -329,6 +341,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 224
     END
+
+    IDD_CLIPBOARD_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -364,7 +384,7 @@ IDI_BIRD_9              ICON                    "res\\bird\\9.ico"
 // Menu
 //
 
-IDR_PAINTMENU MENU
+IDR_PAINTMENU MENU 
 BEGIN
     POPUP "Menu"
     BEGIN
@@ -390,7 +410,46 @@ BEGIN
     END
 END
 
-#endif    // 中文(简体，中国) resources
+IDR_CLIPBOARDMENU MENU 
+BEGIN
+    POPUP "文件(&F)"
+    BEGIN
+        MENUITEM "保存(&S)...\tCtrl+S",           ID_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "退出(&X)",                      ID_QUIT
+    END
+    POPUP "视图(&V)"
+    BEGIN
+        MENUITEM "立即刷新(&R)\tF5",                ID_REFRESH
+        MENUITEM "自动刷新(&A)",                    ID_AUTOREFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "十六进制显示(&H)\tCtrl+H",          ID_HEXMODE
+        MENUITEM SEPARATOR
+        MENUITEM "&Unicode字符集",                 ID_UNICODE_FORMAT
+        MENUITEM "Unicode(&Big-Endian)字符集",     ID_UNICODE_BE_FORMAT
+        MENUITEM "UTF-&8字符集",                   ID_UTF8_FORMAT
+        MENUITEM "A&nsi字符集",                    ID_ANSI_FORMAT
+    END
+    POPUP "导出(&E)"
+    BEGIN
+        POPUP "导出&C/C++代码"
+        BEGIN
+            MENUITEM "字节流(&B)",                     ID_STREAM
+            POPUP "字符串(&S)"
+            BEGIN
+                MENUITEM "窄字符(&H)",                     ID_STRING
+                MENUITEM "宽字符(&L)",                     ID_WSTRING
+                MENUITEM "中间字符(&T)",                    ID_TSTRING
+            END
+        END
+    END
+    POPUP "帮助(&H)"
+    BEGIN
+        MENUITEM "关于(&A)...",                   ID_ABOUT
+    END
+END
+
+#endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
