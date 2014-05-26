@@ -2228,7 +2228,7 @@ UINT CALLBACK CSlxComContextMenu::FileTimePropSheetCallback(HWND hwnd, UINT uMsg
 //////////////////////////////////////////////////////////////////////////
 STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam)
 {
-    LRESULT lResult = E_NOTIMPL;
+    HRESULT hr = E_NOTIMPL;
 
     if (ShouldAddFileTimePropSheet())
     {
@@ -2254,7 +2254,7 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
             }
         }
 
-        lResult = S_OK;
+        hr = S_OK;
     }
 
     if (ShouldAddHashPropSheet())
@@ -2288,10 +2288,10 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
             }
         }
 
-        lResult = S_OK;
+        hr = S_OK;
     }
 
-    return lResult;
+    return hr;
 }
 
 STDMETHODIMP CSlxComContextMenu::ReplacePage(UINT uPageID, LPFNADDPROPSHEETPAGE pfnReplacePage, LPARAM lParam)
