@@ -198,6 +198,23 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
     return ERROR_SUCCESS;
 }
 
+// 老版本的SlxCom的ShellIconOverlayIdentifiers的标记为99_SlxAddin
+// 目的是为了给svn让位，不影响svn的图标覆盖显示，但在装了office2013
+// 以后，微软直接建立了三个skyDrive相关的图标覆盖标记，且都是以空格
+// 开头，为了争得先机，新的SlxCom也将以空格开头。基于兼容性考虑，会
+// 自动删除原有的99_SlxAddin标记。安装和卸载时都自动调用
+static void Ensure__99_SlxAddin__NotExists()
+{
+    TCHAR szRegPath[1024];
+    int nSumValue = 0;
+
+    wnsprintf(szRegPath, RTL_NUMBER_OF(szRegPath),
+        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
+        APPNAME);
+
+    SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+}
+
 STDAPI DllRegisterServer(void)
 {
     TCHAR szRegPath[1000];
@@ -205,9 +222,10 @@ STDAPI DllRegisterServer(void)
     int nSumValue = 0;
 
     GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
+    Ensure__99_SlxAddin__NotExists();
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
+        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s"),
         APPNAME);
     nSumValue += !!SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
@@ -291,8 +309,10 @@ STDAPI DllUnregisterServer(void)
     TCHAR szRegPath[1000];
     int nSumValue = 0;
 
+    Ensure__99_SlxAddin__NotExists();
+
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
+        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s"),
         APPNAME);
     nSumValue += !!SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
 
