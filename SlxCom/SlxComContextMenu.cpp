@@ -16,7 +16,8 @@
 
 using namespace std;
 
-extern HINSTANCE g_hinstDll;
+extern HINSTANCE g_hinstDll;    //SlxCom.cpp
+extern OSVERSIONINFO g_osi;     //SlxCom.cpp
 
 extern HBITMAP g_hInstallBmp;
 extern HBITMAP g_hUninstallBmp;
@@ -2081,15 +2082,15 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
         return FALSE;
     }
 
-    case WM_LBUTTONDOWN:
-        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
-        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
-        break;
-
-    case WM_RBUTTONDOWN:
-        SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
-        SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
-        break;
+//     case WM_LBUTTONDOWN:
+//         SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+//         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
+//         break;
+// 
+//     case WM_RBUTTONDOWN:
+//         SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+//         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
+//         break;
 
     case WM_NOTIFY:
         if (lParam != 0)
@@ -2335,7 +2336,7 @@ BOOL CSlxComContextMenu::ShouldAddHashPropSheet()
 
 BOOL CSlxComContextMenu::ShouldAddFileTimePropSheet()
 {
-    return m_uFileCount > 0;
+    return m_uFileCount > 0 && !(g_osi.dwMajorVersion == 5 && g_osi.dwMinorVersion == 0);
 }
 
 void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
