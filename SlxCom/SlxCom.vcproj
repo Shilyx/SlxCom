@@ -426,6 +426,10 @@
 				RelativePath=".\SlxUnlockFile.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\WindowManager.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -490,6 +494,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxStringStatusCache.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManager.h"
 				>
 			</File>
 		</Filter>

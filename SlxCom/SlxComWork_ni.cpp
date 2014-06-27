@@ -858,9 +858,3 @@ void StartNotifyIconManager(HINSTANCE hinstDll)
     HANDLE hThread = CreateThread(NULL, 0, NotifyIconManagerProc, (LPVOID)hinstDll, 0, NULL);
     CloseHandle(hThread);
 }
-
-void __stdcall T3(HWND hwndStub, HINSTANCE hAppInstance, LPTSTR lpszCmdLine, int nCmdShow)
-{
-    extern HINSTANCE g_hinstDll; //SlxCom.cpp
-    NotifyIconManagerProc((LPVOID)g_hinstDll);
-}
