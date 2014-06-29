@@ -94,7 +94,6 @@ static enum
 static enum
 {
     HK_PAINTVIEW = 112,
-    HK_PINWINDOW,
 };
 
 class MenuItem
@@ -560,48 +559,6 @@ private:
     HDC m_hMenuDc;
 };
 
-static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
-{
-    HWND hForegroundWindow = GetForegroundWindow();
-    HWND hDesktopWindow = GetDesktopWindow();
-
-    if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow))
-    {
-        LONG_PTR nExStyle = GetWindowLongPtr(hForegroundWindow, GWL_EXSTYLE);
-        TCHAR szNewWindowText[4096];
-        LPTSTR lpWindowText = szNewWindowText;
-
-        if (nExStyle & WS_EX_TOPMOST)
-        {
-            lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("»°œ˚÷√∂•<<<<"));
-            SetWindowPos(hForegroundWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        }
-        else
-        {
-            lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("“—÷√∂•>>>>"));
-            SetWindowPos(hForegroundWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        }
-
-        if (GetWindowTextLength(hForegroundWindow) < RTL_NUMBER_OF(szNewWindowText) - 100)
-        {
-            GetWindowText(hForegroundWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
-            SetWindowText(hForegroundWindow, szNewWindowText);
-
-            for (int i = 0; i < 3; i += 1)
-            {
-                FlashWindow(hForegroundWindow, TRUE);
-                Sleep(300);
-                FlashWindow(hForegroundWindow, TRUE);
-            }
-
-            Sleep(500);
-            SetWindowText(hForegroundWindow, lpWindowText);
-        }
-    }
-
-    return 0;
-}
-
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static NOTIFYICONDATA nid = {sizeof(nid)};
@@ -649,11 +606,6 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             SafeDebugMessage(TEXT("SlxCom ◊¿√Êª≠∞ÂøÏΩ›º¸◊¢≤· ß∞‹%lu°£\r\n"), GetLastError());
         }
 
-        if (!RegisterHotKey(hWnd, HK_PINWINDOW, MOD_ALT | MOD_CONTROL, TEXT('T')))
-        {
-            SafeDebugMessage(TEXT("SlxCom ¥∞ø⁄÷√∂•øÏΩ›º¸◊¢≤· ß∞‹%lu°£\r\n"), GetLastError());
-        }
-
         return 0;
     }
     else if (uMsg == WM_TIMER)
@@ -691,16 +643,10 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
             return 0;
         }
-        else if (wParam == HK_PINWINDOW)
-        {
-            HANDLE hThread = CreateThread(NULL, 0, PinWindowProc, NULL, 0, NULL);
-            CloseHandle(hThread);
-        }
     }
     else if (uMsg == WM_CLOSE)
     {
         UnregisterHotKey(hWnd, HK_PAINTVIEW);
-        UnregisterHotKey(hWnd, HK_PINWINDOW);
         Shell_NotifyIcon(NIM_DELETE, &nid);
         DestroyWindow(hWnd);
     }
