@@ -57,6 +57,8 @@ HWND GetTrayNotifyWndInProcess();
 BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize);
 BOOL IsAdminMode();
 BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite);
+HICON GetWindowIcon(HWND hWindow);
+HICON GetWindowIconSmall(HWND hWindow);
 
 template <typename T>
 std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)

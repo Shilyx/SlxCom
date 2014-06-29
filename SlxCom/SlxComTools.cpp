@@ -1993,6 +1993,34 @@ BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite)
     return TRUE;
 }
 
+HICON GetWindowIcon(HWND hWindow)
+{
+    HICON hIcon = NULL;
+
+    SendMessageTimeout(hWindow, WM_GETICON, ICON_BIG, 0, SMTO_BLOCK | SMTO_ABORTIFHUNG, 3333, (DWORD *)&hIcon);
+
+    if (hIcon == NULL)
+    {
+        hIcon = (HICON)GetClassLongPtr(hWindow, GCLP_HICON);
+    }
+
+    return hIcon;
+}
+
+HICON GetWindowIconSmall(HWND hWindow)
+{
+    HICON hIcon = NULL;
+
+    SendMessageTimeout(hWindow, WM_GETICON, ICON_SMALL, 0, SMTO_BLOCK | SMTO_ABORTIFHUNG, 3333, (DWORD *)&hIcon);
+
+    if (hIcon == NULL)
+    {
+        hIcon = (HICON)GetClassLongPtr(hWindow, GCLP_HICONSM);
+    }
+
+    return hIcon;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
