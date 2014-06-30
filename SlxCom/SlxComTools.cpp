@@ -2021,6 +2021,34 @@ HICON GetWindowIconSmall(HWND hWindow)
     return hIcon;
 }
 
+DWORD RegGetDWORD(HKEY hRootKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, DWORD dwDefault)
+{
+    DWORD dwSize = sizeof(dwDefault);
+
+    SHGetValue(hRootKey, lpRegValue, lpRegValue, NULL, &dwDefault, &dwSize);
+
+    return dwDefault;
+}
+
+DWORD CheckMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bChecked)
+{
+    UINT uFlags2[] = {MF_UNCHECKED, MF_CHECKED};
+
+    return CheckMenuItem(hMenu, uId, uFlags | uFlags2[!!bChecked]);
+}
+
+DWORD EnableMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bEnabled)
+{
+    UINT uFlags2[] = {MF_GRAYED, MF_ENABLED};
+
+    return EnableMenuItem(hMenu, uId, uFlags | uFlags2[!!bEnabled]);
+}
+
+BOOL IsWindowTopMost(HWND hWindow)
+{
+    return (GetWindowLongPtr(hWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));

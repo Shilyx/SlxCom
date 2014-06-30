@@ -1,5 +1,6 @@
 #include "WindowManager.h"
 #include "SlxComTools.h"
+#include "SlxComAbout.h"
 #include <WindowsX.h>
 #include <Shlwapi.h>
 #include <map>
@@ -8,11 +9,13 @@
 
 using namespace std;
 
-#define NOTIFYWNDCLASS TEXT("__slx_WindowManager_20140629")
+#define NOTIFYWNDCLASS  TEXT("__slx_WindowManager_20140629")
+#define REG_PATH        TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager")
 
 static enum
 {
-    WM_CALLBACK = WM_USER + 12,
+    WM_CALLBACK = WM_USER + 12,     // 托盘图标的回调消息
+    WM_REMOVE_NOTIFY,               // 通知主窗口销毁某托盘，wparam为id，lparam为hwnd
 };
 
 static enum
@@ -21,6 +24,17 @@ static enum
     HK_HIDEWINDOW2,
     HK_PINWINDOW,
     HK_PINWINDOW2,
+};
+
+static enum
+{
+    CMD_ABOUT = 1,
+    CMD_DESTROYONSHOW,
+    CMD_SHOWBALLOON,
+    CMD_PINWINDOW,
+    CMD_SWITCHVISIABLE,
+    CMD_DETAIL,
+    CMD_DESTROYICON,
 };
 
 class CNotifyClass
@@ -77,6 +91,102 @@ public:
                 ShowWindow(m_hTargetWindow, SW_SHOW);
             }
         }
+    }
+
+    void DoContextMenu(int x, int y)
+    {
+        HMENU hMenu = CreatePopupMenu();
+        HMENU hPopupMenu = CreatePopupMenu();
+
+        AppendMenu(hMenu, MF_STRING, CMD_ABOUT, TEXT("关于SlxCom(&A)..."));
+        AppendMenu(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, TEXT("被控窗口可见后销毁托盘图标(&A)"));
+        AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
+        AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("全局配置(&G)"));
+        AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)"));
+        AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)"));
+        AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenu(hMenu, MF_STRING, CMD_DETAIL, TEXT("显示窗口信息(&D)"));
+        AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("销毁此图标(&Y)"));
+
+        CheckMenuItemHelper(hPopupMenu, CMD_DESTROYONSHOW, MF_BYCOMMAND, ms_bDestroyOnShow);
+        CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
+        CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
+        SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
+
+        if (IsWindow(m_hTargetWindow))
+        {
+            if (IsWindowVisible(m_hTargetWindow))
+            {
+                ModifyMenu(hMenu, CMD_SWITCHVISIABLE, MF_STRING, 0, TEXT("隐藏窗口(&H)"));
+            }
+        }
+        else
+        {
+            EnableMenuItemHelper(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND, FALSE);
+            EnableMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, FALSE);
+            EnableMenuItemHelper(hMenu, CMD_DETAIL, MF_BYCOMMAND, FALSE);
+        }
+
+        SetForegroundWindow(m_hManagerWindow);
+
+        int nCmd = TrackPopupMenu(
+            hMenu,
+            TPM_RETURNCMD | TPM_NONOTIFY | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+            x,
+            y,
+            NULL,
+            m_hManagerWindow,
+            NULL
+            );
+
+        switch (nCmd)
+        {
+        case CMD_ABOUT:
+            SlxComAbout(m_hManagerWindow);
+            break;
+
+        case CMD_DESTROYONSHOW:
+            ms_bDestroyOnShow = !ms_bDestroyOnShow;
+            SHSetValue(HKEY_CURRENT_USER, REG_PATH, TEXT("DestroyOnShow"), REG_DWORD, &ms_bDestroyOnShow, sizeof(ms_bDestroyOnShow));
+            break;
+
+        case CMD_SHOWBALLOON:
+            ms_bShowBalloon = !ms_bShowBalloon;
+            SHSetValue(HKEY_CURRENT_USER, REG_PATH, TEXT("ShowBalloon"), REG_DWORD, &ms_bShowBalloon, sizeof(ms_bShowBalloon));
+            break;
+
+        case CMD_PINWINDOW:
+            DoPin(m_hTargetWindow);
+            break;
+
+        case CMD_SWITCHVISIABLE:
+            SwitchVisiable();
+            break;
+
+        case CMD_DETAIL:
+            break;
+
+        case CMD_DESTROYICON:
+            if (IsWindow(m_hTargetWindow) &&
+                !IsWindowVisible(m_hTargetWindow) &&
+                IDYES == MessageBox(
+                    m_hTargetWindow,
+                    TEXT("被管理的窗口当前不可见，是否要先将其显示出来？"),
+                    TEXT("请确认"),
+                    MB_ICONQUESTION | MB_YESNO | MB_TOPMOST
+                ))
+            {
+                ShowWindow(m_hTargetWindow, SW_SHOW);
+            }
+            PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
+            break;
+
+        default:
+            break;
+        }
+
+        DestroyMenu(hMenu);
     }
 
     void GetStableInfo()
@@ -141,6 +251,59 @@ public:
         // 
     }
 
+    static void DoPin(HWND hTargetWindow)
+    {
+        CloseHandle(CreateThread(NULL, 0, PinWindowProc, (LPVOID)hTargetWindow, 0, NULL));
+    }
+
+private:
+    static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
+    {
+        HWND hTargetWindow = (HWND)lpParam;
+        HWND hDesktopWindow = GetDesktopWindow();
+
+        if (hTargetWindow == NULL)
+        {
+            hTargetWindow = GetForegroundWindow();
+        }
+
+        if (hTargetWindow != hDesktopWindow && IsWindow(hTargetWindow))
+        {
+            LONG_PTR nExStyle = GetWindowLongPtr(hTargetWindow, GWL_EXSTYLE);
+            TCHAR szNewWindowText[4096];
+            LPTSTR lpWindowText = szNewWindowText;
+
+            if (nExStyle & WS_EX_TOPMOST)
+            {
+                lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已取消置顶<<<<"));
+                SetWindowPos(hTargetWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            }
+            else
+            {
+                lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已置顶>>>>"));
+                SetWindowPos(hTargetWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            }
+
+            if (GetWindowTextLength(hTargetWindow) < RTL_NUMBER_OF(szNewWindowText) - 100)
+            {
+                GetWindowText(hTargetWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
+                SetWindowText(hTargetWindow, szNewWindowText);
+
+                for (int i = 0; i < 3; i += 1)
+                {
+                    FlashWindow(hTargetWindow, TRUE);
+                    Sleep(300);
+                    FlashWindow(hTargetWindow, TRUE);
+                }
+
+                Sleep(500);
+                SetWindowText(hTargetWindow, lpWindowText);
+            }
+        }
+
+        return 0;
+    }
+
 private:
     HWND m_hManagerWindow;
     HWND m_hTargetWindow;
@@ -148,7 +311,14 @@ private:
     tstring m_strBaseInfo;
     HICON m_hIcon;
     HICON m_hIconSm;
+
+private:
+    static BOOL ms_bDestroyOnShow;
+    static BOOL ms_bShowBalloon;
 };
+
+BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, REG_PATH, TEXT("DestroyOnShow"), TRUE);
+BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, REG_PATH, TEXT("ShowBalloon"), TRUE);
 
 class CWindowManager
 {
@@ -254,52 +424,10 @@ private:
 
     void DoPin()
     {
-        CloseHandle(CreateThread(NULL, 0, PinWindowProc, NULL, 0, NULL));
+        CNotifyClass::DoPin(NULL);
     }
 
 private:
-    static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
-    {
-        HWND hForegroundWindow = GetForegroundWindow();
-        HWND hDesktopWindow = GetDesktopWindow();
-
-        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow))
-        {
-            LONG_PTR nExStyle = GetWindowLongPtr(hForegroundWindow, GWL_EXSTYLE);
-            TCHAR szNewWindowText[4096];
-            LPTSTR lpWindowText = szNewWindowText;
-
-            if (nExStyle & WS_EX_TOPMOST)
-            {
-                lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已取消置顶<<<<"));
-                SetWindowPos(hForegroundWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-            }
-            else
-            {
-                lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已置顶>>>>"));
-                SetWindowPos(hForegroundWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-            }
-
-            if (GetWindowTextLength(hForegroundWindow) < RTL_NUMBER_OF(szNewWindowText) - 100)
-            {
-                GetWindowText(hForegroundWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
-                SetWindowText(hForegroundWindow, szNewWindowText);
-
-                for (int i = 0; i < 3; i += 1)
-                {
-                    FlashWindow(hForegroundWindow, TRUE);
-                    Sleep(300);
-                    FlashWindow(hForegroundWindow, TRUE);
-                }
-
-                Sleep(500);
-                SetWindowText(hForegroundWindow, lpWindowText);
-            }
-        }
-
-        return 0;
-    }
-
     static void RegisterWindowClass(HINSTANCE hInstance)
     {
         WNDCLASSEX wcex = {sizeof(wcex)};
@@ -332,6 +460,22 @@ private:
             PostQuitMessage(0);
             break;
 
+        case WM_REMOVE_NOTIFY:
+            if (lParam != NULL)
+            {
+                CWindowManager *pManager = GetManagerClass(hWnd);
+                HWND hTargetWindow = (HWND)lParam;
+                map<HWND, CNotifyClass *>::iterator it = pManager->m_mapNotifyClassesByWindow.find(hTargetWindow);
+
+                if (it != pManager->m_mapNotifyClassesByWindow.end())
+                {
+                    delete it->second;
+                    pManager->m_mapNotifyClassesById.erase(wParam);
+                    pManager->m_mapNotifyClassesByWindow.erase(it);
+                }
+            }
+            break;
+
         case WM_HOTKEY:
             switch (wParam)
             {
@@ -351,7 +495,7 @@ private:
             break;
 
         case WM_CALLBACK:
-            if (lParam == WM_LBUTTONDBLCLK)
+            if (lParam == WM_LBUTTONDBLCLK || lParam == WM_RBUTTONUP || lParam == WM_RBUTTONUP)
             {
                 UINT uId = (UINT)wParam;
 
@@ -359,12 +503,18 @@ private:
 
                 if (it != GetManagerClass(hWnd)->m_mapNotifyClassesById.end())
                 {
-                    it->second->SwitchVisiable();
+                    if (lParam == WM_LBUTTONDBLCLK)
+                    {
+                        it->second->SwitchVisiable();
+                    }
+                    else
+                    {
+                        POINT pt;
+
+                        GetCursorPos(&pt);
+                        it->second->DoContextMenu(pt.x, pt.y);
+                    }
                 }
-            }
-            else if (lParam == WM_RBUTTONUP || lParam == WM_RBUTTONUP)
-            {
-                POINT pt = {GET_X_LPARAM(wParam), GET_Y_LPARAM(wParam)};
             }
             else
             {

@@ -59,6 +59,10 @@ BOOL IsAdminMode();
 BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite);
 HICON GetWindowIcon(HWND hWindow);
 HICON GetWindowIconSmall(HWND hWindow);
+DWORD RegGetDWORD(HKEY hRootKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, DWORD dwDefault);
+DWORD CheckMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bChecked);
+DWORD EnableMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bEnabled);
+BOOL IsWindowTopMost(HWND hWindow);
 
 template <typename T>
 std::basic_string<T> &AssignString(std::basic_string<T> &str, const T *p)
