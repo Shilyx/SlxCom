@@ -71,7 +71,32 @@ public:
         m_nid.hIcon = m_hIconSm;
         m_nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
 
+        if (ms_bShowBalloon)
+        {
+            TCHAR szWindowText[32] = TEXT("");
+
+            GetWindowText(hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+
+            lstrcpyn(m_nid.szInfoTitle, TEXT("SlxCom WindowManager"), RTL_NUMBER_OF(m_nid.szInfoTitle));
+            wnsprintf(
+                m_nid.szInfo,
+                RTL_NUMBER_OF(m_nid.szInfo),
+                TEXT("窗口“%s”（句柄：%#x）已被收纳。"),
+                szWindowText,
+                hTargetWindow
+                );
+
+            m_nid.uFlags |= NIF_INFO;
+        }
+
         Shell_NotifyIcon(NIM_ADD, &m_nid);
+
+        if (ms_bShowBalloon)
+        {
+            m_nid.uFlags &= ~NIF_INFO;
+        }
+
+        // todo：记录窗口句柄到注册表，防止进程崩溃后无法加载老窗口
     }
 
     ~CNotifyClass()
@@ -96,6 +121,11 @@ public:
             else
             {
                 ShowWindow(m_hTargetWindow, SW_SHOW);
+
+                if (ms_bDestroyOnShow)
+                {
+                    PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
+                }
             }
         }
     }
@@ -456,7 +486,6 @@ private:
             }
         }
     }
-
 
     void DoPin()
     {
