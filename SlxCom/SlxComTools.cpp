@@ -2049,9 +2049,55 @@ BOOL IsWindowTopMost(HWND hWindow)
     return (GetWindowLongPtr(hWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
 }
 
+tstring GetCurrentTimeString()
+{
+    TCHAR szTime[32] = TEXT("");
+    SYSTEMTIME st;
+
+    GetLocalTime(&st);
+    wnsprintf(
+        szTime,
+        RTL_NUMBER_OF(szTime),
+        TEXT("%04u-%02u-%02u %02u:%02u:%02u.%03u"),
+        st.wYear,
+        st.wMonth,
+        st.wDay,
+        st.wHour,
+        st.wMinute,
+        st.wSecond,
+        st.wMilliseconds
+        );
+
+    return szTime;
+}
+
+tstring &AssignString(tstring &str, LPCTSTR lpText)
+{
+    if (lpText != NULL)
+    {
+        str = lpText;
+    }
+    else
+    {
+        str.erase(str.begin(), str.end());
+    }
+
+    return str;
+}
+
+tstring GetDesktopName(HDESK hDesktop)
+{
+    TCHAR szDesktopName[4096];
+
+    GetUserObjectInformation(hDesktop, UOI_NAME, szDesktopName, sizeof(szDesktopName), NULL);
+
+    return szDesktopName;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
 
     return ;
 }
+

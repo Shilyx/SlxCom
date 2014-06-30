@@ -10,7 +10,8 @@
 using namespace std;
 
 #define NOTIFYWNDCLASS  TEXT("__slx_WindowManager_20140629")
-#define REG_PATH        TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager")
+#define BASE_REG_PATH   TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager")
+#define RECORD_REG_PATH TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager\\Records")
 
 static enum
 {
@@ -47,8 +48,17 @@ static enum
 class CNotifyClass
 {
 public:
-    CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId)
+    CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCTSTR lpCreateTime)
     {
+        if (lpCreateTime == NULL)
+        {
+            m_strCreateTime = GetCurrentTimeString();
+        }
+        else
+        {
+            m_strCreateTime = lpCreateTime;
+        }
+
         m_hManagerWindow = hManagerWindow;
         m_hTargetWindow = hTargetWindow;
         ZeroMemory(&m_nid, sizeof(m_nid));
@@ -101,7 +111,7 @@ public:
             m_nid.uFlags &= ~NIF_INFO;
         }
 
-        // todo：记录窗口句柄到注册表，防止进程崩溃后无法加载老窗口
+        RecordToRegistry();
     }
 
     ~CNotifyClass()
@@ -112,6 +122,8 @@ public:
         {
             ShowWindow(m_hTargetWindow, SW_SHOW);
         }
+
+        RemoveFromRegistry();
     }
 
 public:
@@ -199,12 +211,12 @@ public:
 
         case CMD_DESTROYONSHOW:
             ms_bDestroyOnShow = !ms_bDestroyOnShow;
-            SHSetValue(HKEY_CURRENT_USER, REG_PATH, TEXT("DestroyOnShow"), REG_DWORD, &ms_bDestroyOnShow, sizeof(ms_bDestroyOnShow));
+            SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("DestroyOnShow"), REG_DWORD, &ms_bDestroyOnShow, sizeof(ms_bDestroyOnShow));
             break;
 
         case CMD_SHOWBALLOON:
             ms_bShowBalloon = !ms_bShowBalloon;
-            SHSetValue(HKEY_CURRENT_USER, REG_PATH, TEXT("ShowBalloon"), REG_DWORD, &ms_bShowBalloon, sizeof(ms_bShowBalloon));
+            SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("ShowBalloon"), REG_DWORD, &ms_bShowBalloon, sizeof(ms_bShowBalloon));
             break;
 
         case CMD_PINWINDOW:
@@ -307,7 +319,111 @@ public:
         CloseHandle(CreateThread(NULL, 0, PinWindowProc, (LPVOID)hTargetWindow, 0, NULL));
     }
 
+    static map<HWND, tstring> GetAndClearLastNotifys()
+    {
+        map<HWND, tstring> result;
+        tstring strRegPath = RECORD_REG_PATH;
+        TCHAR szHwnd[32] = TEXT("");
+        HKEY hKey = NULL;
+
+        strRegPath += TEXT("\\");
+        strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
+
+        if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath.c_str(), 0, KEY_QUERY_VALUE, &hKey))
+        {
+            DWORD dwValueCount = 0;
+            DWORD dwMaxValueNameLen = 0;
+            DWORD dwMaxDataLen = 0;
+
+            if (ERROR_SUCCESS == RegQueryInfoKey(
+                hKey, NULL, NULL, NULL, NULL, NULL, NULL,
+                &dwValueCount,
+                &dwMaxValueNameLen,
+                &dwMaxDataLen,
+                NULL, NULL
+                ))
+            {
+                dwMaxValueNameLen += 1;
+                dwMaxValueNameLen *= 2;
+                dwMaxDataLen += 1;
+
+                TCHAR *szValueName = (TCHAR *)malloc(dwMaxValueNameLen);
+                unsigned char *szData = (unsigned char *)malloc(dwMaxDataLen);
+
+                if (szValueName != NULL && szData != NULL)
+                {
+                    for (DWORD dwIndex = 0; dwIndex < dwValueCount; dwIndex += 1)
+                    {
+                        DWORD dwRegType = REG_NONE;
+                        DWORD dwValueSize = dwMaxValueNameLen;
+                        DWORD dwDataSize = dwMaxDataLen;
+
+                        if (ERROR_SUCCESS == RegEnumValue(
+                            hKey,
+                            dwIndex,
+                            szValueName,
+                            &dwValueSize,
+                            NULL,
+                            &dwRegType,
+                            szData,
+                            &dwDataSize
+                            ))
+                        {
+                            if (dwRegType == REG_SZ)
+                            {
+                                result[(HWND)StrToInt(szValueName)] = (TCHAR *)szData;
+                            }
+                        }
+                    }
+                }
+
+                if (szValueName != NULL)
+                {
+                    free((void *)szValueName);
+                }
+
+                if (szData != NULL)
+                {
+                    free((void *)szData);
+                }
+            }
+
+            RegCloseKey(hKey);
+        }
+
+        SHDeleteKey(HKEY_CURRENT_USER, strRegPath.c_str());
+
+        return result;
+    }
+
 private:
+    void RecordToRegistry()
+    {
+        TCHAR szNull[] = TEXT("");
+        tstring strRegPath = RECORD_REG_PATH;
+        TCHAR szHwnd[32] = TEXT("");
+
+        SHSetValue(HKEY_CURRENT_USER, RECORD_REG_PATH, NULL, REG_SZ, szNull, (lstrlen(szNull) + 1) * sizeof(TCHAR));
+
+        strRegPath += TEXT("\\");
+        strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
+        wnsprintf(szHwnd, RTL_NUMBER_OF(szHwnd), TEXT("%u"), m_hTargetWindow);
+
+        SHSetTempValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd, REG_SZ, m_strCreateTime.c_str(), (m_strCreateTime.length() + 1) * sizeof(TCHAR));
+    }
+
+    void RemoveFromRegistry()
+    {
+        tstring strRegPath = RECORD_REG_PATH;
+        TCHAR szHwnd[32] = TEXT("");
+
+        strRegPath += TEXT("\\");
+        strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
+        wnsprintf(szHwnd, RTL_NUMBER_OF(szHwnd), TEXT("%u"), m_hTargetWindow);
+
+        SHDeleteValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd);
+    }
+
     static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
     {
         HWND hTargetWindow = (HWND)lpParam;
@@ -362,14 +478,15 @@ private:
     tstring m_strBaseInfo;
     HICON m_hIcon;
     HICON m_hIconSm;
+    tstring m_strCreateTime;
 
 private:
     static BOOL ms_bDestroyOnShow;
     static BOOL ms_bShowBalloon;
 };
 
-BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, REG_PATH, TEXT("DestroyOnShow"), TRUE);
-BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, REG_PATH, TEXT("ShowBalloon"), TRUE);
+BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("DestroyOnShow"), TRUE);
+BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("ShowBalloon"), TRUE);
 
 class CWindowManager
 {
@@ -392,6 +509,17 @@ public:
 
         if (m_hWindow)
         {
+            map<HWND, tstring> mapLastNotifys = CNotifyClass::GetAndClearLastNotifys();
+
+            map<HWND, tstring>::iterator it = mapLastNotifys.begin();
+            for (; it != mapLastNotifys.end(); ++it)
+            {
+                if (IsWindow(it->first))
+                {
+                    AddWindow(it->first, it->second.c_str());
+                }
+            }
+
             ShowWindow(m_hWindow, SW_SHOW);
             UpdateWindow(m_hWindow);
 
@@ -456,6 +584,17 @@ private:
         }
     }
 
+    BOOL AddWindow(HWND hWindow, LPCTSTR lpCreateTime = NULL)
+    {
+        UINT uId = GetNewId();
+        CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hWindow, uId, lpCreateTime);
+
+        m_mapNotifyClassesById[uId] = pNotifyClass;
+        m_mapNotifyClassesByWindow[hWindow] = pNotifyClass;
+
+        return TRUE;
+    }
+
     void DoHide()
     {
         HWND hForegroundWindow = GetForegroundWindow();
@@ -474,11 +613,7 @@ private:
 
             if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
             {
-                UINT uId = GetNewId();
-                CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hForegroundWindow, uId);
-
-                m_mapNotifyClassesById[uId] = pNotifyClass;
-                m_mapNotifyClassesByWindow[hForegroundWindow] = pNotifyClass;
+                AddWindow(hForegroundWindow);
             }
         }
     }
@@ -492,11 +627,7 @@ private:
         {
             if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
             {
-                UINT uId = GetNewId();
-                CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hForegroundWindow, uId);
-
-                m_mapNotifyClassesById[uId] = pNotifyClass;
-                m_mapNotifyClassesByWindow[hForegroundWindow] = pNotifyClass;
+                AddWindow(hForegroundWindow);
             }
         }
     }
