@@ -1997,7 +1997,7 @@ HICON GetWindowIcon(HWND hWindow)
 {
     HICON hIcon = NULL;
 
-    SendMessageTimeout(hWindow, WM_GETICON, ICON_BIG, 0, SMTO_BLOCK | SMTO_ABORTIFHUNG, 3333, (DWORD *)&hIcon);
+    SendMessageTimeout(hWindow, WM_GETICON, ICON_BIG, 0, SMTO_BLOCK | SMTO_ABORTIFHUNG, 3333, (DWORD_PTR *)&hIcon);
 
     if (hIcon == NULL)
     {
@@ -2011,7 +2011,7 @@ HICON GetWindowIconSmall(HWND hWindow)
 {
     HICON hIcon = NULL;
 
-    SendMessageTimeout(hWindow, WM_GETICON, ICON_SMALL, 0, SMTO_BLOCK | SMTO_ABORTIFHUNG, 3333, (DWORD *)&hIcon);
+    SendMessageTimeout(hWindow, WM_GETICON, ICON_SMALL, 0, SMTO_BLOCK | SMTO_ABORTIFHUNG, 3333, (DWORD_PTR *)&hIcon);
 
     if (hIcon == NULL)
     {

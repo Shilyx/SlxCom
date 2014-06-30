@@ -409,7 +409,7 @@ private:
         strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
         wnsprintf(szHwnd, RTL_NUMBER_OF(szHwnd), TEXT("%u"), m_hTargetWindow);
 
-        SHSetTempValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd, REG_SZ, m_strCreateTime.c_str(), (m_strCreateTime.length() + 1) * sizeof(TCHAR));
+        SHSetTempValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd, REG_SZ, m_strCreateTime.c_str(), (DWORD)(m_strCreateTime.length() + 1) * sizeof(TCHAR));
     }
 
     void RemoveFromRegistry()
@@ -520,7 +520,7 @@ public:
                 }
             }
 
-            ShowWindow(m_hWindow, SW_SHOW);
+//             ShowWindow(m_hWindow, SW_SHOW);
             UpdateWindow(m_hWindow);
 
             RegisterHotKey(m_hWindow, HK_HIDEWINDOW, MOD_ALT | MOD_CONTROL, TEXT('H'));
@@ -706,7 +706,7 @@ private:
                 if (it != pManager->m_mapNotifyClassesByWindow.end())
                 {
                     delete it->second;
-                    pManager->m_mapNotifyClassesById.erase(wParam);
+                    pManager->m_mapNotifyClassesById.erase((UINT)wParam);
                     pManager->m_mapNotifyClassesByWindow.erase(it);
                 }
             }
