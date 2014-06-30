@@ -24,6 +24,8 @@ static enum
     HK_HIDEWINDOW2,
     HK_PINWINDOW,
     HK_PINWINDOW2,
+    HK_ADDWINDOW,
+    HK_ADDWINDOW2,
 };
 
 static enum
@@ -75,6 +77,11 @@ public:
     ~CNotifyClass()
     {
         Shell_NotifyIcon(NIM_DELETE, &m_nid);
+
+        if (IsWindow(m_hTargetWindow) && !IsWindowVisible(m_hTargetWindow))
+        {
+            ShowWindow(m_hTargetWindow, SW_SHOW);
+        }
     }
 
 public:
@@ -103,8 +110,8 @@ public:
         AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
         AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("全局配置(&G)"));
         AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-        AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)"));
-        AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)"));
+        AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)\tAlt+Ctrl(Shift)+T"));
+        AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)\tAlt+Ctrl(Shift)+H"));
         AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(hMenu, MF_STRING, CMD_DETAIL, TEXT("显示窗口信息(&D)"));
         AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("销毁此图标(&Y)"));
@@ -168,17 +175,17 @@ public:
             break;
 
         case CMD_DESTROYICON:
-            if (IsWindow(m_hTargetWindow) &&
-                !IsWindowVisible(m_hTargetWindow) &&
-                IDYES == MessageBox(
-                    m_hTargetWindow,
-                    TEXT("被管理的窗口当前不可见，是否要先将其显示出来？"),
-                    TEXT("请确认"),
-                    MB_ICONQUESTION | MB_YESNO | MB_TOPMOST
-                ))
-            {
-                ShowWindow(m_hTargetWindow, SW_SHOW);
-            }
+//             if (IsWindow(m_hTargetWindow) &&
+//                 !IsWindowVisible(m_hTargetWindow) &&
+//                 IDYES == MessageBox(
+//                     m_hTargetWindow,
+//                     TEXT("被管理的窗口当前不可见，是否要先将其显示出来？"),
+//                     TEXT("请确认"),
+//                     MB_ICONQUESTION | MB_YESNO | MB_TOPMOST
+//                 ))
+//             {
+//                 ShowWindow(m_hTargetWindow, SW_SHOW);
+//             }
             PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
             break;
 
@@ -348,6 +355,8 @@ public:
             RegisterHotKey(m_hWindow, HK_HIDEWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('H'));
             RegisterHotKey(m_hWindow, HK_PINWINDOW, MOD_ALT | MOD_CONTROL, TEXT('T'));
             RegisterHotKey(m_hWindow, HK_PINWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('T'));
+            RegisterHotKey(m_hWindow, HK_ADDWINDOW, MOD_ALT | MOD_CONTROL, TEXT('M'));
+            RegisterHotKey(m_hWindow, HK_ADDWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('M'));
         }
     }
 
@@ -359,8 +368,16 @@ public:
             UnregisterHotKey(m_hWindow, HK_HIDEWINDOW2);
             UnregisterHotKey(m_hWindow, HK_PINWINDOW);
             UnregisterHotKey(m_hWindow, HK_PINWINDOW2);
+            UnregisterHotKey(m_hWindow, HK_ADDWINDOW);
+            UnregisterHotKey(m_hWindow, HK_ADDWINDOW2);
 
             DestroyWindow(m_hWindow);
+        }
+
+        map<UINT, CNotifyClass *>::iterator it = m_mapNotifyClassesById.begin();
+        for (; it != m_mapNotifyClassesById.end(); ++it)
+        {
+            delete it->second;
         }
     }
 
@@ -421,6 +438,25 @@ private:
             }
         }
     }
+
+    void DoAdd()
+    {
+        HWND hForegroundWindow = GetForegroundWindow();
+        HWND hDesktopWindow = GetDesktopWindow();
+
+        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow))
+        {
+            if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
+            {
+                UINT uId = GetNewId();
+                CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hForegroundWindow, uId);
+
+                m_mapNotifyClassesById[uId] = pNotifyClass;
+                m_mapNotifyClassesByWindow[hForegroundWindow] = pNotifyClass;
+            }
+        }
+    }
+
 
     void DoPin()
     {
@@ -487,6 +523,11 @@ private:
             case HK_PINWINDOW:
             case HK_PINWINDOW2:
                 GetManagerClass(hWnd)->DoPin();
+                break;
+
+            case HK_ADDWINDOW:
+            case HK_ADDWINDOW2:
+                GetManagerClass(hWnd)->DoAdd();
                 break;
 
             default:
