@@ -20,6 +20,11 @@ static enum
 
 static enum
 {
+    ID_CHECK = 12,
+};
+
+static enum
+{
     HK_HIDEWINDOW = 12,
     HK_HIDEWINDOW2,
     HK_PINWINDOW,
@@ -110,6 +115,16 @@ public:
     }
 
 public:
+    UINT GetId() const
+    {
+        return m_nid.uID;
+    }
+
+    HWND GetTargetWindow() const
+    {
+        return m_hTargetWindow;
+    }
+
     void SwitchVisiable()
     {
         if (IsWindow(m_hTargetWindow))
@@ -162,7 +177,6 @@ public:
         {
             EnableMenuItemHelper(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND, FALSE);
             EnableMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, FALSE);
-            EnableMenuItemHelper(hMenu, CMD_DETAIL, MF_BYCOMMAND, FALSE);
         }
 
         SetForegroundWindow(m_hManagerWindow);
@@ -514,14 +528,40 @@ private:
         switch (uMsg)
         {
         case WM_CREATE:
+            SetTimer(hWnd, ID_CHECK, 3333, NULL);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)((LPCREATESTRUCT)lParam)->lpCreateParams);
             return 0;
+
+        case WM_TIMER:
+            if (wParam == ID_CHECK)
+            {
+                CWindowManager *pManager = GetManagerClass(hWnd);
+                map<UINT, CNotifyClass *> m_mapNotifyClassesById;
+                map<HWND, CNotifyClass *>::iterator it = pManager->m_mapNotifyClassesByWindow.begin();
+
+                while (it != pManager->m_mapNotifyClassesByWindow.end())
+                {
+                    if (IsWindow(it->first))
+                    {
+                        it->second->RefreshInfo();
+                        ++it;
+                    }
+                    else
+                    {
+                        pManager->m_mapNotifyClassesById.erase(it->second->GetId());
+                        delete it->second;
+                        it = pManager->m_mapNotifyClassesByWindow.erase(it);
+                    }
+                }
+            }
+            break;
 
         case WM_CLOSE:
             DestroyWindow(hWnd);
             break;
 
         case WM_DESTROY:
+            KillTimer(hWnd, ID_CHECK);
             PostQuitMessage(0);
             break;
 

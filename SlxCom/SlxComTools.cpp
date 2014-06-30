@@ -2025,7 +2025,7 @@ DWORD RegGetDWORD(HKEY hRootKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, DWORD dw
 {
     DWORD dwSize = sizeof(dwDefault);
 
-    SHGetValue(hRootKey, lpRegValue, lpRegValue, NULL, &dwDefault, &dwSize);
+    SHGetValue(hRootKey, lpRegPath, lpRegValue, NULL, &dwDefault, &dwSize);
 
     return dwDefault;
 }

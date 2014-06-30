@@ -263,7 +263,15 @@ public:
             break;
 
         case SYS_WINDOWMANAGER:
-            MessageBox(m_hWindow, NULL, NULL, MB_SYSTEMMODAL);
+            MessageBox(
+                m_hWindow,
+                TEXT("窗口管理器可以将前端窗口最小化到系统托盘，快捷键为：\r\n")
+                TEXT("隐藏前端窗口到托盘，Alt+Ctrl(Shift)+H\r\n")
+                TEXT("置顶前端窗口，Alt+Ctrl(Shift)+T\r\n")
+                TEXT("在托盘创建前端窗口的图标，Alt+Ctrl(Shift)+M\r\n"),
+                TEXT("SlxCom WindowManager"),
+                MB_ICONINFORMATION | MB_TOPMOST
+                );
             break;
 
         case SYS_UPDATEMENU:
@@ -299,8 +307,8 @@ public:
         //主菜单
         AppendMenu(m_hMenu, MF_STRING, SYS_ABOUT, TEXT("关于SlxCom(&A)..."));;
 //         AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
-//         AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
 //         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
+        AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
         AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表快捷通道(&R)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&E)"));
