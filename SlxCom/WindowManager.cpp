@@ -39,6 +39,7 @@ static enum
     CMD_ABOUT = 1,
     CMD_DESTROYONSHOW,
     CMD_SHOWBALLOON,
+    CMD_HIDEONMINIMAZE,
     CMD_PINWINDOW,
     CMD_SWITCHVISIABLE,
     CMD_DETAIL,
@@ -117,12 +118,7 @@ public:
     ~CNotifyClass()
     {
         Shell_NotifyIcon(NIM_DELETE, &m_nid);
-
-        if (IsWindow(m_hTargetWindow) && !IsWindowVisible(m_hTargetWindow))
-        {
-            ShowWindow(m_hTargetWindow, SW_SHOW);
-        }
-
+        ReleaseTargetWindow();
         RemoveFromRegistry();
     }
 
@@ -147,14 +143,12 @@ public:
             }
             else
             {
-                ShowWindow(m_hTargetWindow, SW_SHOW);
+                ReleaseTargetWindow();
 
                 if (ms_bDestroyOnShow)
                 {
                     PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
                 }
-
-                SetForegroundWindow(m_hTargetWindow);
             }
         }
     }
@@ -167,6 +161,7 @@ public:
         AppendMenu(hMenu, MF_STRING, CMD_ABOUT, TEXT("关于SlxCom(&A)..."));
         AppendMenu(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, TEXT("被控窗口可见后销毁托盘图标(&A)"));
         AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
+        AppendMenu(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, TEXT("窗口最小化时候自动进入托盘(&M)"));
         AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("全局配置(&G)"));
         AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)\tAlt+Ctrl(Shift)+T"));
@@ -177,6 +172,7 @@ public:
 
         CheckMenuItemHelper(hPopupMenu, CMD_DESTROYONSHOW, MF_BYCOMMAND, ms_bDestroyOnShow);
         CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
+        CheckMenuItemHelper(hPopupMenu, CMD_HIDEONMINIMAZE, MF_BYCOMMAND, ms_bHideOnMinimaze);
         CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
         SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
 
@@ -219,6 +215,11 @@ public:
         case CMD_SHOWBALLOON:
             ms_bShowBalloon = !ms_bShowBalloon;
             SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("ShowBalloon"), REG_DWORD, &ms_bShowBalloon, sizeof(ms_bShowBalloon));
+            break;
+
+        case CMD_HIDEONMINIMAZE:
+            ms_bHideOnMinimaze = !ms_bHideOnMinimaze;
+            SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("HideOnMinimaze"), REG_DWORD, &ms_bHideOnMinimaze, sizeof(ms_bHideOnMinimaze));
             break;
 
         case CMD_PINWINDOW:
@@ -435,6 +436,11 @@ public:
         return result;
     }
 
+    static BOOL IsOptionHideOnMinimaze()
+    {
+        return ms_bHideOnMinimaze;
+    }
+
 private:
     void RecordToRegistry()
     {
@@ -461,6 +467,24 @@ private:
         wnsprintf(szHwnd, RTL_NUMBER_OF(szHwnd), TEXT("%u"), m_hTargetWindow);
 
         SHDeleteValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd);
+    }
+
+    void ReleaseTargetWindow()
+    {
+        if (IsWindow(m_hTargetWindow))
+        {
+            if (!IsWindowVisible(m_hTargetWindow))
+            {
+                ShowWindow(m_hTargetWindow, SW_SHOW);
+            }
+
+            if (IsIconic(m_hTargetWindow))
+            {
+                ShowWindow(m_hTargetWindow, SW_RESTORE);
+            }
+
+            SetForegroundWindow(m_hTargetWindow);
+        }
     }
 
     static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
@@ -521,10 +545,12 @@ private:
 private:
     static BOOL ms_bDestroyOnShow;
     static BOOL ms_bShowBalloon;
+    static BOOL ms_bHideOnMinimaze;
 };
 
 BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("DestroyOnShow"), TRUE);
 BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("ShowBalloon"), TRUE);
+BOOL CNotifyClass::ms_bHideOnMinimaze = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("HideOnMinimaze"), FALSE);
 
 class CWindowManager
 {
@@ -643,10 +669,6 @@ private:
             {
                 ShowWindow(hForegroundWindow, SW_HIDE);
             }
-            else
-            {
-                ShowWindow(hForegroundWindow, SW_SHOW);
-            }
 
             if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
             {
@@ -695,7 +717,7 @@ private:
         switch (uMsg)
         {
         case WM_CREATE:
-            SetTimer(hWnd, ID_CHECK, 3333, NULL);
+            SetTimer(hWnd, ID_CHECK, 1888, NULL);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)((LPCREATESTRUCT)lParam)->lpCreateParams);
             return 0;
 
@@ -708,8 +730,15 @@ private:
 
                 while (it != pManager->m_mapNotifyClassesByWindow.end())
                 {
-                    if (IsWindow(it->first))
+                    HWND hTargetWindow = it->first;
+
+                    if (IsWindow(hTargetWindow))
                     {
+                        if (CNotifyClass::IsOptionHideOnMinimaze() && IsIconic(hTargetWindow))
+                        {
+                            ShowWindow(hTargetWindow, SW_HIDE);
+                        }
+
                         it->second->RefreshInfo();
                         ++it;
                     }
