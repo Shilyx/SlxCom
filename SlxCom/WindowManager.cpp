@@ -432,6 +432,11 @@ private:
         if (hTargetWindow == NULL)
         {
             hTargetWindow = GetForegroundWindow();
+
+            if (!IsWindowVisible(hTargetWindow))
+            {
+                hTargetWindow = NULL;
+            }
         }
 
         if (hTargetWindow != hDesktopWindow && IsWindow(hTargetWindow))
@@ -527,8 +532,8 @@ public:
             RegisterHotKey(m_hWindow, HK_HIDEWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('H'));
             RegisterHotKey(m_hWindow, HK_PINWINDOW, MOD_ALT | MOD_CONTROL, TEXT('T'));
             RegisterHotKey(m_hWindow, HK_PINWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('T'));
-            RegisterHotKey(m_hWindow, HK_ADDWINDOW, MOD_ALT | MOD_CONTROL, TEXT('M'));
-            RegisterHotKey(m_hWindow, HK_ADDWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('M'));
+            RegisterHotKey(m_hWindow, HK_ADDWINDOW, MOD_ALT | MOD_CONTROL, TEXT('C'));
+            RegisterHotKey(m_hWindow, HK_ADDWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('C'));
         }
     }
 
@@ -600,7 +605,7 @@ private:
         HWND hForegroundWindow = GetForegroundWindow();
         HWND hDesktopWindow = GetDesktopWindow();
 
-        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow))
+        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow) && IsWindowVisible(hForegroundWindow))
         {
             if (IsWindowVisible(hForegroundWindow))
             {
@@ -623,7 +628,7 @@ private:
         HWND hForegroundWindow = GetForegroundWindow();
         HWND hDesktopWindow = GetDesktopWindow();
 
-        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow))
+        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow) && IsWindowVisible(hForegroundWindow))
         {
             if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
             {

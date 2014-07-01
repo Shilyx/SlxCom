@@ -268,7 +268,7 @@ public:
                 TEXT("窗口管理器可以将前端窗口最小化到系统托盘，快捷键为：\r\n")
                 TEXT("隐藏前端窗口到托盘，Alt+Ctrl(Shift)+H\r\n")
                 TEXT("置顶前端窗口，Alt+Ctrl(Shift)+T\r\n")
-                TEXT("在托盘创建前端窗口的图标，Alt+Ctrl(Shift)+M\r\n"),
+                TEXT("在托盘创建前端窗口的图标，Alt+Ctrl(Shift)+C\r\n"),
                 TEXT("SlxCom WindowManager"),
                 MB_ICONINFORMATION | MB_TOPMOST
                 );
