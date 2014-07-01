@@ -182,7 +182,7 @@ public:
         {
             if (IsWindowVisible(m_hTargetWindow))
             {
-                ModifyMenu(hMenu, CMD_SWITCHVISIABLE, MF_STRING, 0, TEXT("Òþ²Ø´°¿Ú(&H)"));
+                ModifyMenu(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND | MF_STRING, CMD_SWITCHVISIABLE, TEXT("Òþ²Ø´°¿Ú(&H)\tAlt+Ctrl(Shift)+H"));
             }
         }
         else
