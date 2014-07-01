@@ -319,6 +319,43 @@ public:
         CloseHandle(CreateThread(NULL, 0, PinWindowProc, (LPVOID)hTargetWindow, 0, NULL));
     }
 
+    // 得到一个当前可捕获的窗口
+    // 满足条件：非桌面，是最前的，不在同一进程内，或在统一进程内但可最小化的
+    static HWND GetCaptureableWindow()
+    {
+        HWND hTargetWindow = GetForegroundWindow();
+
+        if (IsWindow(hTargetWindow) && IsWindowVisible(hTargetWindow))
+        {
+            DWORD dwTargetProcessId = GetCurrentProcessId();
+            HWND hDesktopWindow = GetDesktopWindow();
+
+            GetWindowThreadProcessId(hTargetWindow, &dwTargetProcessId);
+
+            if (dwTargetProcessId != GetCurrentProcessId())
+            {
+                return hTargetWindow;
+            }
+            else
+            {
+                LONG_PTR dwStype = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
+
+                if (dwStype != 0 && (dwStype & WS_MINIMIZEBOX) != 0)
+                {
+                    return hTargetWindow;
+                }
+                else
+                {
+                    return NULL;
+                }
+            }
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
     static map<HWND, tstring> GetAndClearLastNotifys()
     {
         map<HWND, tstring> result;
@@ -427,19 +464,13 @@ private:
     static DWORD CALLBACK PinWindowProc(LPVOID lpParam)
     {
         HWND hTargetWindow = (HWND)lpParam;
-        HWND hDesktopWindow = GetDesktopWindow();
 
         if (hTargetWindow == NULL)
         {
-            hTargetWindow = GetForegroundWindow();
-
-            if (!IsWindowVisible(hTargetWindow))
-            {
-                hTargetWindow = NULL;
-            }
+            hTargetWindow = GetCaptureableWindow();
         }
 
-        if (hTargetWindow != hDesktopWindow && IsWindow(hTargetWindow))
+        if (IsWindow(hTargetWindow))
         {
             LONG_PTR nExStyle = GetWindowLongPtr(hTargetWindow, GWL_EXSTYLE);
             TCHAR szNewWindowText[4096];
@@ -602,10 +633,9 @@ private:
 
     void DoHide()
     {
-        HWND hForegroundWindow = GetForegroundWindow();
-        HWND hDesktopWindow = GetDesktopWindow();
+        HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
 
-        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow) && IsWindowVisible(hForegroundWindow))
+        if (IsWindow(hForegroundWindow))
         {
             if (IsWindowVisible(hForegroundWindow))
             {
@@ -625,10 +655,9 @@ private:
 
     void DoAdd()
     {
-        HWND hForegroundWindow = GetForegroundWindow();
-        HWND hDesktopWindow = GetDesktopWindow();
+        HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
 
-        if (hForegroundWindow != hDesktopWindow && IsWindow(hForegroundWindow) && IsWindowVisible(hForegroundWindow))
+        if (IsWindow(hForegroundWindow))
         {
             if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
             {
