@@ -153,6 +153,8 @@ public:
                 {
                     PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
                 }
+
+                SetForegroundWindow(m_hTargetWindow);
             }
         }
     }
