@@ -845,6 +845,18 @@ private:
 static DWORD CALLBACK WindowManagerProc(LPVOID lpParam)
 {
     HINSTANCE hInstance = (HINSTANCE)lpParam;
+    TCHAR szImagePath[MAX_PATH] = TEXT("");
+
+    GetModuleFileName(GetModuleHandle(NULL), szImagePath, RTL_NUMBER_OF(szImagePath));
+
+    if (lstrcmpi(TEXT("rundll32.exe"), PathFindFileName(szImagePath)) != 0)
+    {
+        DWORD dwSleepTime = 1;
+        while (!IsWindow(GetTrayNotifyWndInProcess()))
+        {
+            Sleep((dwSleepTime++) * 1000);
+        }
+    }
 
     CWindowManager(hInstance).Run();
     return 0;
