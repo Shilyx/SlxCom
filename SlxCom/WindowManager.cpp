@@ -4,6 +4,7 @@
 #include <WindowsX.h>
 #include <Shlwapi.h>
 #include <map>
+#include <set>
 #include <iomanip>
 #include "lib/charconv.h"
 
@@ -362,6 +363,7 @@ public:
     static map<HWND, tstring> GetAndClearLastNotifys()
     {
         map<HWND, tstring> result;
+        set<tstring> setToDelete;
         tstring strRegPath = RECORD_REG_PATH;
         TCHAR szHwnd[32] = TEXT("");
         HKEY hKey = NULL;
@@ -411,7 +413,12 @@ public:
                         {
                             if (dwRegType == REG_SZ)
                             {
-                                result[(HWND)StrToInt(szValueName)] = (TCHAR *)szData;
+                                HWND hWnd = (HWND)(INT_PTR)StrToInt64Def(szValueName, 0);
+
+                                if (!IsWindow(hWnd))
+                                {
+                                    setToDelete.insert(szValueName);
+                                }
                             }
                         }
                     }
@@ -431,7 +438,11 @@ public:
             RegCloseKey(hKey);
         }
 
-        SHDeleteKey(HKEY_CURRENT_USER, strRegPath.c_str());
+        set<tstring>::iterator it = setToDelete.begin();
+        for (; it != setToDelete.end(); ++it)
+        {
+            SHDeleteValue(HKEY_CURRENT_USER, strRegPath.c_str(), it->c_str());
+        }
 
         return result;
     }

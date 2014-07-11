@@ -63,6 +63,7 @@ DWORD RegGetDWORD(HKEY hRootKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, DWORD dw
 DWORD CheckMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bChecked);
 DWORD EnableMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bEnabled);
 BOOL IsWindowTopMost(HWND hWindow);
+unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault);
 
 std::tstring GetCurrentTimeString();
 std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);

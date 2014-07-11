@@ -2049,6 +2049,33 @@ BOOL IsWindowTopMost(HWND hWindow)
     return (GetWindowLongPtr(hWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
 }
 
+unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault)
+{
+    if (lpString == NULL || *lpString == 0)
+    {
+        return 0;
+    }
+
+    unsigned __int64 nResult = 0;
+
+    while (*lpString != 0)
+    {
+        TCHAR ch = *lpString;
+
+        if (*lpString >= TEXT('0') && *lpString <= TEXT('9'))
+        {
+            nResult *= 10;
+            nResult += (*lpString - TEXT('0'));
+        }
+        else
+        {
+            return nDefault;
+        }
+    }
+
+    return nResult;
+}
+
 tstring GetCurrentTimeString()
 {
     TCHAR szTime[32] = TEXT("");
