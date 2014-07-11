@@ -91,6 +91,7 @@ public:
         if (ms_bShowBalloon && bShowBalloonThisTime)
         {
             TCHAR szWindowText[32] = TEXT("");
+            DWORD dwWindowTextLength = GetWindowTextLength(hTargetWindow);
 
             GetWindowText(hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
 
@@ -98,8 +99,9 @@ public:
             wnsprintf(
                 m_nid.szInfo,
                 RTL_NUMBER_OF(m_nid.szInfo),
-                TEXT("窗口“%s”（句柄：%#x）已被收纳。"),
+                TEXT("窗口“%s%s”（句柄：%#x）已被收纳。"),
                 szWindowText,
+                dwWindowTextLength > RTL_NUMBER_OF(szWindowText) ? TEXT("...") : TEXT(""),
                 hTargetWindow
                 );
 
