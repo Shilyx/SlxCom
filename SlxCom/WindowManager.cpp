@@ -50,7 +50,7 @@ static enum
 class CNotifyClass
 {
 public:
-    CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCTSTR lpCreateTime)
+    CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCTSTR lpCreateTime, BOOL bShowBalloonThisTime)
     {
         if (lpCreateTime == NULL)
         {
@@ -88,7 +88,7 @@ public:
         m_nid.hIcon = m_hIconSm;
         m_nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
 
-        if (ms_bShowBalloon)
+        if (ms_bShowBalloon && bShowBalloonThisTime)
         {
             TCHAR szWindowText[32] = TEXT("");
 
@@ -598,7 +598,7 @@ public:
             {
                 if (IsWindow(it->first))
                 {
-                    AddWindow(it->first, it->second.c_str());
+                    AddWindow(it->first, it->second.c_str(), FALSE);
                 }
             }
 
@@ -666,10 +666,10 @@ private:
         }
     }
 
-    BOOL AddWindow(HWND hWindow, LPCTSTR lpCreateTime = NULL)
+    BOOL AddWindow(HWND hWindow, LPCTSTR lpCreateTime = NULL, BOOL bShowBalloonThisTime = TRUE)
     {
         UINT uId = GetNewId();
-        CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hWindow, uId, lpCreateTime);
+        CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hWindow, uId, lpCreateTime, bShowBalloonThisTime);
 
         m_mapNotifyClassesById[uId] = pNotifyClass;
         m_mapNotifyClassesByWindow[hWindow] = pNotifyClass;
