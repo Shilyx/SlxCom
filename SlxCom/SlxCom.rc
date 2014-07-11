@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,1,916
- PRODUCTVERSION 1,0,1,916
+ FILEVERSION 1,0,1,1481
+ PRODUCTVERSION 1,0,1,1481
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -71,12 +71,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Shilyx Studio"
             VALUE "FileDescription", "SlxCom是功能丰富的绿色的Explorer便捷插件，通过regsvr32注册后即可使用。2013年11月29日发布。"
-            VALUE "FileVersion", "1.0.1.916"
+            VALUE "FileVersion", "1.0.1.1481"
             VALUE "InternalName", "SlxCom"
             VALUE "LegalCopyright", "Copyright Shilyx Studio (C) 2013"
             VALUE "OriginalFilename", "SlxCom.dll"
             VALUE "ProductName", "SlxCom"
-            VALUE "ProductVersion", "1.0.1.916"
+            VALUE "ProductVersion", "1.0.1.1481"
         END
     END
     BLOCK "VarFileInfo"
