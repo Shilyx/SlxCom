@@ -70,7 +70,7 @@ public:
         m_nid.uCallbackMessage = WM_CALLBACK;
 
         GetStableInfo();
-        RefreshInfo();
+        lstrcpyn(m_nid.szTip, GetTargetWindowBaseInfo().c_str(), RTL_NUMBER_OF(m_nid.szTip));
 
         m_hIcon = GetWindowIcon(m_hTargetWindow);
         m_hIconSm = GetWindowIconSmall(m_hTargetWindow);
@@ -90,18 +90,12 @@ public:
 
         if (ms_bShowBalloon && bShowBalloonThisTime)
         {
-            TCHAR szWindowText[32] = TEXT("");
-            DWORD dwWindowTextLength = GetWindowTextLength(hTargetWindow);
-
-            GetWindowText(hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
-
             lstrcpyn(m_nid.szInfoTitle, TEXT("SlxCom WindowManager"), RTL_NUMBER_OF(m_nid.szInfoTitle));
             wnsprintf(
                 m_nid.szInfo,
                 RTL_NUMBER_OF(m_nid.szInfo),
-                TEXT("窗口“%s%s”（句柄：%#x）已被收纳。"),
-                szWindowText,
-                dwWindowTextLength > RTL_NUMBER_OF(szWindowText) ? TEXT("...") : TEXT(""),
+                TEXT("窗口“%s”（句柄：%#x）已被收纳。"),
+                GetTargetWindowCaption().c_str(),
                 hTargetWindow
                 );
 
@@ -109,11 +103,7 @@ public:
         }
 
         Shell_NotifyIcon(NIM_ADD, &m_nid);
-
-        if (ms_bShowBalloon)
-        {
-            m_nid.uFlags &= ~NIF_INFO;
-        }
+        m_nid.uFlags &= ~NIF_INFO;
 
         RecordToRegistry();
     }
@@ -279,8 +269,36 @@ public:
 
     void RefreshInfo()
     {
-        TCHAR szWindowStatus[32] = TEXT("");
+        tstring strNewTip = GetTargetWindowBaseInfo();
+
+        // 
+        if (StrCmpNI(strNewTip.c_str(), m_nid.szTip, RTL_NUMBER_OF(m_nid.szTip)) != 0)
+        {
+            lstrcpyn(m_nid.szTip, strNewTip.c_str(), RTL_NUMBER_OF(m_nid.szTip));
+            Shell_NotifyIcon(NIM_MODIFY, &m_nid);
+        }
+    }
+
+    tstring GetTargetWindowCaption()
+    {
+        tstring result;
         TCHAR szWindowText[32] = TEXT("");
+
+        GetWindowText(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+        result = szWindowText;
+
+        if (GetWindowTextLength(m_hTargetWindow) >= RTL_NUMBER_OF(szWindowText))
+        {
+            result += TEXT("...");
+        }
+
+        return result;
+    }
+
+    tstring GetTargetWindowBaseInfo()
+    {
+        TCHAR szTip[128];
+        TCHAR szWindowStatus[32] = TEXT("");
         BOOL bIsWindow = IsWindow(m_hTargetWindow);
         BOOL bIsWindowVisiable = FALSE;
         LPCTSTR lpCrLf = TEXT("\r\n");
@@ -288,7 +306,6 @@ public:
         if (bIsWindow)
         {
             bIsWindowVisiable = IsWindowVisible(m_hTargetWindow);
-            GetWindowText(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
 
             if (bIsWindowVisiable)
             {
@@ -306,18 +323,18 @@ public:
 
         // 
         wnsprintf(
-            m_nid.szTip,
-            RTL_NUMBER_OF(m_nid.szTip),
+            szTip,
+            RTL_NUMBER_OF(szTip),
             TEXT("SlxCom WindowManager\r\n")
             TEXT("窗口句柄：%#x\r\n")
             TEXT("窗口状态：%s\r\n")
             TEXT("窗口标题：%s"),
             m_hTargetWindow,
             szWindowStatus,
-            szWindowText
+            GetTargetWindowCaption().c_str()
             );
 
-        // 
+        return szTip;
     }
 
     static void DoPin(HWND hTargetWindow)
