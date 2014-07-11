@@ -2058,14 +2058,19 @@ unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault)
 
     unsigned __int64 nResult = 0;
 
-    while (*lpString != 0)
+    for (int i = 0; i < 20; i += 1)
     {
-        TCHAR ch = *lpString;
+        TCHAR ch = *lpString++;
 
-        if (*lpString >= TEXT('0') && *lpString <= TEXT('9'))
+        if (ch == TEXT('\0'))
+        {
+            break;
+        }
+
+        if (ch >= TEXT('0') && ch <= TEXT('9'))
         {
             nResult *= 10;
-            nResult += (*lpString - TEXT('0'));
+            nResult += (ch - TEXT('0'));
         }
         else
         {

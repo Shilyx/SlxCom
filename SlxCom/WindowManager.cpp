@@ -400,6 +400,9 @@ public:
                         DWORD dwValueSize = dwMaxValueNameLen;
                         DWORD dwDataSize = dwMaxDataLen;
 
+                        ZeroMemory(szValueName, dwMaxValueNameLen);
+                        ZeroMemory(szData, dwMaxDataLen);
+
                         if (ERROR_SUCCESS == RegEnumValue(
                             hKey,
                             dwIndex,
@@ -418,6 +421,10 @@ public:
                                 if (!IsWindow(hWnd))
                                 {
                                     setToDelete.insert(szValueName);
+                                }
+                                else
+                                {
+                                    result.insert(make_pair(hWnd, (TCHAR *)szData));
                                 }
                             }
                         }
