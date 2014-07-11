@@ -69,7 +69,6 @@ public:
         m_nid.uID = uId;
         m_nid.uCallbackMessage = WM_CALLBACK;
 
-        GetStableInfo();
         lstrcpyn(m_nid.szTip, GetTargetWindowBaseInfo().c_str(), RTL_NUMBER_OF(m_nid.szTip));
 
         m_hIcon = GetWindowIcon(m_hTargetWindow);
@@ -224,6 +223,7 @@ public:
             break;
 
         case CMD_DETAIL:
+            MessageBox(NULL, GetTargetWindowFullInfo().c_str(), TEXT("info"), MB_ICONINFORMATION | MB_TOPMOST);
             break;
 
         case CMD_DESTROYICON:
@@ -248,23 +248,71 @@ public:
         DestroyMenu(hMenu);
     }
 
-    void GetStableInfo()
+    tstring GetTargetWindowFullInfo()
     {
         LPCTSTR lpCrLf = TEXT("\r\n");
         tstringstream ss;
         DWORD dwProcessId = 0;
         DWORD dwThreadId = 0;
         TCHAR szClassName[1024] = TEXT("");
+        TCHAR szWindowText[1024] = TEXT("");
+        RECT rect = {0};
+        DWORD dwStyle = 0;
+        DWORD dwExStyle = 0;
 
-        dwThreadId = GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
-        GetClassName(m_hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
+        if (IsWindow(m_hTargetWindow))
+        {
+            dwThreadId = GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
+            GetClassName(m_hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
+            GetWindowText(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+            GetWindowRect(m_hTargetWindow, &rect);
+            dwStyle = (DWORD)GetWindowLongPtr(m_hTargetWindow, GWL_STYLE);
+            dwExStyle = (DWORD)GetWindowLongPtr(m_hTargetWindow, GWL_EXSTYLE);
+        }
 
-        ss<<TEXT("窗口句柄：0x")<<hex<<m_hTargetWindow<<lpCrLf;
+        ss<<TEXT("窗口句柄：0x")<<hex<<m_hTargetWindow;
+        if (!IsWindow(m_hTargetWindow))
+        {
+            ss<<TEXT("，无效");
+        }
+        else
+        {
+            if (IsWindowTopMost(m_hTargetWindow))
+            {
+                ss<<TEXT("，置顶");
+            }
+
+            if (IsWindowVisible(m_hTargetWindow))
+            {
+                ss<<TEXT("，可见");
+            }
+            else
+            {
+                ss<<TEXT("，隐藏");
+            }
+
+            if (IsZoomed(m_hTargetWindow))
+            {
+                ss<<TEXT("，最大化");
+            }
+
+            if (IsIconic(m_hTargetWindow))
+            {
+                ss<<TEXT("，最小化");
+            }
+        }
+        ss<<lpCrLf;
+
         ss<<TEXT("窗口类：")<<szClassName<<lpCrLf;
-        ss<<TEXT("线程id：0x")<<hex<<dwThreadId<<TEXT("")<<dec<<dwThreadId<<TEXT(")")<<lpCrLf;
-        ss<<TEXT("进程id：0x")<<hex<<dwProcessId<<TEXT("")<<dec<<dwProcessId<<TEXT(")")<<lpCrLf;
+        ss<<TEXT("窗口标题：")<<szWindowText<<lpCrLf;
+        ss<<TEXT("线程id：0x")<<hex<<dwThreadId<<TEXT("(")<<dec<<dwThreadId<<TEXT(")")<<lpCrLf;
+        ss<<TEXT("进程id：0x")<<hex<<dwProcessId<<TEXT("(")<<dec<<dwProcessId<<TEXT(")")<<lpCrLf;
+        ss<<TEXT("风格：0x")<<hex<<dwStyle<<lpCrLf;
+        ss<<TEXT("扩展风格：0x")<<hex<<dwExStyle<<lpCrLf;
+        ss<<TEXT("当前位置：")<<dec<<rect.left<<TEXT("，")<<rect.top<<TEXT("，")<<rect.right<<TEXT("，")<<rect.bottom<<lpCrLf;
+        ss<<TEXT("收纳于：")<<m_strCreateTime<<lpCrLf;
 
-        m_strBaseInfo = ss.str();
+        return ss.str();
     }
 
     void RefreshInfo()
@@ -574,7 +622,6 @@ private:
     HWND m_hManagerWindow;
     HWND m_hTargetWindow;
     NOTIFYICONDATA m_nid;
-    tstring m_strBaseInfo;
     HICON m_hIcon;
     HICON m_hIconSm;
     tstring m_strCreateTime;
