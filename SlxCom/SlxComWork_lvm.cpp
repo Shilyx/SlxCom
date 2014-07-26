@@ -8,41 +8,28 @@ LPCTSTR szClassName = TEXT("_______Slx___RnMgr___65_1");
 static WNDPROC lpOldEditProc = NULL;
 static WNDPROC lpOldListViewProc = NULL;
 
-int GetDotIndex(HWND hEdit)
+INT_PTR GetDotIndex(HWND hEdit)
 {
-    int nRet = -1;
-
     if (IsWindow(hEdit))
     {
-        LPCTSTR lpMark = TEXT(".tar.gz");
         TCHAR szWindowText[1000] = TEXT("");
         int nTextLength = GetWindowText(hEdit, szWindowText, RTL_NUMBER_OF(szWindowText));
-        int nMarkLength = lstrlen(lpMark);
 
-        if(nTextLength > nMarkLength)
+        INT_PTR nTar = (INT_PTR)StrRStrI(szWindowText, NULL, TEXT(".tar."));
+        INT_PTR nDot = (INT_PTR)StrRChr(szWindowText, NULL, TEXT('.'));
+
+        if (nTar != NULL && nDot - nTar == 4 * sizeof(TCHAR))
         {
-            if(lstrcmpi(szWindowText + nTextLength - nMarkLength, lpMark) == 0)
-            {
-                nRet = nTextLength - nMarkLength;
-            }
+            return (nTar - (INT_PTR)szWindowText) / sizeof(TCHAR);
         }
 
-        if(nRet == -1)
+        if (nDot != NULL)
         {
-            while(nTextLength > 0)
-            {
-                if(szWindowText[nTextLength] == TEXT('.'))
-                {
-                    nRet = nTextLength;
-                    break;
-                }
-
-                nTextLength -= 1;
-            }
+            return (nDot - (INT_PTR)szWindowText) / sizeof(TCHAR);
         }
     }
 
-    return nRet;
+    return -1;
 }
 
 LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -62,7 +49,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                     lstrcmpi(szParentClassName, TEXT("CtrlNotifySink")) == 0
                     )
                 {
-                    int nDotIndex = GetDotIndex(hwnd);
+                    INT_PTR nDotIndex = GetDotIndex(hwnd);
 
                     if (nDotIndex != -1)
                     {
@@ -102,7 +89,7 @@ LRESULT WINAPI NewListViewWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
     if(uMsg == LVM_GETEDITCONTROL)
     {
         HWND hEdit = (HWND)CallWindowProc(lpOldListViewProc, hwnd, uMsg, wParam, lParam);
-        int nDotIndex = GetDotIndex(hEdit);
+        INT_PTR nDotIndex = GetDotIndex(hEdit);
 
         if (nDotIndex != -1)
         {

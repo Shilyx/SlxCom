@@ -77,11 +77,11 @@ BOOL LoadWinTrustDll()
         return bResult;
     }
 
-    HMODULE hModule = GetModuleHandle(SP_POLICY_PROVIDER_DLL_NAME);
+    HMODULE hModule = GetModuleHandleW(SP_POLICY_PROVIDER_DLL_NAME);
 
     if(hModule == NULL)
     {
-        hModule = LoadLibrary(SP_POLICY_PROVIDER_DLL_NAME);
+        hModule = LoadLibraryW(SP_POLICY_PROVIDER_DLL_NAME);
     }
 
     if(hModule != NULL)
