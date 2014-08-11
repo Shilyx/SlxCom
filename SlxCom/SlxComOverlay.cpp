@@ -24,16 +24,28 @@ STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
 {
     if(riid == IID_IShellIconOverlayIdentifier)
     {
-        HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-        if(InterlockedCompareExchange((volatile LONG *)&m_hTaskEvent, (LONG)hEvent, NULL) != NULL)
+        if (g_osi.dwMajorVersion > 5)
         {
-            wnsprintf(m_szTaskRegPath, sizeof(m_szTaskRegPath) / sizeof(TCHAR), TEXT("Software\\Slx\\Tasks\\%lu"), GetCurrentProcessId());
+        }
+        else
+        {
+            HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-            HANDLE hThread = CreateThread(NULL, 0, CheckTaskProc, NULL, 0, NULL);
-            CloseHandle(hThread);
+#ifdef _WIN64
+            if (InterlockedCompareExchange64((volatile LONGLONG *)&m_hTaskEvent, (LONGLONG)hEvent, NULL) == NULL)
+#else
+            if (InterlockedCompareExchange((volatile LONG *)&m_hTaskEvent, (LONG)hEvent, NULL) == NULL)
+#endif
+            {
+                wnsprintf(m_szTaskRegPath, sizeof(m_szTaskRegPath) / sizeof(TCHAR), TEXT("Software\\Slx\\Tasks\\%lu"), GetCurrentProcessId());
 
-            CloseHandle(hEvent);
+                HANDLE hThread = CreateThread(NULL, 0, CheckTaskProc, NULL, 0, NULL);
+                CloseHandle(hThread);
+            }
+            else
+            {
+                CloseHandle(hEvent);
+            }
         }
 
         *ppv = static_cast<IShellIconOverlayIdentifier *>(this);
@@ -116,7 +128,11 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
                 else
                 {
                     SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
-                    SetEvent(m_hTaskEvent);
+
+                    if (m_hTaskEvent != NULL)
+                    {
+                        SetEvent(m_hTaskEvent);
+                    }
                 }
             }
         }
