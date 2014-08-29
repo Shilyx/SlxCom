@@ -13,3 +13,4 @@ BrowserLinkFilePosition
 UnlockFileFromPathW
 SlxPaintView
 SlxClipboard
+SlxWindowManagerProcessW

@@ -430,6 +430,10 @@
 				RelativePath=".\WindowManager.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\WindowManagerProcess.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -498,6 +502,10 @@
 			</File>
 			<File
 				RelativePath=".\WindowManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManagerProcess.h"
 				>
 			</File>
 		</Filter>
