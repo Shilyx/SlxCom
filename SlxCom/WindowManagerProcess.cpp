@@ -16,14 +16,19 @@ static enum
 
 static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode == HC_ACTION && wParam == WM_RBUTTONUP && lParam != 0 && GetKeyState(VK_CONTROL) < 0)
+    if (nCode == HC_ACTION && (wParam == WM_RBUTTONUP || wParam == WM_RBUTTONDOWN) && lParam != 0 && GetKeyState(VK_CONTROL) < 0)
     {
         LPMSLLHOOKSTRUCT lpMhs = (LPMSLLHOOKSTRUCT)lParam;
         HWND hTargetWindow = WindowFromPoint(lpMhs->pt);
 
-        if (IsWindow(hTargetWindow) && IsWindow(gs_hMainWindow))
+        if (IsWindow(hTargetWindow) && IsWindow(gs_hMainWindow) && gs_hMainWindow != hTargetWindow)
         {
-            PostMessage(gs_hMainWindow, WM_TASK, (WPARAM)hTargetWindow, MAKELONG(lpMhs->pt.x, lpMhs->pt.y));
+            if (wParam == WM_RBUTTONUP)
+            {
+                PostMessage(gs_hMainWindow, WM_TASK, (WPARAM)hTargetWindow, MAKELONG(lpMhs->pt.x, lpMhs->pt.y));
+            }
+
+            return 1;
         }
     }
 
@@ -32,15 +37,14 @@ static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
 
 static void DoTask(HWND hTargetWindow, int x, int y)
 {
-    DWORD_PTR dwResult = 0;
+    TCHAR szClassName[1024] = TEXT("");
+    TCHAR szWindowText[1024] = TEXT("");
 
-    if (SendMessageTimeout(hTargetWindow, WM_NCHITTEST, 0, MAKELONG(x, y), SMTO_ABORTIFHUNG, 345, &dwResult))
-    {
-        if (dwResult == HTCAPTION)
-        {
-            SafeDebugMessage(TEXT("%x, %d,%d\r\n"), hTargetWindow, x, y);
-        }
-    }
+    GetClassName(hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
+    GetWindowText(hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+
+    SafeDebugMessage(TEXT("%x[%s][%s], %d,%d\r\n"), hTargetWindow, szClassName, szWindowText, x, y);
+    SetForegroundWindow(gs_hMainWindow);
 }
 
 static LRESULT CALLBACK HookWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -96,31 +100,6 @@ static HWND CreateOneWindow(LPCTSTR lpWindowText)
     return hMainWnd;
 }
 
-static DWORD CALLBACK HookThreadProc(LPVOID lpParam)
-{
-    HWND hMainWnd = (HWND)lpParam;
-    HWND hSetHookWindow = CreateOneWindow(NULL);
-    HHOOK hHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, g_hinstDll, 0);
-    MSG msg;
-
-    while (TRUE)
-    {
-        int nRet = GetMessage(&msg, NULL, 0, 0);
-
-        if (nRet <= 0)
-        {
-            break;
-        }
-
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    UnhookWindowsHookEx(hHook);
-
-    return 0;
-}
-
 void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
 {
     int nArgCount = 0;
@@ -165,7 +144,7 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
     gs_hMainWindow = CreateOneWindow(CLASS_NAME);
 
     DWORD dwThreadId = 0;
-    HANDLE hThread = CreateThread(NULL, 0, HookThreadProc, NULL, 0, &dwThreadId);
+    HHOOK hHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, g_hinstDll, 0);
     MSG msg;
 
     while (TRUE)
@@ -189,11 +168,6 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
         DispatchMessage(&msg);
     }
 
-    PostThreadMessage(dwThreadId, WM_QUIT, 0, 0);
-
-    WaitForSingleObject(hThread, 333);
-    TerminateThread(hThread, 0);
-
-    CloseHandle(hThread);
+    UnhookWindowsHookEx(hHook);
     CloseHandle(hProcess);
 }
