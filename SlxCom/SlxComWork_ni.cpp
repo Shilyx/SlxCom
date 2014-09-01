@@ -265,6 +265,8 @@ public:
         case SYS_WINDOWMANAGER:
             MessageBox(
                 m_hWindow,
+                TEXT("窗口管理器可以快捷的管理各个顶层窗口（非子窗口），可以右击顶层窗口获得快捷菜单。\r\n")
+                TEXT("\r\n")
                 TEXT("窗口管理器可以将前端窗口最小化到系统托盘，快捷键为：\r\n")
                 TEXT("隐藏前端窗口到托盘，Alt+Ctrl(Shift)+H\r\n")
                 TEXT("置顶前端窗口，Alt+Ctrl(Shift)+T\r\n")

@@ -10,6 +10,8 @@
 
 using namespace std;
 
+extern HINSTANCE g_hinstDll;    //SlxCom.cpp
+
 #define NOTIFYWNDCLASS  TEXT("__slx_WindowManager_20140629")
 #define BASE_REG_PATH   TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager")
 #define RECORD_REG_PATH TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager\\Records")
@@ -52,6 +54,8 @@ class CNotifyClass
 public:
     CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCTSTR lpCreateTime, BOOL bShowBalloonThisTime)
     {
+        m_bUseNotifyIcon = uId > 0;
+
         if (lpCreateTime == NULL)
         {
             m_strCreateTime = GetCurrentTimeString();
@@ -63,55 +67,62 @@ public:
 
         m_hManagerWindow = hManagerWindow;
         m_hTargetWindow = hTargetWindow;
-        ZeroMemory(&m_nid, sizeof(m_nid));
-        m_nid.cbSize = sizeof(m_nid);
-        m_nid.hWnd = hManagerWindow;
-        m_nid.uID = uId;
-        m_nid.uCallbackMessage = WM_CALLBACK;
 
-        lstrcpyn(m_nid.szTip, GetTargetWindowBaseInfo().c_str(), RTL_NUMBER_OF(m_nid.szTip));
-
-        m_hIcon = GetWindowIcon(m_hTargetWindow);
-        m_hIconSm = GetWindowIconSmall(m_hTargetWindow);
-
-        if (m_hIcon == NULL)
+        if (m_bUseNotifyIcon)
         {
-            m_hIcon = LoadIcon(NULL, IDI_INFORMATION);
+            ZeroMemory(&m_nid, sizeof(m_nid));
+            m_nid.cbSize = sizeof(m_nid);
+            m_nid.hWnd = hManagerWindow;
+            m_nid.uID = uId;
+            m_nid.uCallbackMessage = WM_CALLBACK;
+
+            lstrcpyn(m_nid.szTip, GetTargetWindowBaseInfo().c_str(), RTL_NUMBER_OF(m_nid.szTip));
+
+            m_hIcon = GetWindowIcon(m_hTargetWindow);
+            m_hIconSm = GetWindowIconSmall(m_hTargetWindow);
+
+            if (m_hIcon == NULL)
+            {
+                m_hIcon = LoadIcon(NULL, IDI_INFORMATION);
+            }
+
+            if (m_hIconSm == NULL)
+            {
+                m_hIconSm = m_hIcon;
+            }
+
+            m_nid.hIcon = m_hIconSm;
+            m_nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
+
+            if (ms_bShowBalloon && bShowBalloonThisTime)
+            {
+                lstrcpyn(m_nid.szInfoTitle, TEXT("SlxCom WindowManager"), RTL_NUMBER_OF(m_nid.szInfoTitle));
+                wnsprintf(
+                    m_nid.szInfo,
+                    RTL_NUMBER_OF(m_nid.szInfo),
+                    TEXT("窗口“%s”（句柄：%#x）已被收纳。"),
+                    GetTargetWindowCaption().c_str(),
+                    hTargetWindow
+                    );
+
+                m_nid.uFlags |= NIF_INFO;
+            }
+
+            Shell_NotifyIcon(NIM_ADD, &m_nid);
+            m_nid.uFlags &= ~NIF_INFO;
+
+            RecordToRegistry();
         }
-
-        if (m_hIconSm == NULL)
-        {
-            m_hIconSm = m_hIcon;
-        }
-
-        m_nid.hIcon = m_hIconSm;
-        m_nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
-
-        if (ms_bShowBalloon && bShowBalloonThisTime)
-        {
-            lstrcpyn(m_nid.szInfoTitle, TEXT("SlxCom WindowManager"), RTL_NUMBER_OF(m_nid.szInfoTitle));
-            wnsprintf(
-                m_nid.szInfo,
-                RTL_NUMBER_OF(m_nid.szInfo),
-                TEXT("窗口“%s”（句柄：%#x）已被收纳。"),
-                GetTargetWindowCaption().c_str(),
-                hTargetWindow
-                );
-
-            m_nid.uFlags |= NIF_INFO;
-        }
-
-        Shell_NotifyIcon(NIM_ADD, &m_nid);
-        m_nid.uFlags &= ~NIF_INFO;
-
-        RecordToRegistry();
     }
 
     ~CNotifyClass()
     {
-        Shell_NotifyIcon(NIM_DELETE, &m_nid);
-        ReleaseTargetWindow();
-        RemoveFromRegistry();
+        if (m_bUseNotifyIcon)
+        {
+            Shell_NotifyIcon(NIM_DELETE, &m_nid);
+            ReleaseTargetWindow();
+            RemoveFromRegistry();
+        }
     }
 
 public:
@@ -151,22 +162,30 @@ public:
         HMENU hPopupMenu = CreatePopupMenu();
 
         AppendMenu(hMenu, MF_STRING, CMD_ABOUT, TEXT("关于SlxCom(&A)..."));
-        AppendMenu(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, TEXT("被控窗口可见后销毁托盘图标(&A)"));
-        AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
-        AppendMenu(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, TEXT("窗口最小化时候自动进入托盘(&M)"));
-        AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("全局配置(&G)"));
         AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)\tAlt+Ctrl(Shift)+T"));
         AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)\tAlt+Ctrl(Shift)+H"));
-        AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(hMenu, MF_STRING, CMD_DETAIL, TEXT("显示窗口信息(&D)"));
-        AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("销毁此图标(&Y)"));
 
-        CheckMenuItemHelper(hPopupMenu, CMD_DESTROYONSHOW, MF_BYCOMMAND, ms_bDestroyOnShow);
-        CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
-        CheckMenuItemHelper(hPopupMenu, CMD_HIDEONMINIMAZE, MF_BYCOMMAND, ms_bHideOnMinimaze);
+        if (m_bUseNotifyIcon)
+        {
+            AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+            AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("销毁此图标(&Y)"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, TEXT("被控窗口可见后销毁托盘图标(&A)"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, TEXT("窗口最小化时候自动进入托盘(&M)"));
+            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("全局配置(&G)"));
+        }
+
         CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
         SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
+
+        if (m_bUseNotifyIcon)
+        {
+            CheckMenuItemHelper(hPopupMenu, CMD_DESTROYONSHOW, MF_BYCOMMAND, ms_bDestroyOnShow);
+            CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
+            CheckMenuItemHelper(hPopupMenu, CMD_HIDEONMINIMAZE, MF_BYCOMMAND, ms_bHideOnMinimaze);
+        }
 
         if (IsWindow(m_hTargetWindow))
         {
@@ -227,22 +246,16 @@ public:
             break;
 
         case CMD_DESTROYICON:
-//             if (IsWindow(m_hTargetWindow) &&
-//                 !IsWindowVisible(m_hTargetWindow) &&
-//                 IDYES == MessageBox(
-//                     m_hTargetWindow,
-//                     TEXT("被管理的窗口当前不可见，是否要先将其显示出来？"),
-//                     TEXT("请确认"),
-//                     MB_ICONQUESTION | MB_YESNO | MB_TOPMOST
-//                 ))
-//             {
-//                 ShowWindow(m_hTargetWindow, SW_SHOW);
-//             }
             PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
             break;
 
         default:
             break;
+        }
+
+        if (!IsWindow(m_hTargetWindow))
+        {
+            DestroyMenu(hPopupMenu);
         }
 
         DestroyMenu(hMenu);
@@ -391,7 +404,7 @@ public:
     }
 
     // 得到一个当前可捕获的窗口
-    // 满足条件：非桌面，是最前的，不在同一进程内，或在统一进程内但可最小化的
+    // 满足条件：非桌面，是最前的，不在同一进程内，或在同一进程内但可最小化的
     static HWND GetCaptureableWindow()
     {
         HWND hTargetWindow = GetForegroundWindow();
@@ -619,6 +632,7 @@ private:
     }
 
 private:
+    BOOL m_bUseNotifyIcon;
     HWND m_hManagerWindow;
     HWND m_hTargetWindow;
     NOTIFYICONDATA m_nid;
@@ -703,6 +717,16 @@ public:
 
     void Run()
     {
+        // 启动钩子进程
+        TCHAR szCmd[MAX_PATH * 2 + 1024] = TEXT("");
+        TCHAR szDllPath[MAX_PATH] = TEXT("");
+
+        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        wnsprintf(szCmd, RTL_NUMBER_OF(szCmd), TEXT("rundll32.exe \"%s\" SlxWindowManagerProcess %lu %lu"), szDllPath, GetCurrentProcessId(), m_hWindow);
+
+        RunCommand(szCmd, NULL);
+
+        // 消息循环
         MSG msg;
 
         while (TRUE)
@@ -761,6 +785,11 @@ private:
         }
     }
 
+    void DoScreenContextMenu(HWND hTargetWindow, int x, int y)
+    {
+        CNotifyClass(m_hWindow, hTargetWindow, 0, NULL, FALSE).DoContextMenu(x, y);
+    }
+
     void DoAdd()
     {
         HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
@@ -804,6 +833,10 @@ private:
             SetTimer(hWnd, ID_CHECK, 1888, NULL);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)((LPCREATESTRUCT)lParam)->lpCreateParams);
             return 0;
+
+        case WM_SCREEN_CONTEXT_MENU:
+            GetManagerClass(hWnd)->DoScreenContextMenu((HWND)wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            break;
 
         case WM_TIMER:
             if (wParam == ID_CHECK)
