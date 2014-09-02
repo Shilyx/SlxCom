@@ -18,12 +18,18 @@ static enum
 
 static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode == HC_ACTION && (wParam == WM_RBUTTONUP || wParam == WM_RBUTTONDOWN) && lParam != 0 && GetKeyState(VK_CONTROL) < 0)
+    if (nCode == HC_ACTION &&
+        (wParam == WM_RBUTTONUP || wParam == WM_RBUTTONDOWN) &&
+        lParam != 0 &&
+        GetKeyState(VK_CONTROL) < 0 &&
+        IsWindow(gs_hSlxComWindowManagerWindow) &&
+        gs_dwSlxComWindowManagerWindowProcessId != 0 &&
+        IsWindow(gs_hMainWindow))
     {
         LPMSLLHOOKSTRUCT lpMhs = (LPMSLLHOOKSTRUCT)lParam;
         HWND hTargetWindow = WindowFromPoint(lpMhs->pt);
 
-        if (IsWindow(hTargetWindow) && IsWindow(gs_hMainWindow) && gs_hMainWindow != hTargetWindow)
+        if (IsWindow(hTargetWindow) && gs_hMainWindow != hTargetWindow)
         {
             if (wParam == WM_RBUTTONUP)
             {
@@ -89,18 +95,15 @@ static void DoTask(HWND hTargetWindow, int x, int y)
 
     if (!IsWindow(FindWindow(TEXT("#32768"), NULL)))
     {
-        DWORD dwStyle = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
+        LONG_PTR dwStyle = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
 
         if ((dwStyle & WS_CHILDWINDOW) == 0)
         {
-            if (IsWindow(gs_hSlxComWindowManagerWindow) && gs_dwSlxComWindowManagerWindowProcessId != 0)
+            if (AdvancedSetForegroundWindow(gs_hMainWindow))
             {
-                if (AdvancedSetForegroundWindow(gs_hMainWindow))
+                if (AllowSetForegroundWindow(gs_dwSlxComWindowManagerWindowProcessId))
                 {
-                    if (AllowSetForegroundWindow(gs_dwSlxComWindowManagerWindowProcessId))
-                    {
-                        PostMessage(gs_hSlxComWindowManagerWindow, WM_SCREEN_CONTEXT_MENU, (WPARAM)hTargetWindow, MAKELONG(x, y));
-                    }
+                    PostMessage(gs_hSlxComWindowManagerWindow, WM_SCREEN_CONTEXT_MENU, (WPARAM)hTargetWindow, MAKELONG(x, y));
                 }
             }
         }
