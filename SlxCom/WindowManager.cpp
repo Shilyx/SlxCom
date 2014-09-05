@@ -39,14 +39,30 @@ static enum
 
 static enum
 {
-    CMD_ABOUT = 1,
-    CMD_DESTROYONSHOW,
-    CMD_SHOWBALLOON,
-    CMD_HIDEONMINIMAZE,
-    CMD_PINWINDOW,
-    CMD_SWITCHVISIABLE,
-    CMD_DETAIL,
-    CMD_DESTROYICON,
+    CMD_ABOUT = 1,          // 关于
+    CMD_DESTROYONSHOW,      // 控制是否在窗口显示时销毁托盘图标
+    CMD_SHOWBALLOON,        // 控制是否显示气球
+    CMD_HIDEONMINIMAZE,     // 控制是否在最小化时自动隐藏
+    CMD_PINWINDOW,          // 指定窗口
+    CMD_SWITCHVISIABLE,     // 显示或隐藏窗口
+    CMD_DETAIL,             // 查看窗口详细信息
+    CMD_DESTROYICON,        // 销毁托盘图标
+
+    CMD_ADD_WINDOW,         // 收纳窗口
+    CMD_HIDE_WINDOW,        // 收纳并隐藏窗口
+    CMD_COPY_HWNDVALUE,     // 复制到剪贴板，句柄值
+    CMD_COPY_CLASSNAME,     // 复制到剪贴板，窗口类名
+    CMD_COPY_WINDOWTEXT,    // 复制到剪贴板，窗口标题
+    CMD_COPY_CHILDTREE,     // 复制到剪贴板，子窗口树
+    CMD_COPY_PROCESSID,     // 复制到剪贴板，进程id
+    CMD_COPY_IMAGEPATH,     // 复制到剪贴板，进程路径
+    CMD_COPY_IMAGENAME,     // 复制到剪贴板，进程名
+    CMD_COPY_THREADID,      // 复制到剪贴板，线程id
+    CMD_ALPHA_100,          // 不透明度，100%
+    CMD_ALPHA_80,           // 不透明度，80%
+    CMD_ALPHA_60,           // 不透明度，60%
+    CMD_ALPHA_40,           // 不透明度，40%
+    CMD_ALPHA_20,           // 不透明度，20%
 };
 
 class CNotifyClass
