@@ -163,18 +163,21 @@ public:
 
         AppendMenu(hMenu, MF_STRING, CMD_ABOUT, TEXT("关于SlxCom(&A)..."));
         AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-        AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)\tAlt+Ctrl(Shift)+T"));
-        AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)\tAlt+Ctrl(Shift)+H"));
         AppendMenu(hMenu, MF_STRING, CMD_DETAIL, TEXT("显示窗口信息(&D)"));
+        AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)\tAlt+Ctrl(Shift)+T"));
 
         if (m_bUseNotifyIcon)
         {
             AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-            AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("销毁此图标(&Y)"));
+            AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)\tAlt+Ctrl(Shift)+H"));
+            AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("移除托盘图标(&Y)"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, TEXT("被控窗口可见后销毁托盘图标(&A)"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, TEXT("窗口最小化时候自动进入托盘(&M)"));
-            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("全局配置(&G)"));
+            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("SlxCom托盘图标管理器全局配置(&G)"));
+        }
+        else
+        {
         }
 
         CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
@@ -785,11 +788,6 @@ private:
         }
     }
 
-    void DoScreenContextMenu(HWND hTargetWindow, int x, int y)
-    {
-        CNotifyClass(m_hWindow, hTargetWindow, 0, NULL, FALSE).DoContextMenu(x, y);
-    }
-
     void DoAdd()
     {
         HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
@@ -835,7 +833,22 @@ private:
             return 0;
 
         case WM_SCREEN_CONTEXT_MENU:
-            GetManagerClass(hWnd)->DoScreenContextMenu((HWND)wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            if (wParam != 0)
+            {
+                HWND hTargetWindow = (HWND)wParam;
+                CWindowManager *pWindowManager = GetManagerClass(hWnd);
+                int x = GET_X_LPARAM(lParam);
+                int y = GET_Y_LPARAM(lParam);
+
+                if (pWindowManager->m_mapNotifyClassesByWindow.count(hTargetWindow) > 0)
+                {
+                    pWindowManager->m_mapNotifyClassesByWindow[hTargetWindow]->DoContextMenu(x, y);
+                }
+                else
+                {
+                    CNotifyClass(pWindowManager->m_hWindow, hTargetWindow, 0, NULL, FALSE).DoContextMenu(x, y);
+                }
+            }
             break;
 
         case WM_TIMER:
