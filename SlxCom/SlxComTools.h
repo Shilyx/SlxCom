@@ -64,6 +64,7 @@ DWORD CheckMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bChecked);
 DWORD EnableMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bEnabled);
 BOOL IsWindowTopMost(HWND hWindow);
 unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault);
+BOOL AdvancedSetForegroundWindow(HWND hWindow);
 
 std::tstring GetCurrentTimeString();
 std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);

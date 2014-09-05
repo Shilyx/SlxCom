@@ -43,46 +43,6 @@ static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-static BOOL AdvancedSetForegroundWindow(HWND hWindow)
-{
-    HWND hForegroundWindow = GetForegroundWindow();
-
-    if (hWindow == hForegroundWindow)
-    {
-        return TRUE;
-    }
-
-    if (!IsWindow(hForegroundWindow) || !IsWindow(hWindow))
-    {
-        return FALSE;
-    }
-
-    BOOL bSucceed = FALSE;
-    DWORD dwSrcProcessId = 0;
-    DWORD dwDestProcessId = 0;
-    DWORD dwSrcThreadId = GetWindowThreadProcessId(hWindow, &dwSrcProcessId);
-    DWORD dwDestThreadId = GetWindowThreadProcessId(hForegroundWindow, &dwDestProcessId);
-
-    if (dwSrcThreadId == 0 || dwDestThreadId == 0)
-    {
-        return FALSE;
-    }
-
-    if (dwSrcProcessId != dwDestProcessId)
-    {
-        AttachThreadInput(dwSrcThreadId, dwDestThreadId, TRUE);
-    }
-
-    bSucceed = SetForegroundWindow(hWindow);
-
-    if (dwSrcProcessId != dwDestProcessId)
-    {
-        AttachThreadInput(dwSrcThreadId, dwDestThreadId, FALSE);
-    }
-
-    return bSucceed;
-}
-
 static void DoTask(HWND hTargetWindow, int x, int y)
 {
     TCHAR szClassName[1024] = TEXT("");
