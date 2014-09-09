@@ -175,6 +175,7 @@ public:
 
     void DoContextMenu(int x, int y)
     {
+        TCHAR szSimpleText[8192] = TEXT("");
         HMENU hMenu = CreatePopupMenu();
         HMENU hPopupMenu = CreatePopupMenu();
 
@@ -303,27 +304,43 @@ public:
             break;
 
         case CMD_COPY_HWNDVALUE:
+            SetClipboardText(AnyTypeToString((const void *)m_hTargetWindow).c_str());
             break;
 
         case CMD_COPY_CLASSNAME:
+            GetClassName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
+            SetClipboardText(szSimpleText);
             break;
 
         case CMD_COPY_WINDOWTEXT:
+            GetWindowText(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
+            SetClipboardText(szSimpleText);
             break;
 
         case CMD_COPY_CHILDTREE:
             break;
 
         case CMD_COPY_PROCESSID:
+            {
+                DWORD dwProcessId = 0;
+
+                GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
+                SetClipboardText(AnyTypeToString(dwProcessId).c_str());
+            }
             break;
 
         case CMD_COPY_IMAGEPATH:
+            GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
+            SetClipboardText(szSimpleText);
             break;
 
         case CMD_COPY_IMAGENAME:
+            GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
+            SetClipboardText(PathFindFileName(szSimpleText));
             break;
 
         case CMD_COPY_THREADID:
+            SetClipboardText(AnyTypeToString(GetWindowThreadProcessId(m_hTargetWindow, NULL)).c_str());
             break;
 
         case CMD_ALPHA_100:
@@ -347,15 +364,11 @@ public:
             break;
 
         case CMD_OPEN_IMAGE_PATH:
+            if (GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText)) > 0)
             {
-                TCHAR szWindowModuleFileName[MAX_PATH] = TEXT("");
-
-                if (GetWindowImageFileName(m_hTargetWindow, szWindowModuleFileName, RTL_NUMBER_OF(szWindowModuleFileName)) > 0)
+                if (PathFileExists(szSimpleText))
                 {
-                    if (PathFileExists(szWindowModuleFileName))
-                    {
-                        BrowseForFile(szWindowModuleFileName);
-                    }
+                    BrowseForFile(szSimpleText);
                 }
             }
             break;

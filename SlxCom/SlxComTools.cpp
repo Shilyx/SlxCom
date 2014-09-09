@@ -2151,12 +2151,12 @@ BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize)
 
 BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue)
 {
-    DWORD dwExStyle = GetWindowLongPtr(hWindow, GWL_EXSTYLE);
+    DWORD dwExStyle = (DWORD)GetWindowLongPtr(hWindow, GWL_EXSTYLE);
 
     if ((dwExStyle & WS_EX_LAYERED) == 0)
     {
         SetWindowLongPtr(hWindow, GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
-        dwExStyle = GetWindowLongPtr(hWindow, GWL_EXSTYLE);
+        dwExStyle = (DWORD)GetWindowLongPtr(hWindow, GWL_EXSTYLE);
     }
 
     if ((dwExStyle & WS_EX_LAYERED) == 0)

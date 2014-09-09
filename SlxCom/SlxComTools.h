@@ -82,4 +82,20 @@ std::tstring GetCurrentTimeString();
 std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);
 std::tstring GetDesktopName(HDESK hDesktop);
 
+template <class T>
+std::tstring AnyTypeToString(const T &value)
+{
+    std::tstringstream ss;
+
+    ss<<value;
+
+    return ss.str();
+}
+
+template <>
+inline std::tstring AnyTypeToString(const std::tstring &value)
+{
+    return value;
+}
+
 #endif
