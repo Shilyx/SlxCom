@@ -63,6 +63,7 @@ static enum
     CMD_ALPHA_60,           // 不透明度，60%
     CMD_ALPHA_40,           // 不透明度，40%
     CMD_ALPHA_20,           // 不透明度，20%
+    CMD_OPEN_IMAGE_PATH,    // 打开进程所在目录
 };
 
 class CNotifyClass
@@ -191,20 +192,47 @@ public:
             AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, TEXT("窗口最小化时候自动进入托盘(&M)"));
             AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("SlxCom托盘图标管理器全局配置(&G)"));
-        }
-        else
-        {
-        }
 
-        CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
-        SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
-
-        if (m_bUseNotifyIcon)
-        {
             CheckMenuItemHelper(hPopupMenu, CMD_DESTROYONSHOW, MF_BYCOMMAND, ms_bDestroyOnShow);
             CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
             CheckMenuItemHelper(hPopupMenu, CMD_HIDEONMINIMAZE, MF_BYCOMMAND, ms_bHideOnMinimaze);
+            SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
         }
+        else
+        {
+            AppendMenu(hMenu, MF_STRING, CMD_ADD_WINDOW, TEXT("收纳窗口(&C)\tAlt+Ctrl(Shift)+C"));
+            AppendMenu(hMenu, MF_STRING, CMD_HIDE_WINDOW, TEXT("收纳并隐藏窗口(&S)\tAlt+Ctrl(Shift)+H"));
+            SetMenuDefaultItem(hMenu, CMD_HIDE_WINDOW, MF_BYCOMMAND);
+        }
+
+        AppendMenu(hMenu, MF_STRING, CMD_OPEN_IMAGE_PATH, TEXT("打开窗口进程所在的目录"));
+
+        {
+            HMENU hPopupMenu = CreatePopupMenu();
+
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_HWNDVALUE,  TEXT("窗口句柄值"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_CLASSNAME,  TEXT("窗口类名"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_WINDOWTEXT, TEXT("窗口标题"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_CHILDTREE,  TEXT("整个窗口树"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_PROCESSID,  TEXT("进程id"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_IMAGEPATH,  TEXT("进程路径"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_IMAGENAME,  TEXT("进程名"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_THREADID,   TEXT("线程id"));
+            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("复制到剪贴板(&C)"));
+        }
+
+        {
+            HMENU hPopupMenu = CreatePopupMenu();
+
+            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_100, TEXT("100%"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_80,  TEXT("80%"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_60,  TEXT("60%"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_40,  TEXT("40"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_20,  TEXT("20%"));
+            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("不透明度(&A)"));
+        }
+
+        CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
 
         if (IsWindow(m_hTargetWindow))
         {
@@ -266,6 +294,20 @@ public:
 
         case CMD_DESTROYICON:
             PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
+            break;
+
+        case CMD_OPEN_IMAGE_PATH:
+            {
+                TCHAR szWindowModuleFileName[MAX_PATH] = TEXT("");
+
+                if (GetWindowImageFileName(m_hTargetWindow, szWindowModuleFileName, RTL_NUMBER_OF(szWindowModuleFileName)) > 0)
+                {
+                    if (PathFileExists(szWindowModuleFileName))
+                    {
+                        BrowseForFile(szWindowModuleFileName);
+                    }
+                }
+            }
             break;
 
         default:

@@ -7,6 +7,7 @@
 #include "resource.h"
 #include "lib/deelx.h"
 #include <TlHelp32.h>
+#include <PsApi.h>
 #include <shlobj.h>
 #pragma warning(disable: 4786)
 #include <set>
@@ -17,6 +18,7 @@
 using namespace std;
 
 #pragma comment(lib, "Wintrust.lib")
+#pragma comment(lib, "PsApi.lib")
 
 typedef HANDLE HCATADMIN;
 typedef HANDLE HCATINFO;
@@ -1521,6 +1523,8 @@ BOOL KillAllExplorers()
 
             } while (Process32Next(hSnapshot, &pe32));
         }
+
+        CloseHandle(hSnapshot);
     }
 
     set<DWORD>::iterator it = setExplorers.begin();
@@ -2119,6 +2123,30 @@ BOOL AdvancedSetForegroundWindow(HWND hWindow)
     }
 
     return bSucceed;
+}
+
+BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize)
+{
+    DWORD dwProcessId = 0;
+
+    GetWindowThreadProcessId(hWindow, &dwProcessId);
+
+    if (dwProcessId == 0)
+    {
+        return FALSE;
+    }
+
+    BOOL bRet = FALSE;
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
+
+    if (hProcess != NULL)
+    {
+        bRet = GetModuleFileNameEx(hProcess, NULL, lpBuffer, uBufferSize) > 0;
+
+        CloseHandle(hProcess);
+    }
+
+    return bRet;
 }
 
 tstring GetCurrentTimeString()
