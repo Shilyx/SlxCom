@@ -2149,6 +2149,24 @@ BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize)
     return bRet;
 }
 
+BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue)
+{
+    DWORD dwExStyle = GetWindowLongPtr(hWindow, GWL_EXSTYLE);
+
+    if ((dwExStyle & WS_EX_LAYERED) == 0)
+    {
+        SetWindowLongPtr(hWindow, GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
+        dwExStyle = GetWindowLongPtr(hWindow, GWL_EXSTYLE);
+    }
+
+    if ((dwExStyle & WS_EX_LAYERED) == 0)
+    {
+        return FALSE;
+    }
+
+    return SetLayeredWindowAttributes(hWindow, 0, (BYTE)nValue, LWA_ALPHA);
+}
+
 tstring GetCurrentTimeString()
 {
     TCHAR szTime[32] = TEXT("");

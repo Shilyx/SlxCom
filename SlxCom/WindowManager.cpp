@@ -227,7 +227,7 @@ public:
             AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_100, TEXT("100%"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_80,  TEXT("80%"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_60,  TEXT("60%"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_40,  TEXT("40"));
+            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_40,  TEXT("40%"));
             AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_20,  TEXT("20%"));
             AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("²»Í¸Ã÷¶È(&A)"));
         }
@@ -294,6 +294,56 @@ public:
 
         case CMD_DESTROYICON:
             PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
+            break;
+
+        case CMD_ADD_WINDOW:
+            break;
+
+        case CMD_HIDE_WINDOW:
+            break;
+
+        case CMD_COPY_HWNDVALUE:
+            break;
+
+        case CMD_COPY_CLASSNAME:
+            break;
+
+        case CMD_COPY_WINDOWTEXT:
+            break;
+
+        case CMD_COPY_CHILDTREE:
+            break;
+
+        case CMD_COPY_PROCESSID:
+            break;
+
+        case CMD_COPY_IMAGEPATH:
+            break;
+
+        case CMD_COPY_IMAGENAME:
+            break;
+
+        case CMD_COPY_THREADID:
+            break;
+
+        case CMD_ALPHA_100:
+            SetWindowUnalphaValue(m_hTargetWindow, WUV100);
+            break;
+
+        case CMD_ALPHA_80:
+            SetWindowUnalphaValue(m_hTargetWindow, WUV80);
+            break;
+
+        case CMD_ALPHA_60:
+            SetWindowUnalphaValue(m_hTargetWindow, WUV60);
+            break;
+
+        case CMD_ALPHA_40:
+            SetWindowUnalphaValue(m_hTargetWindow, WUV40);
+            break;
+
+        case CMD_ALPHA_20:
+            SetWindowUnalphaValue(m_hTargetWindow, WUV20);
             break;
 
         case CMD_OPEN_IMAGE_PATH:

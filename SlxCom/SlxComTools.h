@@ -67,6 +67,17 @@ unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault);
 BOOL AdvancedSetForegroundWindow(HWND hWindow);
 BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize);
 
+enum WindowUnalphaValue
+{
+    WUV100 = 255,
+    WUV80 = 204,
+    WUV60 = 153,
+    WUV40 = 102,
+    WUV20 = 51,
+};
+
+BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue);
+
 std::tstring GetCurrentTimeString();
 std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);
 std::tstring GetDesktopName(HDESK hDesktop);
