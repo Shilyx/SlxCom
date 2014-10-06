@@ -2149,6 +2149,26 @@ BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize)
     return bRet;
 }
 
+BOOL IsWindowFullScreen(HWND hWindow)
+{
+    RECT rect = {0};
+
+    if (!IsWindow(hWindow))
+    {
+        return FALSE;
+    }
+
+    GetWindowRect(hWindow, &rect);
+
+    if (GetSystemMetrics(SM_CXSCREEN) == rect.right - rect.left &&
+        GetSystemMetrics(SM_CYSCREEN) == rect.bottom - rect.top)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue)
 {
     DWORD dwExStyle = (DWORD)GetWindowLongPtr(hWindow, GWL_EXSTYLE);

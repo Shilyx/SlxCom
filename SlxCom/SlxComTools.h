@@ -66,6 +66,7 @@ BOOL IsWindowTopMost(HWND hWindow);
 unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault);
 BOOL AdvancedSetForegroundWindow(HWND hWindow);
 BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize);
+BOOL IsWindowFullScreen(HWND hWindow);
 
 enum WindowUnalphaValue
 {

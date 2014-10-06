@@ -53,7 +53,8 @@ static void DoTask(HWND hTargetWindow, int x, int y)
 
     SafeDebugMessage(TEXT("%x[%s][%s], %d,%d\r\n"), hTargetWindow, szClassName, szWindowText, x, y);
 
-    if (!IsWindow(FindWindow(TEXT("#32768"), NULL)))
+    if (!IsWindow(FindWindow(TEXT("#32768"), NULL)) &&
+        !IsWindowFullScreen(hTargetWindow))
     {
         LONG_PTR dwStyle = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
 
