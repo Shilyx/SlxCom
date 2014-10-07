@@ -40,6 +40,9 @@ HBITMAP g_hDriverBmp = NULL;
 HBITMAP g_hUnlockFileBmp = NULL;
 HBITMAP g_hCopyPictureHtmlBmp = NULL;
 OSVERSIONINFO g_osi = {sizeof(g_osi)};
+BOOL g_bVistaLater = FALSE;
+BOOL g_bXPLater = FALSE;
+BOOL g_bElevated = FALSE;
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
@@ -69,6 +72,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
     if(dwReason == DLL_PROCESS_ATTACH)
     {
         GetVersionEx(&g_osi);
+
+        g_bVistaLater = g_osi.dwMajorVersion >= 6;
+        g_bXPLater = g_bVistaLater || (g_osi.dwMajorVersion == 5 && g_osi.dwMinorVersion >= 1);
+        g_bElevated = IsAdminMode();
 
         if(IsExplorer())
         {
@@ -269,7 +276,7 @@ STDAPI DllRegisterServer(void)
 
     if (nSumValue > 2)
     {
-        if (g_osi.dwMajorVersion >= 6 && !IsAdminMode())
+        if (g_osi.dwMajorVersion >= 6 && !g_bElevated)
         {
             if (IDYES == MessageBox(
                 NULL,
@@ -355,7 +362,7 @@ STDAPI DllUnregisterServer(void)
 
     if (nSumValue != ERROR_SUCCESS)
     {
-        if (g_osi.dwMajorVersion >= 6 && !IsAdminMode())
+        if (g_osi.dwMajorVersion >= 6 && !g_bElevated)
         {
             if (IDYES == MessageBox(
                 NULL,
