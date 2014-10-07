@@ -526,6 +526,17 @@ BOOL RunCommandWithArguments(LPCTSTR lpFile)
     return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
+BOOL RunCommandEx(LPCTSTR lpApplication, LPCTSTR lpArguments, LPCTSTR lpCurrentDirectory, BOOL bElevate)
+{
+    return (int)ShellExecute(
+        NULL,
+        bElevate ? TEXT("runas") : TEXT("open"),
+        lpApplication,
+        lpArguments,
+        lpCurrentDirectory,
+        SW_SHOW) > 32;
+}
+
 struct BrowserForRegPathParam
 {
     HANDLE hProcess;

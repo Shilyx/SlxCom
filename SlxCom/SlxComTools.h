@@ -29,6 +29,7 @@ LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
 BOOL SetClipboardText(LPCTSTR lpText);
 BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCTSTR lpFile);
+BOOL RunCommandEx(LPCTSTR lpApplication, LPCTSTR lpArguments, LPCTSTR lpCurrentDirectory, BOOL bElevate);
 BOOL BrowseForRegPath(LPCTSTR lpRegPath);
 BOOL BrowseForFile(LPCTSTR lpFile);
 BOOL IsExplorer();

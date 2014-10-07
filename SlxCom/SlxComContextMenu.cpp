@@ -36,6 +36,8 @@ extern HBITMAP g_hAppPathBmp;
 extern HBITMAP g_hDriverBmp;
 extern HBITMAP g_hUnlockFileBmp;
 extern HBITMAP g_hCopyPictureHtmlBmp;
+extern BOOL g_bVistaLater;
+extern BOOL g_bElevated;
 
 volatile HANDLE m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -822,14 +824,20 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_RUNCMDHERE:
     {
-        TCHAR szCommand[MAX_PATH * 2] = TEXT("");
+        TCHAR szApplication[MAX_PATH * 2] = TEXT("");
+        TCHAR szArgument[MAX_PATH * 2] = TEXT("/k pushd ");
 
-        GetEnvironmentVariable(TEXT("ComSpec"), szCommand, MAX_PATH);
+        GetEnvironmentVariable(TEXT("ComSpec"), szApplication, MAX_PATH);
+        StrCatBuff(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
 
-        lstrcat(szCommand, TEXT(" /k pushd "));
-        lstrcat(szCommand, m_pFiles[0].szPath);
-
-        RunCommand(szCommand, NULL);
+        if (GetKeyState(VK_CONTROL) < 0 && g_bVistaLater && !g_bElevated)
+        {
+            RunCommandEx(szApplication, szArgument, NULL, TRUE);
+        }
+        else
+        {
+            RunCommandEx(szApplication, szArgument, NULL, FALSE);
+        }
 
         break;
     }
