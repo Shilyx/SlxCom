@@ -717,44 +717,30 @@ BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
 
         if (SUCCEEDED(SHGetDesktopFolder(&pDesktopFolder)))
         {
-            LPCITEMIDLIST pidlFolder = NULL;
             LPCITEMIDLIST pidlFile = NULL;
             LPITEMIDLIST pidl = NULL;
             WCHAR szFile[MAX_PATH] = {0};
-            WCHAR szPath[MAX_PATH] = {0};
 
             lstrcpynW(szFile, TtoW(lpFile).c_str(), RTL_NUMBER_OF(szFile));
-            lstrcpynW(szPath, szFile, RTL_NUMBER_OF(szPath));
-            PathRemoveFileSpecW(szPath);
 
-            if (SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, szPath, NULL, &pidl, NULL)))
+            if (SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, szFile, NULL, &pidl, NULL)))
             {
-                pidlFolder = pidl;
+                pidlFile = pidl;
 
-                if (SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, szFile, NULL, &pidl, NULL)))
+                int nTryCount = 0;
+                while (!IsWindow(GetTrayNotifyWndInProcess()))
                 {
-                    pidlFile = pidl;
+                    Sleep(107);
+                    nTryCount += 1;
 
-                    int nTryCount = 0;
-                    while (!IsWindow(GetTrayNotifyWndInProcess()))
+                    if (nTryCount > 17)
                     {
-                        Sleep(107);
-                        nTryCount += 1;
-
-                        if (nTryCount > 17)
-                        {
-                            break;
-                        }
+                        break;
                     }
-
-                    CoInitialize(NULL);
-                    bResult = SUCCEEDED(pSHOpenFolderAndSelectItems(pidlFolder, 1, &pidlFile, 0));
                 }
-            }
 
-            if (pidlFolder != NULL)
-            {
-                CoTaskMemFree((void*)pidlFolder);
+                CoInitialize(NULL);
+                bResult = SUCCEEDED(pSHOpenFolderAndSelectItems(pidlFile, 0, NULL, 0));
             }
 
             if (pidlFile != NULL)
