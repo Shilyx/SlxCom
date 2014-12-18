@@ -64,6 +64,7 @@ static enum
     CMD_ALPHA_40,           // 不透明度，40%
     CMD_ALPHA_20,           // 不透明度，20%
     CMD_OPEN_IMAGE_PATH,    // 打开进程所在目录
+    CMD_KILL_WINDOW_PROCESS,// 杀死窗口进程
 };
 
 class CNotifyClass
@@ -203,10 +204,10 @@ public:
         {
             AppendMenu(hMenu, MF_STRING, CMD_ADD_WINDOW, TEXT("收纳窗口(&C)\tAlt+Ctrl(Shift)+C"));
             AppendMenu(hMenu, MF_STRING, CMD_HIDE_WINDOW, TEXT("收纳并隐藏窗口(&S)\tAlt+Ctrl(Shift)+H"));
-            SetMenuDefaultItem(hMenu, CMD_HIDE_WINDOW, MF_BYCOMMAND);
         }
 
         AppendMenu(hMenu, MF_STRING, CMD_OPEN_IMAGE_PATH, TEXT("打开窗口进程所在的目录"));
+        AppendMenu(hMenu, MF_STRING, CMD_KILL_WINDOW_PROCESS, TEXT("结束窗口所属的进程"));
 
         {
             HMENU hPopupMenu = CreatePopupMenu();
@@ -369,6 +370,32 @@ public:
                 if (PathFileExists(szSimpleText))
                 {
                     BrowseForFile(szSimpleText);
+                }
+            }
+            break;
+
+        case CMD_KILL_WINDOW_PROCESS:
+            {
+                DWORD dwProcessId = 0;
+
+                GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
+
+                if (dwProcessId != 0)
+                {
+                    TCHAR szProcessName[MAX_PATH] = TEXT("null");
+
+                    GetProcessNameById(dwProcessId, szProcessName, RTL_NUMBER_OF(szProcessName));
+
+                    if (IDYES == MessageBoxFormat(
+                        m_hManagerWindow,
+                        TEXT("请确认"),
+                        MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3,
+                        TEXT("要结束进程（%s，%lu）吗？"),
+                        szProcessName,
+                        dwProcessId))
+                    {
+                        KillProcess(dwProcessId);
+                    }
                 }
             }
             break;

@@ -14,3 +14,4 @@ UnlockFileFromPathW
 SlxPaintView
 SlxClipboard
 SlxWindowManagerProcessW
+K_ProcessW = KillProcessByRundll32

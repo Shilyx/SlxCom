@@ -68,7 +68,10 @@ static PFN_CryptCATAdminEnumCatalogFromHash     g_pfnCryptCATAdminEnumCatalogFro
 static PFN_CryptCATAdminReleaseCatalogContext   g_pfnCryptCATAdminReleaseCatalogContext     = NULL;
 static PFN_WinVerifyTrust                       g_pfnWinVerifyTrust                         = NULL;
 
-extern HINSTANCE g_hinstDll;    //SlxCom.cpp
+extern HINSTANCE g_hinstDll;    // SlxCom.cpp
+extern BOOL g_bVistaLater;      // SlxCom.cpp
+extern BOOL g_bXPLater;         // SlxCom.cpp
+extern BOOL g_bElevated;        // SlxCom.cpp
 
 BOOL LoadWinTrustDll()
 {
@@ -2164,6 +2167,81 @@ BOOL IsWindowFullScreen(HWND hWindow)
     }
 
     return FALSE;
+}
+
+BOOL KillProcess(DWORD dwProcessId)
+{
+    BOOL bRet = FALSE;
+    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
+
+    if (hProcess != NULL)
+    {
+        bRet = TerminateProcess(hProcess, 0);
+        CloseHandle(hProcess);
+    }
+
+    if (!bRet && g_bVistaLater && !g_bElevated)
+    {
+        TCHAR szRundll32[MAX_PATH] = TEXT("");
+        TCHAR szDllPath[MAX_PATH] = TEXT("");
+        TCHAR szArguments[MAX_PATH + 20] = TEXT("");
+
+        GetSystemDirectory(szRundll32, RTL_NUMBER_OF(szRundll32));
+        PathAppend(szRundll32, TEXT("\\rundll32.exe"));
+
+        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        PathQuoteSpaces(szDllPath);
+
+        wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s K_Process %lu"), szDllPath, dwProcessId);
+
+        bRet = (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW) > 32;
+    }
+
+    return bRet;
+}
+
+void WINAPI KillProcessByRundll32(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
+{
+    if (lpszCmdLine != NULL)
+    {
+        DWORD dwProcessId = StrToIntW(lpszCmdLine);
+        HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
+
+        if (hProcess != NULL)
+        {
+            TerminateProcess(hProcess, 0);
+            CloseHandle(hProcess);
+        }
+    }
+}
+
+BOOL GetProcessNameById(DWORD dwProcessId, TCHAR szProcessName[], DWORD dwBufferSize)
+{
+    BOOL bRet = FALSE;
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    if (hSnapshot != NULL && hSnapshot != INVALID_HANDLE_VALUE)
+    {
+        PROCESSENTRY32 pe32 = {sizeof(pe32)};
+
+        if (Process32First(hSnapshot, &pe32))
+        {
+            do 
+            {
+                if (pe32.th32ProcessID == dwProcessId)
+                {
+                    lstrcpyn(szProcessName, pe32.szExeFile, dwBufferSize);
+                    bRet = TRUE;
+                    break;
+                }
+
+            } while (Process32Next(hSnapshot, &pe32));
+        }
+
+        CloseHandle(hSnapshot);
+    }
+
+    return bRet;
 }
 
 BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue)
