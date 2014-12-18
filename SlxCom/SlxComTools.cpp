@@ -1520,6 +1520,11 @@ BOOL KillAllExplorers()
                         setExplorers.insert(pe32.th32ProcessID);
                     }
                 }
+                else if (lstrcmpi(pe32.szExeFile, TEXT("clover.exe")) == 0 &&
+                    (GetModuleHandle(TEXT("TabHelper32.dll")) != NULL || GetModuleHandle(TEXT("TabHelper64.dll")) != NULL))
+                {
+                    setExplorers.insert(pe32.th32ProcessID);
+                }
 
             } while (Process32Next(hSnapshot, &pe32));
         }
