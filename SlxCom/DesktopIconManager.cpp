@@ -1,7 +1,10 @@
 #include "DesktopIconManager.h"
 #include <CommCtrl.h>
 #include <WindowsX.h>
+#include <list>
 #include "SlxComTools.h"
+
+using namespace std;
 
 class CMButtonUpListener
 {
@@ -91,37 +94,57 @@ private:
     WNDPROC m_oldWndProc_ShellDll;
 };
 
-static HWND GetDesktopListView()
+static void GetDesktopWindows(LPCTSTR lpClassName, LPCTSTR lpWindowText, list<HWND> &listWindows)
 {
-    HWND hProgman = FindWindowEx(NULL, NULL, TEXT("Progman"), TEXT("Program Manager"));
+    HWND hWindow = FindWindowEx(NULL, NULL, lpClassName, lpWindowText);
 
-    while (IsWindow(hProgman))
+    while (IsWindow(hWindow))
     {
         DWORD dwProcessId = 0;
 
-        GetWindowThreadProcessId(hProgman, &dwProcessId);
+        GetWindowThreadProcessId(hWindow, &dwProcessId);
 
         if (dwProcessId == GetCurrentProcessId())
         {
-            HWND hSHELLDLL_DefView = FindWindowEx(hProgman, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
-
-            if (IsWindow(hSHELLDLL_DefView))
-            {
-                HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
-
-                if (!IsWindow(hSysListView32))
-                {
-                    hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
-                }
-
-                if (IsWindow(hSysListView32))
-                {
-                    return hSysListView32;
-                }
-            }
+            listWindows.push_back(hWindow);
         }
 
-        hProgman = FindWindowEx(NULL, hProgman, TEXT("Progman"), TEXT("Program Manager"));
+        hWindow = FindWindowEx(NULL, hWindow, lpClassName, lpWindowText);
+    }
+}
+
+static list<HWND> GetDesktopWindows()
+{
+    list<HWND> listWindows;
+
+    GetDesktopWindows(TEXT("Progman"), TEXT("Program Manager"), listWindows);
+    GetDesktopWindows(TEXT("WorkerW"), TEXT(""), listWindows);
+
+    return listWindows;
+}
+
+static HWND GetDesktopListView()
+{
+    list<HWND> listDesktopWindows = GetDesktopWindows();
+
+    for (list<HWND>::iterator it = listDesktopWindows.begin(); it != listDesktopWindows.end(); ++it)
+    {
+        HWND hSHELLDLL_DefView = FindWindowEx(*it, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
+
+        if (IsWindow(hSHELLDLL_DefView))
+        {
+            HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
+
+            if (!IsWindow(hSysListView32))
+            {
+                hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
+            }
+
+            if (IsWindow(hSysListView32))
+            {
+                return hSysListView32;
+            }
+        }
     }
 
     return NULL;
