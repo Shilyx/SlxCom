@@ -101,7 +101,7 @@ class MenuItem
 public:
     MenuItem() : m_nCmdId(0) { }
     virtual ~MenuItem() { }
-    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) = 0;
+    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const = 0;
     virtual bool operator<(const MenuItem &other) const { return m_nCmdId < other.m_nCmdId;}
 
 protected:
@@ -119,7 +119,7 @@ public:
         AssignString(m_strRegPath, lpRegPath);
     }
 
-    virtual void DoJob(HWND hWindow, HINSTANCE hInstance)
+    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const
     {
         LPCTSTR lpRegPath = NULL;
         HKEY hRootKey = ParseRegPath(m_strRegPath.c_str(), &lpRegPath);
@@ -558,7 +558,7 @@ private:
     HWND m_hWindow;
     HMENU m_hMenu;
     HINSTANCE m_hInstance;
-    map<int, MenuItem *> m_mapMenuItems;
+    map<int, const MenuItem *> m_mapMenuItems;
     set<MenuItemRegistry> m_setMenuItemsRegistry;
 
 private:

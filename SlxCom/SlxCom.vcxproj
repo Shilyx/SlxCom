@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -28,23 +28,23 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v90</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v90</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v90</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v90</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -222,12 +222,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DesktopIconManager.cpp" />
     <ClCompile Include="lib\charconv.cpp" />
+    <ClCompile Include="SlxClipboard.cpp" />
     <ClCompile Include="SlxCom.cpp" />
     <ClCompile Include="SlxComAbout.cpp" />
     <ClCompile Include="SlxComConfig.cpp" />
     <ClCompile Include="SlxComContextMenu.cpp" />
-    <ClCompile Include="SlxComDirShortcut.cpp" />
     <ClCompile Include="SlxComFactory.cpp" />
     <ClCompile Include="SlxComOverlay.cpp" />
     <ClCompile Include="SlxComPeTools.cpp" />
@@ -242,6 +243,8 @@
     <ClCompile Include="SlxPaintView.cpp" />
     <ClCompile Include="SlxStringStatusCache.cpp" />
     <ClCompile Include="SlxUnlockFile.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
+    <ClCompile Include="WindowManagerProcess.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\AboutLogo.bmp" />
@@ -282,12 +285,12 @@
     <None Include="res\UnlockFile.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DesktopIconManager.h" />
     <ClInclude Include="lib\charconv.h" />
     <ClInclude Include="lib\deelx.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SlxComAbout.h" />
     <ClInclude Include="SlxComContextMenu.h" />
-    <ClInclude Include="SlxComDirShortcut.h" />
     <ClInclude Include="SlxComFactory.h" />
     <ClInclude Include="SlxComOverlay.h" />
     <ClInclude Include="SlxComPeTools.h" />
@@ -300,6 +303,8 @@
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />
     <ClInclude Include="SlxStringStatusCache.h" />
+    <ClInclude Include="WindowManager.h" />
+    <ClInclude Include="WindowManagerProcess.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="SlxCom.manifest" />

@@ -72,10 +72,19 @@
     <ClCompile Include="SlxComAbout.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SlxComDirShortcut.cpp">
+    <ClCompile Include="SlxCrypto.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SlxCrypto.c">
+    <ClCompile Include="DesktopIconManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManagerProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxClipboard.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -232,10 +241,16 @@
     <ClInclude Include="SlxComAbout.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SlxComDirShortcut.h">
+    <ClInclude Include="SlxCrypto.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SlxCrypto.h">
+    <ClInclude Include="DesktopIconManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManagerProcess.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
