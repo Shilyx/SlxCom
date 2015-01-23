@@ -1457,42 +1457,30 @@ BOOL DisableWow64FsRedirection()
     return bResult;
 }
 
-BOOL InvokeDesktopRefresh()
+void InvokeDesktopRefresh()
 {
-    BOOL bResult = FALSE;
-    HWND hProgman = FindWindowEx(NULL, NULL, TEXT("Progman"), TEXT("Program Manager"));
+    std::list<HWND> listDesktopWindows = GetDoubtfulDesktopWindowsInSelfProcess();
 
-    while (IsWindow(hProgman))
+    for (std::list<HWND>::iterator it = listDesktopWindows.begin(); it != listDesktopWindows.end(); ++it)
     {
-        DWORD dwProcessId = 0;
+        HWND hSHELLDLL_DefView = FindWindowEx(*it, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
 
-        GetWindowThreadProcessId(hProgman, &dwProcessId);
-
-        if (dwProcessId == GetCurrentProcessId())
+        if (IsWindow(hSHELLDLL_DefView))
         {
-            HWND hSHELLDLL_DefView = FindWindowEx(hProgman, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
+            HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
 
-            if (IsWindow(hSHELLDLL_DefView))
+            if (!IsWindow(hSysListView32))
             {
-                HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
+                hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
+            }
 
-                if (!IsWindow(hSysListView32))
-                {
-                    hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
-                }
-
-                if (IsWindow(hSysListView32))
-                {
-                    ::PostMessage(hSysListView32, WM_KEYDOWN, VK_F5, 0);
-                    Sleep(888);
-                }
+            if (IsWindow(hSysListView32))
+            {
+                ::PostMessage(hSysListView32, WM_KEYDOWN, VK_F5, 0);
+                Sleep(888);
             }
         }
-
-        hProgman = FindWindowEx(NULL, hProgman, TEXT("Progman"), TEXT("Program Manager"));
     }
-
-    return bResult;
 }
 
 BOOL KillAllExplorers()
