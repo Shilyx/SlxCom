@@ -94,38 +94,9 @@ private:
     WNDPROC m_oldWndProc_ShellDll;
 };
 
-static void GetDesktopWindows(LPCTSTR lpClassName, LPCTSTR lpWindowText, list<HWND> &listWindows)
-{
-    HWND hWindow = FindWindowEx(NULL, NULL, lpClassName, lpWindowText);
-
-    while (IsWindow(hWindow))
-    {
-        DWORD dwProcessId = 0;
-
-        GetWindowThreadProcessId(hWindow, &dwProcessId);
-
-        if (dwProcessId == GetCurrentProcessId())
-        {
-            listWindows.push_back(hWindow);
-        }
-
-        hWindow = FindWindowEx(NULL, hWindow, lpClassName, lpWindowText);
-    }
-}
-
-static list<HWND> GetDesktopWindows()
-{
-    list<HWND> listWindows;
-
-    GetDesktopWindows(TEXT("Progman"), TEXT("Program Manager"), listWindows);
-    GetDesktopWindows(TEXT("WorkerW"), TEXT(""), listWindows);
-
-    return listWindows;
-}
-
 static HWND GetDesktopListView()
 {
-    list<HWND> listDesktopWindows = GetDesktopWindows();
+    list<HWND> listDesktopWindows = GetDoubtfulDesktopWindowsInSelfProcess();
 
     for (list<HWND>::iterator it = listDesktopWindows.begin(); it != listDesktopWindows.end(); ++it)
     {

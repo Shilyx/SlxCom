@@ -2312,10 +2312,40 @@ tstring GetDesktopName(HDESK hDesktop)
     return szDesktopName;
 }
 
+std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess()
+{
+    LOCAL_BEGIN;
+    static void GetDesktopWindows(LPCTSTR lpClassName, LPCTSTR lpWindowText, list<HWND> &listWindows)
+    {
+        HWND hWindow = FindWindowEx(NULL, NULL, lpClassName, lpWindowText);
+
+        while (IsWindow(hWindow))
+        {
+            DWORD dwProcessId = 0;
+
+            GetWindowThreadProcessId(hWindow, &dwProcessId);
+
+            if (dwProcessId == GetCurrentProcessId())
+            {
+                listWindows.push_back(hWindow);
+            }
+
+            hWindow = FindWindowEx(NULL, hWindow, lpClassName, lpWindowText);
+        }
+    }
+    LOCAL_END;
+
+    list<HWND> listWindows;
+
+    LOCAL GetDesktopWindows(TEXT("Progman"), TEXT("Program Manager"), listWindows);
+    LOCAL GetDesktopWindows(TEXT("WorkerW"), TEXT(""), listWindows);
+
+    return listWindows;
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
 
     return ;
 }
-

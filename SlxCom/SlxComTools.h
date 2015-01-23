@@ -4,6 +4,7 @@
 #include <Windows.h>
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
+#include <list>
 
 enum DRIVER_ACTION
 {
@@ -101,5 +102,20 @@ inline std::tstring AnyTypeToString(const std::tstring &value)
 {
     return value;
 }
+
+std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess();
+
+//////////////////////////////////////////////////////////////////////////
+#define LOCAL_BEGIN class __Local           \
+{                                           \
+public:                                     \
+    void __Temp()                           \
+    {                                       \
+        m___nTemp = GetTickCount();         \
+    }                                       \
+    volatile int m___nTemp
+
+#define LOCAL_END }
+#define LOCAL __Local::
 
 #endif
