@@ -8,23 +8,31 @@ using namespace std;
 
 class CMButtonUpListener
 {
+private:
+    enum TIMER_ID
+    {
+        TI_AUTOHIDE = 0x20,
+    };
+
 public:
     CMButtonUpListener(HWND hListCtrl)
         : m_hListCtrl(hListCtrl)
         , m_hShellDll(NULL)
         , m_oldWndProc_ListCtrl(NULL)
         , m_oldWndProc_ShellDll(NULL)
+        , m_dwListCtrlAutoHideTickCount(0)
     {
         if (IsWindow(m_hListCtrl))
         {
             m_hShellDll = GetParent(m_hListCtrl);
 
-            m_oldWndProc_ListCtrl = (WNDPROC)SetWindowLongPtr(m_hListCtrl, GWLP_WNDPROC, (LONG_PTR)newWindowProc);
+            m_oldWndProc_ListCtrl = (WNDPROC)SetWindowLongPtr(m_hListCtrl, GWLP_WNDPROC, (LONG_PTR)newWindowProc_ListCtrl);
+            SetTimer(m_hListCtrl, TI_AUTOHIDE, 1001, NULL);
             SetProp(m_hListCtrl, TEXT("CDbClickListener"), (HANDLE)this);
 
             if (IsWindow(m_hShellDll))
             {
-                m_oldWndProc_ShellDll = (WNDPROC)SetWindowLongPtr(m_hShellDll, GWLP_WNDPROC, (LONG_PTR)newWindowProc);
+                m_oldWndProc_ShellDll = (WNDPROC)SetWindowLongPtr(m_hShellDll, GWLP_WNDPROC, (LONG_PTR)newWindowProc_ShellDll);
                 SetProp(m_hShellDll, TEXT("CDbClickListener"), (HANDLE)this);
             }
         }
@@ -36,6 +44,7 @@ public:
         {
             SetWindowLongPtr(m_hListCtrl, GWLP_WNDPROC, (LONG_PTR)m_oldWndProc_ListCtrl);
             RemoveProp(m_hListCtrl, TEXT("CDbClickListener"));
+            KillTimer(m_hListCtrl, TI_AUTOHIDE);
         }
 
         if (IsWindow(m_hShellDll))
@@ -46,9 +55,9 @@ public:
     }
 
 private:
-    static INT_PTR GetHitTestPostion(HWND hwnd, POINT pt)
+    static INT_PTR GetHitTestPostion(HWND hwnd, int x, int y)
     {
-        LVHITTESTINFO info = {pt};
+        LVHITTESTINFO info = {{x, y}};
 
         if (IsWindow(hwnd))
         {
@@ -58,36 +67,78 @@ private:
         return -1;
     }
 
-    static LRESULT CALLBACK newWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    static LRESULT CALLBACK newWindowProc_ListCtrl(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         CMButtonUpListener *pDbClickListener = (CMButtonUpListener *)GetProp(hwnd, TEXT("CDbClickListener"));
 
-        if (pDbClickListener != NULL)
+        if (pDbClickListener != NULL && pDbClickListener->m_hListCtrl == hwnd)
         {
-            if (pDbClickListener->m_hListCtrl == hwnd)
+            switch (uMsg)
             {
-                if (uMsg == WM_MBUTTONUP && IsWindowVisible(pDbClickListener->m_hListCtrl))
+            case WM_MBUTTONDOWN:
+                if (-1 == GetHitTestPostion(hwnd, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)))
                 {
                     ShowWindow(pDbClickListener->m_hListCtrl, SW_HIDE);
                 }
+                break;
 
-                return CallWindowProc(pDbClickListener->m_oldWndProc_ListCtrl, pDbClickListener->m_hListCtrl, uMsg, wParam, lParam);
+            case WM_TIMER:
+                if (wParam == TI_AUTOHIDE)
+                {
+                    if (IsWindowVisible(hwnd))
+                    {
+                        if (++pDbClickListener->m_dwListCtrlAutoHideTickCount > 10)
+                        {
+                            ShowWindow(pDbClickListener->m_hListCtrl, SW_HIDE);
+                        }
+                    }
+                    else
+                    {
+                        pDbClickListener->m_dwListCtrlAutoHideTickCount = 0;
+                    }
+                }
+                break;
+
+            default:
+                break;
             }
-            else if (pDbClickListener->m_hShellDll == hwnd)
+
+            return CallWindowProc(pDbClickListener->m_oldWndProc_ListCtrl, pDbClickListener->m_hListCtrl, uMsg, wParam, lParam);
+        }
+
+        return 0;
+    }
+
+    static LRESULT CALLBACK newWindowProc_ShellDll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        CMButtonUpListener *pDbClickListener = (CMButtonUpListener *)GetProp(hwnd, TEXT("CDbClickListener"));
+
+        if (pDbClickListener != NULL && hwnd == pDbClickListener->m_hShellDll)
+        {
+            switch (uMsg)
             {
-                if (uMsg == WM_MBUTTONUP && !IsWindowVisible(pDbClickListener->m_hListCtrl))
+            case WM_LBUTTONDOWN:
+            case WM_RBUTTONDOWN:
+            case WM_MBUTTONDOWN:
+            case WM_MOUSEHWHEEL:
+                if (!IsWindowVisible(pDbClickListener->m_hListCtrl))
                 {
                     ShowWindow(pDbClickListener->m_hListCtrl, SW_SHOW);
                 }
+                break;
 
-                return CallWindowProc(pDbClickListener->m_oldWndProc_ShellDll, pDbClickListener->m_hShellDll, uMsg, wParam, lParam);
+            default:
+                break;
             }
+
+            return CallWindowProc(pDbClickListener->m_oldWndProc_ShellDll, pDbClickListener->m_hShellDll, uMsg, wParam, lParam);
         }
 
         return 0;
     }
 
 private:
+    DWORD m_dwListCtrlAutoHideTickCount;
     HWND m_hListCtrl;
     HWND m_hShellDll;
     WNDPROC m_oldWndProc_ListCtrl;
