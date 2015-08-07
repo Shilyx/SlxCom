@@ -146,9 +146,8 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 STDMETHODIMP CSlxComOverlay::GetOverlayInfo(LPWSTR pwszIconFile, int cchMax, int *pIndex, DWORD *pdwFlags)
 {
     WIN32_FILE_ATTRIBUTE_DATA wfad;
-    DWORD dwIconFileAttribute = GetFileAttributesEx(m_szIconFilePath, GetFileExInfoStandard, &wfad);
 
-    if(dwIconFileAttribute == INVALID_FILE_ATTRIBUTES || wfad.nFileSizeLow != m_dwIcoFileSize)
+    if (!GetFileAttributesEx(m_szIconFilePath, GetFileExInfoStandard, &wfad) || wfad.nFileSizeLow != m_dwIcoFileSize)
     {
         GenericIconFile();
     }
