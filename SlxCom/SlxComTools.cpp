@@ -583,7 +583,7 @@ DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
     return 0;
 }
 
-BOOL BrowseForRegPath(LPCTSTR lpRegPath)
+BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
 {
     if (lpRegPath == NULL || *lpRegPath == TEXT('\0'))
     {
@@ -691,6 +691,35 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
     }
 
     return TRUE;
+}
+
+void WINAPI SlxBrowseForRegPathW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
+{
+    BrowseForRegPathInProcess(WtoT(lpszCmdLine).c_str());
+}
+
+BOOL BrowseForRegPath(LPCTSTR lpRegPath)
+{
+    if (g_bVistaLater && !g_bElevated)
+    {
+        TCHAR szRundll32[MAX_PATH] = TEXT("");
+        TCHAR szDllPath[MAX_PATH] = TEXT("");
+        TCHAR szArguments[MAX_PATH + 20] = TEXT("");
+
+        GetSystemDirectory(szRundll32, RTL_NUMBER_OF(szRundll32));
+        PathAppend(szRundll32, TEXT("\\rundll32.exe"));
+
+        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        PathQuoteSpaces(szDllPath);
+
+        wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s SlxBrowseForRegPath %s"), szDllPath, lpRegPath);
+
+        return (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW) > 32;
+    }
+    else
+    {
+        return BrowseForRegPathInProcess(lpRegPath);
+    }
 }
 
 BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
