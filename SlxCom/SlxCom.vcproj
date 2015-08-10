@@ -411,6 +411,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxElevateBridge.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxFileHandles.cpp"
 				>
 			</File>
@@ -494,6 +498,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxCrypto.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxElevateBridge.h"
 				>
 			</File>
 			<File

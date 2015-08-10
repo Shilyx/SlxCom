@@ -16,3 +16,5 @@ SlxClipboard
 SlxWindowManagerProcessW
 K_ProcessW = KillProcessByRundll32
 SlxBrowseForRegPathW
+ElevateAndRunA
+ElevateAndRunW
