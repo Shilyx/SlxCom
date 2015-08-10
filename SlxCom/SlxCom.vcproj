@@ -64,6 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
 				LinkIncremental="2"
 				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
@@ -141,6 +142,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
 				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="2"
 				AdditionalManifestDependencies=""
@@ -220,6 +222,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
 				LinkIncremental="1"
 				GenerateManifest="true"
 				AdditionalManifestDependencies=""
@@ -301,6 +304,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
 				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="1"
 				GenerateManifest="true"
@@ -680,6 +684,10 @@
 			</File>
 			<File
 				RelativePath=".\lib\deelx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\DummyWinTrustDll.h"
 				>
 			</File>
 		</Filter>

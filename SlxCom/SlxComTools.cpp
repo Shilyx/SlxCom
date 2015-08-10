@@ -14,128 +14,17 @@
 #include <iostream>
 #include <sstream>
 #include "lib/charconv.h"
+#include "lib/DummyWinTrustDll.h"
 
 using namespace std;
 
 #pragma comment(lib, "Wintrust.lib")
 #pragma comment(lib, "PsApi.lib")
 
-typedef HANDLE HCATADMIN;
-typedef HANDLE HCATINFO;
-
-typedef BOOL (WINAPI* PFN_CryptCATAdminAcquireContext)(
-    HCATADMIN* phCatAdmin,
-    const GUID* pgSubsystem,
-    DWORD dwFlags
-    );
-
-typedef BOOL (WINAPI* PFN_CryptCATAdminReleaseContext)(
-    HCATADMIN hCatAdmin,
-    DWORD dwFlags
-    );
-
-typedef BOOL (WINAPI* PFN_CryptCATAdminCalcHashFromFileHandle)(
-    HANDLE hFile,
-    DWORD* pcbHash,
-    BYTE* pbHash,
-    DWORD dwFlags
-    );
-
-typedef HCATINFO (WINAPI* PFN_CryptCATAdminEnumCatalogFromHash)(
-    HCATADMIN hCatAdmin,
-    BYTE* pbHash,
-    DWORD cbHash,
-    DWORD dwFlags,
-    HCATINFO* phPrevCatInfo
-    );
-
-typedef BOOL (WINAPI* PFN_CryptCATAdminReleaseCatalogContext)(
-    HCATADMIN hCatAdmin,
-    HCATINFO hCatInfo,
-    DWORD dwFlags
-    );
-
-typedef LONG (WINAPI* PFN_WinVerifyTrust)(
-    HWND hWnd,
-    GUID* pgActionID,
-    WINTRUST_DATA* pWinTrustData
-    );
-
-static PFN_CryptCATAdminAcquireContext          g_pfnCryptCATAdminAcquireContext            = NULL;
-static PFN_CryptCATAdminReleaseContext          g_pfnCryptCATAdminReleaseContext            = NULL;
-static PFN_CryptCATAdminCalcHashFromFileHandle  g_pfnCryptCATAdminCalcHashFromFileHandle    = NULL;
-static PFN_CryptCATAdminEnumCatalogFromHash     g_pfnCryptCATAdminEnumCatalogFromHash       = NULL;
-static PFN_CryptCATAdminReleaseCatalogContext   g_pfnCryptCATAdminReleaseCatalogContext     = NULL;
-static PFN_WinVerifyTrust                       g_pfnWinVerifyTrust                         = NULL;
-
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 extern BOOL g_bVistaLater;      // SlxCom.cpp
 extern BOOL g_bXPLater;         // SlxCom.cpp
 extern BOOL g_bElevated;        // SlxCom.cpp
-
-BOOL LoadWinTrustDll()
-{
-    static BOOL bResult = FALSE;
-
-    if(bResult)
-    {
-        return bResult;
-    }
-
-    HMODULE hModule = GetModuleHandleW(SP_POLICY_PROVIDER_DLL_NAME);
-
-    if(hModule == NULL)
-    {
-        hModule = LoadLibraryW(SP_POLICY_PROVIDER_DLL_NAME);
-    }
-
-    if(hModule != NULL)
-    {
-        do 
-        {
-            (FARPROC&)g_pfnCryptCATAdminAcquireContext = GetProcAddress(hModule, "CryptCATAdminAcquireContext");
-            if(g_pfnCryptCATAdminAcquireContext == NULL)
-            {
-                break;
-            }
-
-            (FARPROC&)g_pfnCryptCATAdminReleaseContext = GetProcAddress(hModule, "CryptCATAdminReleaseContext");
-            if(g_pfnCryptCATAdminReleaseContext == NULL)
-            {
-                break;
-            }
-
-            (FARPROC&)g_pfnCryptCATAdminCalcHashFromFileHandle = GetProcAddress(hModule, "CryptCATAdminCalcHashFromFileHandle");
-            if(g_pfnCryptCATAdminCalcHashFromFileHandle == NULL)
-            {
-                break;
-            }
-
-            (FARPROC&)g_pfnCryptCATAdminEnumCatalogFromHash = GetProcAddress(hModule, "CryptCATAdminEnumCatalogFromHash");
-            if(g_pfnCryptCATAdminEnumCatalogFromHash == NULL)
-            {
-                break;
-            }
-
-            (FARPROC&)g_pfnCryptCATAdminReleaseCatalogContext = GetProcAddress(hModule, "CryptCATAdminReleaseCatalogContext");
-            if(g_pfnCryptCATAdminReleaseCatalogContext == NULL)
-            {
-                break;
-            }
-
-            (FARPROC&)g_pfnWinVerifyTrust = GetProcAddress(hModule, "WinVerifyTrust");
-            if(g_pfnWinVerifyTrust == NULL)
-            {
-                break;
-            }
-
-            bResult = TRUE;
-
-        } while (FALSE);
-    }
-
-    return bResult;
-}
 
 DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData)
 {
@@ -192,7 +81,7 @@ BOOL GetFileHash(LPCTSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
     {
         __try
         {
-            if(g_pfnCryptCATAdminCalcHashFromFileHandle(hFile, pcbSize, btHash, 0))
+            if(CryptCATAdminCalcHashFromFileHandle(hFile, pcbSize, btHash, 0))
             {
                 bResult = TRUE;
             }
@@ -210,37 +99,33 @@ BOOL GetFileHash(LPCTSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
 BOOL IsFileSignedByCatlog(LPCTSTR lpFilePath)
 {
     BOOL bResult = FALSE;
+    BYTE btHash[100];
+    DWORD dwHashSize = sizeof(btHash);
 
-    if(LoadWinTrustDll())
+    if(GetFileHash(lpFilePath, btHash, &dwHashSize))
     {
-        BYTE btHash[100];
-        DWORD dwHashSize = sizeof(btHash);
+        HANDLE hCatHandle = NULL;
 
-        if(GetFileHash(lpFilePath, btHash, &dwHashSize))
+        CryptCATAdminAcquireContext(&hCatHandle, NULL, 0);
+
+        if(hCatHandle != NULL)
         {
-            HANDLE hCatHandle = NULL;
-
-            g_pfnCryptCATAdminAcquireContext(&hCatHandle, NULL, 0);
-
-            if(hCatHandle != NULL)
+            __try
             {
-                __try
+                HANDLE hCatalogContext = CryptCATAdminEnumCatalogFromHash(hCatHandle, btHash, dwHashSize, 0, NULL);
+
+                if(hCatalogContext != NULL)
                 {
-                    HANDLE hCatalogContext = g_pfnCryptCATAdminEnumCatalogFromHash(hCatHandle, btHash, dwHashSize, 0, NULL);
+                    CryptCATAdminReleaseCatalogContext(hCatHandle, hCatalogContext, 0);
 
-                    if(hCatalogContext != NULL)
-                    {
-                        g_pfnCryptCATAdminReleaseCatalogContext(hCatHandle, hCatalogContext, 0);
-
-                        bResult = TRUE;
-                    }
+                    bResult = TRUE;
                 }
-                __except(EXCEPTION_EXECUTE_HANDLER)
-                {
-                }
-
-                g_pfnCryptCATAdminReleaseContext(hCatHandle, 0);
             }
+            __except(EXCEPTION_EXECUTE_HANDLER)
+            {
+            }
+
+            CryptCATAdminReleaseContext(hCatHandle, 0);
         }
     }
 
