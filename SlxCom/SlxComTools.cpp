@@ -15,6 +15,7 @@
 #include <sstream>
 #include "lib/charconv.h"
 #include "lib/DummyWinTrustDll.h"
+#include "SlxElevateBridge.h"
 
 using namespace std;
 
@@ -599,7 +600,7 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
 
         wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s SlxBrowseForRegPath %s"), szDllPath, lpRegPath);
 
-        return (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW) > 32;
+        return ElevateAndRun(szRundll32, szArguments, NULL, SW_SHOW);
     }
     else
     {
