@@ -5,7 +5,8 @@ DllGetClassObject	PRIVATE
 DllRegisterServer	PRIVATE
 DllUnregisterServer	PRIVATE
 
-T
+BatchUnregisterDllsW
+BatchRegisterDllsW
 T2
 T3
 SlxComConfig

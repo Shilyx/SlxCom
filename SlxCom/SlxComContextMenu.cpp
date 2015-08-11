@@ -9,10 +9,12 @@
 #include "SlxCrypto.h"
 #include "SlxComAbout.h"
 #include "SlxManualCheckSignature.h"
+#include "SlxElevateBridge.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>
 #include <map>
+#include <vector>
 
 using namespace std;
 
@@ -561,123 +563,47 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_REGISTER:
     case ID_UNREGISTER:
     {
-        LPCTSTR lpExe = TEXT("regsvr32");
-        TCHAR szCommand[MAX_PATH * 2];
-        STARTUPINFO si = {sizeof(si)};
-        PROCESS_INFORMATION pi;
-
-        if(m_uFileCount == 1)
+        if (m_uFileCount == 1)
         {
-            if(LOWORD(pici->lpVerb) == ID_REGISTER)
-            {
-                lpExe = TEXT("regsvr32");
-            }
-            else
-            {
-                lpExe = TEXT("regsvr32 /u");
-            }
+            TCHAR szArguments[MAX_PATH * 2];
 
-            wnsprintf(szCommand, sizeof(szCommand) / sizeof(TCHAR), TEXT("%s \"%s\""), lpExe, m_pFiles[0].szPath);
+            wnsprintf(
+                szArguments,
+                RTL_NUMBER_OF(szArguments),
+                TEXT("%s \"%s\""),
+                LOWORD(pici->lpVerb) == ID_REGISTER ? TEXT("") : TEXT("/u"),
+                m_pFiles[0].szPath);
 
-            if(CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-            {
-                CloseHandle(pi.hThread);
-                CloseHandle(pi.hProcess);
-            }
+            ElevateAndRun(TEXT("regsvr32.exe"), szArguments, NULL, SW_SHOW);
         }
         else
         {
-            UINT uIndex;
+            tstringstream ssArguments;
 
-            if(LOWORD(pici->lpVerb) == ID_REGISTER)
+            TCHAR szDllpath[MAX_PATH];
+
+            GetModuleFileName(g_hinstDll, szDllpath, RTL_NUMBER_OF(szDllpath));
+            PathQuoteSpaces(szDllpath);
+
+            ssArguments<<szDllpath;
+
+            if (LOWORD(pici->lpVerb) == ID_REGISTER)
             {
-                lpExe = TEXT("regsvr32 /s");
+                ssArguments<<TEXT(" BatchRegisterDlls");
             }
             else
             {
-                lpExe = TEXT("regsvr32 /u /s");
+                ssArguments<<TEXT(" BatchUnregisterDlls");
             }
 
-            HANDLE *pProcessHandle = new HANDLE[m_uFileCount];
-
-            if(pProcessHandle != NULL)
+            for (DWORD dwIndex = 0; dwIndex < m_uFileCount; ++dwIndex)
             {
-                for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
-                {
-                    wnsprintf(szCommand, sizeof(szCommand) / sizeof(TCHAR), TEXT("%s \"%s\""), lpExe, m_pFiles[uIndex].szPath);
-
-                    if(CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-                    {
-                        CloseHandle(pi.hThread);
-
-                        pProcessHandle[uIndex] = pi.hProcess;
-                    }
-                    else
-                    {
-                        pProcessHandle[uIndex] = NULL;
-                    }
-                }
-
-                while(TRUE)
-                {
-                    DWORD dwExitCodeProcess = 0;
-
-                    for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
-                    {
-                        GetExitCodeProcess(pProcessHandle[uIndex], &dwExitCodeProcess);
-
-                        if(dwExitCodeProcess == STILL_ACTIVE)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            m_pFiles[uIndex].bRegEventSucceed = dwExitCodeProcess == 0;
-                        }
-                    }
-
-                    if(uIndex == m_uFileCount)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Sleep(10);
-                    }
-                }
-
-                for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
-                {
-                    CloseHandle(pProcessHandle[uIndex]);
-                }
-
-                TCHAR *szText = new TCHAR[(MAX_PATH + 20) * m_uFileCount];
-                if(szText != NULL)
-                {
-                    szText[0] = TEXT('\0');
-
-                    for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
-                    {
-                        if(m_pFiles[uIndex].bRegEventSucceed)
-                        {
-                            lstrcat(szText, TEXT("[成功]"));
-                        }
-                        else
-                        {
-                            lstrcat(szText, TEXT("[失败]"));
-                        }
-
-                        lstrcat(szText, m_pFiles[uIndex].szPath);
-                        lstrcat(szText, TEXT("\r\n"));
-                    }
-
-                    MessageBox(pici->hwnd, szText, TEXT("RegSvr32 执行结果"), MB_ICONINFORMATION | MB_TOPMOST);
-
-                    delete []szText;
-                }
-
-                delete []pProcessHandle;
+                ssArguments<<TEXT(" \"");
+                ssArguments<<m_pFiles[dwIndex].szPath;
+                ssArguments<<TEXT("\"");
             }
+
+            ElevateAndRun(TEXT("rundll32.exe"), ssArguments.str().c_str(), NULL, SW_SHOW);
         }
 
         break;
@@ -2347,6 +2273,88 @@ BOOL CSlxComContextMenu::ShouldAddFileTimePropSheet()
     return m_uFileCount > 0 && !(g_osi.dwMajorVersion == 5 && g_osi.dwMinorVersion == 0);
 }
 
-void WINAPI T(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
+void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
 {
+    if (lpMarkArgument == NULL || lpArguments == NULL)
+    {
+        return;
+    }
+
+    int nArgCount = 0;
+    LPWSTR *lpArgs = CommandLineToArgvW(lpArguments, &nArgCount);
+
+    if (nArgCount == 0)
+    {
+        return;
+    }
+
+    vector<wstring> vectorFiles(lpArgs, lpArgs + nArgCount);
+
+    TCHAR szCmd[MAX_PATH + 1024];
+    WCHAR szPath[MAX_PATH];
+    STARTUPINFO si = {sizeof(si)};
+    PROCESS_INFORMATION pi;
+    vector<HANDLE> vectorProcesses;
+    vector<DWORD> vectorExitCodes;
+
+    for (vector<wstring>::const_iterator it = vectorFiles.begin(); it != vectorFiles.end(); ++it)
+    {
+        lstrcpynW(szPath, it->c_str(), RTL_NUMBER_OF(szPath));
+        PathQuoteSpaces(szPath);
+        wnsprintf(szCmd, RTL_NUMBER_OF(szCmd), TEXT("regsvr32 %ls %ls"), lpMarkArgument,szPath);
+
+        if (CreateProcess(NULL, szCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        {
+            CloseHandle(pi.hThread);
+            vectorProcesses.push_back(pi.hProcess);
+        }
+        else
+        {
+            MessageBoxFormat(NULL, NULL, MB_ICONERROR | MB_TOPMOST, TEXT("启动regsvr32失败，错误码%lu"), GetLastError());
+            return;
+        }
+    }
+
+    for (vector<HANDLE>::const_iterator it2 = vectorProcesses.begin(); it2 != vectorProcesses.end(); ++it2)
+    {
+        DWORD dwExitCodeProcess = 0;
+
+        WaitForSingleObject(*it2, INFINITE);
+        GetExitCodeProcess(*it2, &dwExitCodeProcess);
+
+        vectorExitCodes.push_back(dwExitCodeProcess);
+    }
+
+    wstringstream ssResults;
+
+    for (size_t i = 0; i < vectorExitCodes.size(); ++i)
+    {
+        if (i > 0)
+        {
+            ssResults<<L"\r\n";
+        }
+
+        if (vectorExitCodes[i] == 0)
+        {
+            ssResults<<L"[成功]";
+        }
+        else
+        {
+            ssResults<<L"[失败]";
+        }
+
+        ssResults<<vectorFiles.at(i);
+    }
+
+    MessageBoxW(NULL, ssResults.str().c_str(), TEXT("RegSvr32 执行结果"), MB_ICONINFORMATION | MB_TOPMOST);
+}
+
+void WINAPI BatchRegisterDllsW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
+{
+    BatchRegisterOrUnregisterDllsW(TEXT("/s"), lpszCmdLine);
+}
+
+void WINAPI BatchUnregisterDllsW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
+{
+    BatchRegisterOrUnregisterDllsW(TEXT("/s /u"), lpszCmdLine);
 }
