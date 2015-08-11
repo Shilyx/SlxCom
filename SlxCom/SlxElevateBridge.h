@@ -10,8 +10,8 @@
 
 #include <Windows.h>
 
-BOOL WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirectory, int nShowCmd);
-BOOL WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDirectory, int nShowCmd);
+int WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirectory, int nShowCmd);
+int WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDirectory, int nShowCmd);
 
 #ifdef UNICODE
 #define ElevateAndRun ElevateAndRunW

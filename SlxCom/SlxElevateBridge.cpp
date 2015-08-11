@@ -124,7 +124,7 @@ static void DeleteTask(const ULARGE_INTEGER &uliTaskId)
     RegDeleteKey(HKEY_CURRENT_USER, szRegPath);
 }
 
-BOOL StartBridgeWithTaskId(const ULARGE_INTEGER &uliTaskId)
+int StartBridgeWithTaskId(const ULARGE_INTEGER &uliTaskId)
 {
     extern HINSTANCE g_hinstDll;
 
@@ -140,10 +140,10 @@ BOOL StartBridgeWithTaskId(const ULARGE_INTEGER &uliTaskId)
 
     wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s SlxElevateBridge %lu %lu"), szDllPath, uliTaskId.HighPart, uliTaskId.LowPart);
 
-    return (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW) > 32;
+    return (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW);
 }
 
-BOOL WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirectory, int nShowCmd)
+int WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirectory, int nShowCmd)
 {
     WCHAR szCommand[MAX_PATH];
     WCHAR szArguments[4096];
@@ -156,35 +156,52 @@ BOOL WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirect
     return ElevateAndRunW(szCommand, szArguments, szDirectory, nShowCmd);
 }
 
-BOOL WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDirectory, int nShowCmd)
+int WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDirectory, int nShowCmd)
 {
     static BOOL bNeedElevated = NeedElevated();
 
     if (!bNeedElevated)
     {
-        return (int)ShellExecute(NULL, L"open", lpCommand, lpArguments, lpDirectory, nShowCmd) > 32;
+        return (int)ShellExecute(NULL, L"open", lpCommand, lpArguments, lpDirectory, nShowCmd);
     }
 
     ULARGE_INTEGER uliTaskId = MakeTask(lpCommand, lpArguments, lpDirectory, nShowCmd);
 
     if (uliTaskId.QuadPart == 0)
     {
-        return FALSE;
+        return SE_ERR_ACCESSDENIED;
     }
 
     HWND hBridge = GetBridgeHandle();
 
     if (IsWindow(hBridge))
     {
-        return PostMessage(hBridge, WM_TO_BRIDGE_INFO, uliTaskId.HighPart, uliTaskId.LowPart);
+        DWORD dwProcessId = 0;
+
+        GetWindowThreadProcessId(hBridge, &dwProcessId);
+        AllowSetForegroundWindow(dwProcessId);
+
+        DWORD_PTR dwResult = 0;
+
+        if (SendMessageTimeout(hBridge, WM_TO_BRIDGE_INFO, uliTaskId.HighPart, uliTaskId.LowPart, SMTO_ABORTIFHUNG | SMTO_BLOCK, 1234, &dwResult))
+        {
+            return (int)dwResult;
+        }
+        else
+        {
+            DeleteTask(uliTaskId);
+            return SE_ERR_DDETIMEOUT;
+        }
     }
 
-    if (!StartBridgeWithTaskId(uliTaskId))
+    int nResult = StartBridgeWithTaskId(uliTaskId);
+
+    if (nResult <= 32)
     {
         DeleteTask(uliTaskId);
     }
 
-    return TRUE;
+    return nResult;
 }
 
 namespace Bridge
@@ -227,16 +244,16 @@ namespace Bridge
         return dwSize > 0;
     }
 
-    BOOL DoBridgeJob(WPARAM wParam, LPARAM lParam)
+    int DoBridgeJob(WPARAM wParam, LPARAM lParam)
     {
         static BOOL bNeedElevated = NeedElevated();
 
         if (bNeedElevated)  // should not happen
         {
-            return FALSE;
+            return SE_ERR_ACCESSDENIED;
         }
 
-        BOOL bSucceed = FALSE;
+        int nResult = 0;
         ULARGE_INTEGER uli;
         TCHAR szRegPath[1024];
         TaskDiscription taskDisc;
@@ -255,12 +272,16 @@ namespace Bridge
 
             SHGetValue(HKEY_CURRENT_USER, szRegPath, TEXT("sw"), NULL, &taskDisc.nShowCmd, &dwSize);
 
-            bSucceed = (int)ShellExecute(NULL, TEXT("open"), taskDisc.szCommand, taskDisc.szArguments, taskDisc.szCurrentDirectory, taskDisc.nShowCmd) > 32;
+            nResult = (int)ShellExecute(NULL, TEXT("open"), taskDisc.szCommand, taskDisc.szArguments, taskDisc.szCurrentDirectory, taskDisc.nShowCmd);
+        }
+        else
+        {
+            nResult = SE_ERR_PNF;
         }
 
         SHDeleteKey(HKEY_CURRENT_USER, szRegPath);
 
-        return bSucceed;
+        return nResult;
     }
 
     LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -272,8 +293,7 @@ namespace Bridge
             return 0;
 
         case WM_TO_BRIDGE_INFO:
-            DoBridgeJob(wParam, lParam);
-            return 0;
+            return DoBridgeJob(wParam, lParam);
 
         case WM_CLOSE:
             DestroyWindow(hWnd);
