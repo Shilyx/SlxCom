@@ -54,6 +54,7 @@ HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath);
 BOOL IsRegPathExists(HKEY hRootKey, LPCTSTR lpRegPath);
 BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath);
 HFONT GetMenuDefaultFont();
+UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight);
 BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx);
 HWND GetTrayNotifyWndInProcess();
 BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize);
@@ -71,6 +72,7 @@ BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize);
 BOOL IsWindowFullScreen(HWND hWindow);
 BOOL KillProcess(DWORD dwProcessId);
 BOOL GetProcessNameById(DWORD dwProcessId, TCHAR szProcessName[], DWORD dwBufferSize);
+LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResName, LPDWORD lpResSize = NULL);
 
 enum WindowUnalphaValue
 {

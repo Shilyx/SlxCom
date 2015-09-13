@@ -2,6 +2,7 @@
 #include "SlxComTools.h"
 #include "resource.h"
 #include <Shlwapi.h>
+#include "SlxTimePlate.h"
 #pragma warning(disable: 4786)
 #include <vector>
 #include <map>
@@ -86,6 +87,7 @@ static enum
     SYS_ABOUT,
     SYS_RESETEXPLORER,
     SYS_WINDOWMANAGER,
+    SYS_SHOWTIMEPALTE,
     SYS_UPDATEMENU,
     SYS_PAINTVIEW,
     SYS_MAXVALUE,
@@ -198,7 +200,7 @@ class MenuMgr
 {
 public:
     MenuMgr(HWND hWindow, HINSTANCE hInstance)
-        : m_hWindow(hWindow), m_hInstance(hInstance)
+        : m_hWindow(hWindow), m_hInstance(hInstance), m_bEnableTimePlate(true)
     {
         m_hMenuFont = GetMenuDefaultFont();
         m_hMenuDc = CreateCompatibleDC(NULL);
@@ -206,6 +208,8 @@ public:
 
         m_hMenu = NULL;
         UpdateMenu();
+
+        EnableTimePlate(m_bEnableTimePlate);
     }
 
     ~MenuMgr()
@@ -276,6 +280,19 @@ public:
                 );
             break;
 
+        case SYS_SHOWTIMEPALTE:
+            m_bEnableTimePlate = !m_bEnableTimePlate;
+            EnableTimePlate(m_bEnableTimePlate);
+            if (m_bEnableTimePlate)
+            {
+                CheckMenuItem(m_hMenu, SYS_SHOWTIMEPALTE, MF_BYCOMMAND | MF_CHECKED);
+            }
+            else
+            {
+                CheckMenuItem(m_hMenu, SYS_SHOWTIMEPALTE, MF_BYCOMMAND | MF_UNCHECKED);
+            }
+            break;
+
         case SYS_UPDATEMENU:
             UpdateMenu();
             break;
@@ -311,6 +328,7 @@ public:
 //         AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
 //         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
         AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
+        AppendMenu(m_hMenu, MF_STRING, SYS_SHOWTIMEPALTE, TEXT("整点在屏幕右上角显示时间(&T)"));
         AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表快捷通道(&R)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&E)"));
@@ -318,6 +336,11 @@ public:
         SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
         AppendMenu(m_hMenu, MF_STRING, SYS_UPDATEMENU, TEXT("刷新菜单内容(&U)"));
         AppendMenu(m_hMenu, MF_STRING, SYS_HIDEICON, TEXT("不显示托盘图标(&Q)"));
+
+        if (m_bEnableTimePlate)
+        {
+            CheckMenuItem(m_hMenu, SYS_SHOWTIMEPALTE, MF_BYCOMMAND | MF_CHECKED);
+        }
     }
 
 private:
@@ -560,6 +583,7 @@ private:
     HINSTANCE m_hInstance;
     map<int, const MenuItem *> m_mapMenuItems;
     set<MenuItemRegistry> m_setMenuItemsRegistry;
+    bool m_bEnableTimePlate;
 
 private:
     HFONT m_hMenuFont;

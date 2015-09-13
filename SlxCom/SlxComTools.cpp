@@ -1732,7 +1732,7 @@ HFONT GetMenuDefaultFont()
     return hFont;
 }
 
-static UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight)
+UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight)
 {
     SIZE size = {0};
 
@@ -2244,6 +2244,38 @@ std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess()
     LOCAL GetDesktopWindows(TEXT("WorkerW"), TEXT(""), listWindows);
 
     return listWindows;
+}
+
+LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResName, LPDWORD lpResSize /*= NULL*/)
+{
+    HRSRC hRes = FindResource(hInstance, lpResName, lpResType);
+
+    if (hRes == NULL)
+    {
+        return NULL;
+    }
+
+    HGLOBAL hGlobal = LoadResource(hInstance, hRes);
+    DWORD dwSize = SizeofResource(hInstance, hRes);
+
+    if (hGlobal == NULL)
+    {
+        return NULL;
+    }
+
+    LPCVOID lpBuffer = LockResource(hGlobal);
+
+    if (lpBuffer == NULL)
+    {
+        return NULL;
+    }
+
+    if (lpResSize != NULL)
+    {
+        *lpResSize = dwSize;
+    }
+
+    return lpBuffer;
 }
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)

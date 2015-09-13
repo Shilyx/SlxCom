@@ -94,6 +94,7 @@ END
 IDR_ICON                RT_FILE                 "res\\Mark.ico"
 IDR_DEFAULTJPG          RT_FILE                 "res\\Default.jpg"
 IDR_ABOUT               RT_FILE                 "res\\AboutSlxCom.htm"
+IDR_DIGIB_FONT          RT_FILE                 "res\\DS-DIGIB.TTF"
 
 /////////////////////////////////////////////////////////////////////////////
 //

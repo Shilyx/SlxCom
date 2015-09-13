@@ -435,6 +435,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxTimePlate.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxUnlockFile.cpp"
 				>
 			</File>
@@ -521,6 +525,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxTimePlate.h"
+				>
+			</File>
+			<File
 				RelativePath=".\WindowManager.h"
 				>
 			</File>
@@ -579,6 +587,11 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\AboutSlxCom.htm"
+				DeploymentContent="true"
+				>
+			</File>
+			<File
 				RelativePath=".\res\AddToCopy.bmp"
 				>
 			</File>
@@ -612,6 +625,10 @@
 			</File>
 			<File
 				RelativePath=".\res\Driver.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\DS-DIGIB.TTF"
 				>
 			</File>
 			<File
@@ -691,11 +708,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\res\AboutSlxCom.htm"
-			DeploymentContent="true"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
