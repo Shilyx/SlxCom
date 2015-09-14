@@ -87,7 +87,12 @@ static enum
     SYS_ABOUT,
     SYS_RESETEXPLORER,
     SYS_WINDOWMANAGER,
-    SYS_SHOWTIMEPALTE,
+    SYS_SHOWTIMEPALTE_DISABLE,
+    SYS_SHOWTIMEPALTE_PER60M,
+    SYS_SHOWTIMEPALTE_PER30M,
+    SYS_SHOWTIMEPALTE_PER15M,
+    SYS_SHOWTIMEPALTE_PER10M,
+    SYS_SHOWTIMEPALTE_PER1M,
     SYS_UPDATEMENU,
     SYS_PAINTVIEW,
     SYS_MAXVALUE,
@@ -200,7 +205,7 @@ class MenuMgr
 {
 public:
     MenuMgr(HWND hWindow, HINSTANCE hInstance)
-        : m_hWindow(hWindow), m_hInstance(hInstance), m_bEnableTimePlate(true)
+        : m_hWindow(hWindow), m_hInstance(hInstance), m_nTimePlageIntervalMinutes(30)
     {
         m_hMenuFont = GetMenuDefaultFont();
         m_hMenuDc = CreateCompatibleDC(NULL);
@@ -209,7 +214,8 @@ public:
         m_hMenu = NULL;
         UpdateMenu();
 
-        EnableTimePlate(m_bEnableTimePlate);
+        EnableTimePlate(TRUE);
+        SetTimePlateOption(m_nTimePlageIntervalMinutes);
     }
 
     ~MenuMgr()
@@ -280,17 +286,45 @@ public:
                 );
             break;
 
-        case SYS_SHOWTIMEPALTE:
-            m_bEnableTimePlate = !m_bEnableTimePlate;
-            EnableTimePlate(m_bEnableTimePlate);
-            if (m_bEnableTimePlate)
-            {
-                CheckMenuItem(m_hMenu, SYS_SHOWTIMEPALTE, MF_BYCOMMAND | MF_CHECKED);
-            }
-            else
-            {
-                CheckMenuItem(m_hMenu, SYS_SHOWTIMEPALTE, MF_BYCOMMAND | MF_UNCHECKED);
-            }
+        case SYS_SHOWTIMEPALTE_DISABLE:
+            m_nTimePlageIntervalMinutes = 0;
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_DISABLE, MF_BYCOMMAND);
+            EnableTimePlate(FALSE);
+            break;
+
+        case SYS_SHOWTIMEPALTE_PER60M:
+            m_nTimePlageIntervalMinutes = 60;
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER60M, MF_BYCOMMAND);
+            EnableTimePlate(TRUE);
+            SetTimePlateOption(60);
+            break;
+
+        case SYS_SHOWTIMEPALTE_PER30M:
+            m_nTimePlageIntervalMinutes = 30;
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER30M, MF_BYCOMMAND);
+            EnableTimePlate(TRUE);
+            SetTimePlateOption(30);
+            break;
+
+        case SYS_SHOWTIMEPALTE_PER15M:
+            m_nTimePlageIntervalMinutes = 15;
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER15M, MF_BYCOMMAND);
+            EnableTimePlate(TRUE);
+            SetTimePlateOption(15);
+            break;
+
+        case SYS_SHOWTIMEPALTE_PER10M:
+            m_nTimePlageIntervalMinutes = 10;
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER10M, MF_BYCOMMAND);
+            EnableTimePlate(TRUE);
+            SetTimePlateOption(10);
+            break;
+
+        case SYS_SHOWTIMEPALTE_PER1M:
+            m_nTimePlageIntervalMinutes = 1;
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER1M, MF_BYCOMMAND);
+            EnableTimePlate(TRUE);
+            SetTimePlateOption(1);
             break;
 
         case SYS_UPDATEMENU:
@@ -320,6 +354,16 @@ public:
             DestroyMenu(m_hMenu);
         }
 
+        HMENU hTimePlateMenu = CreatePopupMenu();
+
+        AppendMenu(hTimePlateMenu, MF_STRING, SYS_SHOWTIMEPALTE_PER60M, TEXT("每小时(&A)"));
+        AppendMenu(hTimePlateMenu, MF_STRING, SYS_SHOWTIMEPALTE_PER30M, TEXT("每半小时(&H)"));
+        AppendMenu(hTimePlateMenu, MF_STRING, SYS_SHOWTIMEPALTE_PER15M, TEXT("每一刻钟(&Q)"));
+        AppendMenu(hTimePlateMenu, MF_STRING, SYS_SHOWTIMEPALTE_PER10M, TEXT("每十分钟(&T)"));
+        AppendMenu(hTimePlateMenu, MF_STRING, SYS_SHOWTIMEPALTE_PER1M, TEXT("每分钟(&M)"));
+        AppendMenu(hTimePlateMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenu(hTimePlateMenu, MF_STRING, SYS_SHOWTIMEPALTE_DISABLE, TEXT("关闭(&D)"));
+
         UINT nMenuId = SYS_MAXVALUE;
         m_hMenu = CreatePopupMenu();
 
@@ -328,7 +372,7 @@ public:
 //         AppendMenu(m_hMenu, MF_STRING, SYS_PAINTVIEW, TEXT("桌面画板(&P)..."));
 //         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
         AppendMenu(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, TEXT("窗口管理器(&W)..."));
-        AppendMenu(m_hMenu, MF_STRING, SYS_SHOWTIMEPALTE, TEXT("整点在屏幕右上角显示时间(&T)"));
+        AppendMenu(m_hMenu, MF_POPUP, (UINT)hTimePlateMenu, TEXT("整点报时(&T)"));
         AppendMenu(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), TEXT("注册表快捷通道(&R)"));
         AppendMenu(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenu(m_hMenu, MF_STRING, SYS_RESETEXPLORER, TEXT("重新启动Explorer(&E)"));
@@ -337,9 +381,32 @@ public:
         AppendMenu(m_hMenu, MF_STRING, SYS_UPDATEMENU, TEXT("刷新菜单内容(&U)"));
         AppendMenu(m_hMenu, MF_STRING, SYS_HIDEICON, TEXT("不显示托盘图标(&Q)"));
 
-        if (m_bEnableTimePlate)
+        switch (m_nTimePlageIntervalMinutes)
         {
-            CheckMenuItem(m_hMenu, SYS_SHOWTIMEPALTE, MF_BYCOMMAND | MF_CHECKED);
+        default:
+        case 0:
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_DISABLE, MF_BYCOMMAND);
+            break;
+
+        case 60:
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER60M, MF_BYCOMMAND);
+            break;
+
+        case 30:
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER30M, MF_BYCOMMAND);
+            break;
+
+        case 15:
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER15M, MF_BYCOMMAND);
+            break;
+
+        case 10:
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER10M, MF_BYCOMMAND);
+            break;
+
+        case 1:
+            CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER1M, MF_BYCOMMAND);
+            break;
         }
     }
 
@@ -583,7 +650,8 @@ private:
     HINSTANCE m_hInstance;
     map<int, const MenuItem *> m_mapMenuItems;
     set<MenuItemRegistry> m_setMenuItemsRegistry;
-    bool m_bEnableTimePlate;
+
+    int m_nTimePlageIntervalMinutes;
 
 private:
     HFONT m_hMenuFont;

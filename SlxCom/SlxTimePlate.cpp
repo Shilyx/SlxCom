@@ -8,6 +8,7 @@
 
 static volatile LONG g_bEnabled = FALSE;
 static HANDLE g_hWorkThread = NULL;
+static int gs_nIntervalMinutes = 60;        // 每几分钟显示一次
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 
@@ -119,7 +120,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             GetLocalTime(&stNow);
 
             // 控制是否显示窗口
-            BOOL bShouldShow = g_bEnabled && (stNow.wMinute == 59 || stNow.wMinute == 0);
+            BOOL bShouldShow = g_bEnabled && (stNow.wMinute % gs_nIntervalMinutes == 0 || (stNow.wMinute + 1) % gs_nIntervalMinutes == 0);
             BOOL bIsWindowVisible = IsWindowVisible(hWnd);
 
             if (bIsWindowVisible && !bShouldShow)
@@ -264,10 +265,7 @@ void EnableTimePlate(bool bEnable)
     InterlockedExchange(&g_bEnabled, !!bEnable);
 }
 
-void WINAPI T8(DWORD, DWORD, DWORD, DWORD)
+void SetTimePlateOption(int nIntervalMinutes)
 {
-    WorkProc(NULL);
-//     EnableTimePlate(true);
-//     MessageBox(NULL, NULL, NULL, MB_SYSTEMMODAL);
-//     EnableTimePlate(false);
+    gs_nIntervalMinutes = nIntervalMinutes;
 }
