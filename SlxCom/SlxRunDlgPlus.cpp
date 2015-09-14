@@ -137,6 +137,7 @@ private:
 
                         if (IsWindow(m_hRunAdminMode))
                         {
+                            SendMessage(m_hRunAdminMode, BCM_SETSHIELD, 0, TRUE);
                             SetWindowPos(m_hRunAdminMode, GetWindow(hCommit, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
                             SendMessage(m_hRunAdminMode, WM_SETFONT, SendMessage(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
                             ShowWindow(m_hRunAdminMode, SW_SHOW);
@@ -148,7 +149,33 @@ private:
             case WM_COMMAND:
                 if (LOWORD(wParam) == 0x112 && HIWORD(wParam) == BN_CLICKED && (HWND)lParam == m_hRunAdminMode)
                 {
-                    MessageBox(m_hDlg, NULL, NULL, MB_ICONEXCLAMATION);
+                    HWND hComboBox = FindWindowEx(m_hDlg, NULL, TEXT("ComboBox"), NULL);
+
+                    if (IsWindow(hComboBox))
+                    {
+                        WCHAR szText[8192] = TEXT("/c start ");
+                        int nLength = lstrlenW(szText);
+                        SHELLEXECUTEINFOW si = {sizeof(si)};
+
+                        GetWindowTextW(hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
+
+                        si.hwnd = m_hDlg;
+                        si.lpVerb = L"runas";
+                        si.lpFile = L"cmd.exe";
+                        si.lpParameters = szText;
+                        si.nShow = SW_HIDE;
+
+                        if (ShellExecuteExW(&si))
+                        {
+                            PostMessage(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
+
+                            // Ð´Èë×¢²á±íHKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
+                        }
+                        else
+                        {
+                            SetFocus(hComboBox);
+                        }
+                    }
                 }
                 break;
 

@@ -2,6 +2,7 @@
 #define _SLX_COM_TOOLS_H
 
 #include <Windows.h>
+#include <CommCtrl.h>
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>
@@ -119,5 +120,9 @@ public:                                     \
 
 #define LOCAL_END }
 #define LOCAL __Local::
+
+#ifndef BCM_SETSHIELD
+#define BCM_SETSHIELD (0x160c)
+#endif
 
 #endif
