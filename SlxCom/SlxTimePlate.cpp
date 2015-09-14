@@ -63,6 +63,7 @@ public:
 public:
     void DrawTextOnWindow(HWND hWnd, LPCTSTR lpText)
     {
+        RECT rect;
         HDC hWindowDc = GetDC(hWnd);
 
         if (hWindowDc == NULL)
@@ -70,14 +71,9 @@ public:
             return;
         }
 
-        RECT rect;
-        UINT dwHeight = 0;
-        UINT dwWidth = GetDrawTextSizeInDc(m_hMemDc, lpText, &dwHeight);
-
-        GetClientRect(hWnd, &rect);
-
         TextOut(m_hMemDc, 0, 0, lpText, lstrlen(lpText));
         //StretchBlt(hWindowDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, m_hMemDc, 0, 0, dwWidth, dwHeight, SRCCOPY);
+        GetClientRect(hWnd, &rect);
         BitBlt(hWindowDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, m_hMemDc, 0, 0, SRCCOPY);
 
         ReleaseDC(hWnd, hWindowDc);
@@ -136,7 +132,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             if (IsWindowVisible(hWnd))
             {
                 TCHAR szTimeString[128];
-                TCHAR szTimeStringAdjusted[RTL_NUMBER_OF(szTimeString)];
+                TCHAR szTimeStringAdjusted[RTL_NUMBER_OF(szTimeString) * 2];
                 TCHAR ch = TEXT(':');
 
                 // 非等宽字体，闪烁冒号时字符串长度频繁变化
@@ -155,6 +151,11 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                     }
 
                     szTimeStringAdjusted[j] = szTimeString[i];
+
+                    if (szTimeStringAdjusted[j] == TEXT('\0'))
+                    {
+                        break;
+                    }
                 }
 
                 pImageBuilder->DrawTextOnWindow(hWnd, szTimeStringAdjusted);
