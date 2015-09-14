@@ -3,6 +3,7 @@
 #include "SlxComWork_sd.h"
 #include "SlxComWork_ni.h"
 #include "SlxComTools.h"
+#include "SlxRunDlgPlus.h"
 #include "WindowManager.h"
 #include "DesktopIconManager.h"
 
@@ -24,6 +25,11 @@ BOOL SlxWork(HINSTANCE hinstDll)
     if(osi.dwMajorVersion == 5 && osi.dwMinorVersion > 0)
     {
         StartHookShowDesktop();
+    }
+
+    if (osi.dwMajorVersion >= 6 && !IsAdminMode())
+    {
+        StartRunDlgPlusMonitor();
     }
 
     return TRUE;

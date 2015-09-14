@@ -435,6 +435,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxRunDlgPlus.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxStringStatusCache.cpp"
 				>
 			</File>
@@ -526,6 +530,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxManualCheckSignature.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxRunDlgPlus.h"
 				>
 			</File>
 			<File
