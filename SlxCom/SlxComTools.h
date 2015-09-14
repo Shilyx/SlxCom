@@ -37,8 +37,6 @@ BOOL IsExplorer();
 BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
 BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize);
 // BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy);
-BOOL ModifyAppPath(LPCTSTR lpFilePath);
-BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD dwSize);
 int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...);
 BOOL EnableDebugPrivilege(BOOL bEnable);
 BOOL IsFileDenyed(LPCTSTR lpFilePath);
@@ -106,6 +104,8 @@ inline std::tstring AnyTypeToString(const std::tstring &value)
 }
 
 std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess();
+
+std::tstring RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, LPCTSTR lpDefaultData = TEXT(""));
 
 //////////////////////////////////////////////////////////////////////////
 #define LOCAL_BEGIN class __Local           \

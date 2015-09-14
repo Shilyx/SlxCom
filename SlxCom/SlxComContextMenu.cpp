@@ -10,6 +10,7 @@
 #include "SlxComAbout.h"
 #include "SlxManualCheckSignature.h"
 #include "SlxElevateBridge.h"
+#include "SlxAppPath.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>

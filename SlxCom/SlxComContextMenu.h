@@ -11,8 +11,6 @@ public:
     BOOL bIsJpg;
     BOOL bIsPicture;
     BOOL bIsRar;
-    BOOL bIsEncorated;
-    BOOL bRegEventSucceed;
     TCHAR szPath[MAX_PATH];
 
     FileInfo()
@@ -22,8 +20,6 @@ public:
         bIsJpg = FALSE;
         bIsPicture = FALSE;
         bIsRar = FALSE;
-        bIsEncorated = FALSE;
-        bRegEventSucceed = FALSE;
         lstrcpyn(szPath, TEXT(""), sizeof(szPath) / sizeof(TCHAR));
     }
 };

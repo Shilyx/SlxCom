@@ -355,6 +355,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxAppPath.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxClipboard.cpp"
 				>
 			</File>
@@ -462,6 +466,10 @@
 			</File>
 			<File
 				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxAppPath.h"
 				>
 			</File>
 			<File
