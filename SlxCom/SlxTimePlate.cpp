@@ -15,6 +15,7 @@ extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 enum
 {
     TI_MAIN = 12,
+    TI_MOUSE_MONITOR,
 };
 
 class CImageBuilder
@@ -72,7 +73,6 @@ public:
         }
 
         TextOut(m_hMemDc, 0, 0, lpText, lstrlen(lpText));
-        //StretchBlt(hWindowDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, m_hMemDc, 0, 0, dwWidth, dwHeight, SRCCOPY);
         GetClientRect(hWnd, &rect);
         BitBlt(hWindowDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, m_hMemDc, 0, 0, SRCCOPY);
 
@@ -89,18 +89,45 @@ private:
 
 CImageBuilder *pImageBuilder = NULL;
 
+static void UpdateWindowLayeredValue(HWND hWnd, BOOL bForceUpdate = FALSE)
+{
+    static int s_nValues[] = {155, 35};
+    static bool s_bPtInRect = false;
+
+    POINT pt;
+    RECT rect;
+
+    GetCursorPos(&pt);
+    GetWindowRect(hWnd, &rect);
+
+    bool bBtInRectNow = !!PtInRect(&rect, pt);
+
+    if (bForceUpdate)
+    {
+        s_bPtInRect = bBtInRectNow;
+        SetLayeredWindowAttributes(hWnd, 0, s_nValues[!!s_bPtInRect], LWA_ALPHA);
+    }
+    else if (!bBtInRectNow ^ !s_bPtInRect)
+    {
+        s_bPtInRect = !s_bPtInRect;
+        SetLayeredWindowAttributes(hWnd, 0, s_nValues[!!s_bPtInRect], LWA_ALPHA);
+    }
+}
+
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
     case WM_CREATE:
         SetTimer(hWnd, TI_MAIN, 100, NULL);
+        SetTimer(hWnd, TI_MOUSE_MONITOR, 333, NULL);
         pImageBuilder = new CImageBuilder(72);
         return 0;
 
     case WM_RBUTTONDOWN:
     case WM_CLOSE:
         KillTimer(hWnd, TI_MAIN);
+        KillTimer(hWnd, TI_MOUSE_MONITOR);
         DestroyWindow(hWnd);
         return 0;
 
@@ -161,6 +188,10 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 pImageBuilder->DrawTextOnWindow(hWnd, szTimeStringAdjusted);
             }
         }
+        else if (wParam == TI_MOUSE_MONITOR && IsWindowVisible(hWnd))
+        {
+            UpdateWindowLayeredValue(hWnd);
+        }
         break;
 
     case WM_SHOWWINDOW:
@@ -172,8 +203,8 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 
             GetWindowRect(hWnd, &rectWnd);
-
             SetWindowPos(hWnd, NULL, nScreenWidth - (rectWnd.right - rectWnd.left) - nDefaultDistance, nDefaultDistance, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+            UpdateWindowLayeredValue(hWnd, TRUE);
         }
         break;
 
@@ -231,11 +262,6 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
 
         if (IsWindow(hWindow))
         {
-            SetLayeredWindowAttributes(hWindow, 0, 144, LWA_ALPHA);
-
-//             ShowWindow(hWindow, SW_SHOW);
-//             UpdateWindow(hWindow);
-
             MSG msg;
 
             while (TRUE)
