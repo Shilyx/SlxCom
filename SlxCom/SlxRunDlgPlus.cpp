@@ -85,6 +85,22 @@ public:
             return FALSE;
         }
 
+        HWND hComboBox = FindWindowEx(hWindow, NULL, TEXT("ComboBox"), NULL);
+
+        if (!IsWindow(hComboBox) || !IsWindow(FindWindowEx(hComboBox, NULL, NULL, NULL)))
+        {
+            return FALSE;
+        }
+
+        HWND hFirstChild = FindWindowEx(hWindow, NULL, NULL, NULL);
+        HWND hFirstStatic = FindWindowEx(hWindow, NULL, TEXT("Static"), NULL);
+        HWND hSecondStatic = FindWindowEx(hWindow, hFirstStatic, TEXT("Static"), NULL);
+
+        if (hFirstStatic != hFirstStatic || !IsWindow(hSecondStatic))
+        {
+            return FALSE;
+        }
+
         return TRUE;
     }
 
@@ -106,6 +122,7 @@ private:
                         RECT rectNewButton;
                         vector<HWND>::const_reverse_iterator it = vectorButtons.rbegin();
                         HWND hCommit = NULL;
+                        m_hComboBox = FindWindowEx(m_hDlg, NULL, TEXT("ComboBox"), NULL);
 
                         for (int i = 0; i < 3; ++i, ++it)
                         {
@@ -124,7 +141,7 @@ private:
                         m_hRunAdminMode = CreateWindowEx(
                             WS_EX_LEFT | WS_EX_LTRREADING,
                             TEXT("BUTTON"),
-                            TEXT("提权运行"),
+                            TEXT("提权(&R)"),
                             WS_CHILDWINDOW | WS_TABSTOP | BS_PUSHBUTTON | BS_TEXT,
                             rectNewButton.left,
                             rectNewButton.top,
@@ -141,41 +158,41 @@ private:
                             SetWindowPos(m_hRunAdminMode, GetWindow(hCommit, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
                             SendMessage(m_hRunAdminMode, WM_SETFONT, SendMessage(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
                             ShowWindow(m_hRunAdminMode, SW_SHOW);
+                            PostMessage(m_hDlg, WM_COMMAND, MAKELONG(0, CBN_EDITCHANGE), (LPARAM)m_hComboBox);
                         }
                     }
                 }
                 return 0;
 
             case WM_COMMAND:
-                if (LOWORD(wParam) == 0x112 && HIWORD(wParam) == BN_CLICKED && (HWND)lParam == m_hRunAdminMode)
+                if (LOWORD(wParam) == 0x112 && HIWORD(wParam) == BN_CLICKED && (HWND)lParam == m_hRunAdminMode && IsWindow(m_hComboBox))
                 {
-                    HWND hComboBox = FindWindowEx(m_hDlg, NULL, TEXT("ComboBox"), NULL);
+                    WCHAR szText[8192] = TEXT("/c start ");
+                    int nLength = lstrlenW(szText);
+                    SHELLEXECUTEINFOW si = {sizeof(si)};
 
-                    if (IsWindow(hComboBox))
+                    GetWindowTextW(m_hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
+
+                    si.hwnd = m_hDlg;
+                    si.lpVerb = L"runas";
+                    si.lpFile = L"cmd.exe";
+                    si.lpParameters = szText;
+                    si.nShow = SW_HIDE;
+
+                    if (ShellExecuteExW(&si))
                     {
-                        WCHAR szText[8192] = TEXT("/c start ");
-                        int nLength = lstrlenW(szText);
-                        SHELLEXECUTEINFOW si = {sizeof(si)};
+                        PostMessage(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
 
-                        GetWindowTextW(hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
-
-                        si.hwnd = m_hDlg;
-                        si.lpVerb = L"runas";
-                        si.lpFile = L"cmd.exe";
-                        si.lpParameters = szText;
-                        si.nShow = SW_HIDE;
-
-                        if (ShellExecuteExW(&si))
-                        {
-                            PostMessage(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
-
-                            // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
-                        }
-                        else
-                        {
-                            SetFocus(hComboBox);
-                        }
+                        // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
                     }
+                    else
+                    {
+                        SetFocus(m_hComboBox);
+                    }
+                }
+                else if (HIWORD(wParam) == CBN_EDITCHANGE && m_hComboBox == (HWND)lParam)
+                {
+                    EnableWindow(m_hRunAdminMode, GetWindowTextLength(m_hComboBox) > 0);
                 }
                 break;
 
@@ -224,6 +241,7 @@ private:
     HWND m_hDlg;
     WNDPROC m_procOldDlgProc;
     HWND m_hRunAdminMode;
+    HWND m_hComboBox;
 };
 
 static DWORD CALLBACK RunDlgPlusMonitorProc(LPVOID lpParam)
