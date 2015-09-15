@@ -215,7 +215,7 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
     if (RegisterClassEx(&wcex))
     {
         HWND hWindow = CreateWindowEx(
-            WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TRANSPARENT,
+            WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE,
             CLASS_NAME,
             CLASS_NAME,
             WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_POPUP,
