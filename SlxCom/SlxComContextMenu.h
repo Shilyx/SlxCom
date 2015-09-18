@@ -68,6 +68,7 @@ protected:
     BOOL ConvertToShortPaths();
     BOOL ShouldAddHashPropSheet();
     BOOL ShouldAddFileTimePropSheet();
+    BOOL ShouldAddPeInformationSheet();
 };
 
 #endif

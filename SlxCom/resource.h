@@ -51,6 +51,7 @@
 #define IDR_CLIPBOARDMENU               146
 #define IDR_DIGIB_FONT                  147
 #define IDD_TEST_PEINFORMATION_DIALOG   148
+#define IDD_PEINFORMATIONPAGE           149
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
@@ -147,9 +148,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        149
+#define _APS_NEXT_RESOURCE_VALUE        151
 #define _APS_NEXT_COMMAND_VALUE         40050
-#define _APS_NEXT_CONTROL_VALUE         1051
+#define _APS_NEXT_CONTROL_VALUE         1052
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

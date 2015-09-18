@@ -2175,6 +2175,32 @@ LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResN
     return lpBuffer;
 }
 
+void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel)
+{
+    if (nLevel < 1)
+    {
+        return;
+    }
+
+    if (htiBegin == NULL)
+    {
+        htiBegin = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_ROOT, NULL);
+    }
+
+    SendMessage(hControl, TVM_EXPAND, TVE_EXPAND, (LPARAM)htiBegin);
+
+    if (nLevel > 1)
+    {
+        HTREEITEM hChild = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)htiBegin);
+
+        while (hChild != NULL)
+        {
+            ExpandTreeControlForLevel(hControl, hChild, nLevel - 1);
+            hChild = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hChild);
+        }
+    }
+}
+
 std::string GetFriendlyFileSizeA(unsigned __int64 nSize)
 {
     const unsigned __int64 nTimes = 1024;           // 单位之间的倍数

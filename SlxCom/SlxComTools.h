@@ -72,6 +72,7 @@ BOOL IsWindowFullScreen(HWND hWindow);
 BOOL KillProcess(DWORD dwProcessId);
 BOOL GetProcessNameById(DWORD dwProcessId, TCHAR szProcessName[], DWORD dwBufferSize);
 LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResName, LPDWORD lpResSize = NULL);
+void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel);
 
 enum WindowUnalphaValue
 {

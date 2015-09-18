@@ -263,15 +263,15 @@ private:
             break;
 
         case 1:
-            strSubSystemName = L"设备驱动程序和Native Windows进程";
+            strSubSystemName = L"驱动程序";
             break;
 
         case 2:
-            strSubSystemName = L"Windows图形用户界面（GUI）子系统（一般程序）";
+            strSubSystemName = L"图形界面";
             break;
 
         case 3:
-            strSubSystemName = L"Windows字符模式（CUI）子系统（从命令提示符启动的）";
+            strSubSystemName = L"文字界面";
             break;
 
         case 7:
@@ -760,7 +760,45 @@ std::string GetPeInformation(const wchar_t *lpPeFilePath)
     return PeInformationAnalyzer(lpPeFilePath).GetResult()->GenerateXmlUtf8();
 }
 
+std::wstring GetPeInformationW(const wchar_t *lpPeFilePath)
+{
+    return PeInformationAnalyzer(lpPeFilePath).GetResult()->GenerateXml();
+}
+
+bool IsFileLikePeFile(const wchar_t *lpPeFilePath)
+{
+    bool bIsPe = false;
+    HANDLE hFile = CreateFileW(lpPeFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (hFile!= INVALID_HANDLE_VALUE)
+    {
+        char szBuffer[1024];
+        DWORD dwBytesRead = 0;
+
+        if (ReadFile(hFile, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL) && dwBytesRead == sizeof(szBuffer))
+        {
+            PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)szBuffer;
+
+            if (pDosHeader->e_magic == IMAGE_DOS_SIGNATURE)
+            {
+                if (pDosHeader->e_lfanew + sizeof(DWORD) <= sizeof(szBuffer))
+                {
+                    if (*(DWORD *)(szBuffer + pDosHeader->e_lfanew) == IMAGE_NT_SIGNATURE)
+                    {
+                        bIsPe = true;
+                    }
+                }
+            }
+        }
+
+        CloseHandle(hFile);
+    }
+
+    return bIsPe;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
+// 测试接口
 #include "resource.h"
 
 class CTestGetPeInformationDialog
@@ -874,32 +912,6 @@ private:
         }
     }
 
-    void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel)
-    {
-        if (nLevel < 1)
-        {
-            return;
-        }
-
-        if (htiBegin == NULL)
-        {
-            htiBegin = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_ROOT, NULL);
-        }
-
-        SendMessage(hControl, TVM_EXPAND, TVE_EXPAND, (LPARAM)htiBegin);
-
-        if (nLevel > 1)
-        {
-            HTREEITEM hChild = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)htiBegin);
-
-            while (hChild != NULL)
-            {
-                ExpandTreeControlForLevel(hControl, hChild, nLevel - 1);
-                hChild = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hChild);
-            }
-        }
-    }
-
     void LoadPeFile(LPCWSTR lpFilePath)
     {
         SendDlgItemMessage(m_hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
@@ -919,4 +931,39 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 void CALLBACK TestShowPeInformationW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd)
 {
     CTestGetPeInformationDialog(g_hinstDll, MAKEINTRESOURCE(IDD_TEST_PEINFORMATION_DIALOG), NULL).DoModel();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 获取pe信息接口
+#include "lib/charconv.h"
+
+static LONG WINAPI UnhandledExceptionFilterProc(struct _EXCEPTION_POINTERS* ExceptionInfo)
+{
+    ExitProcess(0);
+}
+
+// cmdLine: hwnd lpFilePath
+void CALLBACK GetPeInformationAndReportW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd)
+{
+    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
+    SetUnhandledExceptionFilter(UnhandledExceptionFilterProc);
+
+    int nArgc = 0;
+    LPWSTR *lpArgv = CommandLineToArgvW(lpCmdLine, &nArgc);
+
+    if (lpArgv != NULL)
+    {
+        if (nArgc >= 2)
+        {
+            HWND hTargetWindow = (HWND)StrToInt64Def(WtoT(lpArgv[0]).c_str(), 0);
+
+            if (IsWindow(hTargetWindow))
+            {
+                wstring strText = GetPeInformationW(lpArgv[1]);
+                SetWindowTextW(hTargetWindow, strText.c_str());
+            }
+        }
+
+        LocalFree(lpArgv);
+    }
 }

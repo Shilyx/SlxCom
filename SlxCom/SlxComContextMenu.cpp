@@ -2,6 +2,7 @@
 #include "SlxComContextMenu.h"
 #include <shlwapi.h>
 #include <CommCtrl.h>
+#include "lib/GeneralTreeItemW.h"
 #include "SlxComOverlay.h"
 #include "SlxComTools.h"
 #include "SlxComPeTools.h"
@@ -11,6 +12,7 @@
 #include "SlxManualCheckSignature.h"
 #include "SlxElevateBridge.h"
 #include "SlxAppPath.h"
+#include "SlxPeInformation.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>
@@ -2162,6 +2164,222 @@ UINT CALLBACK CSlxComContextMenu::FileTimePropSheetCallback(HWND hwnd, UINT uMsg
 }
 
 //////////////////////////////////////////////////////////////////////////
+class CPeInformationPage
+{
+public:
+    CPeInformationPage(const wstring &strFilePath)
+        : m_strFilePath(strFilePath)
+        , m_hwndDlg(NULL)
+    {
+    }
+
+    ~CPeInformationPage()
+    {
+        if (IsWindow(m_hwndDlg))
+        {
+            DestroyWindow(m_hwndDlg);
+        }
+    }
+
+public:
+    static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        const LPCTSTR lpWndPropName = TEXT("__CPeInformationPage_PropName");
+
+        if (uMsg == WM_INITDIALOG)
+        {
+            LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
+            CPeInformationPage *pPeInformationPage = (CPeInformationPage *)pPsp->lParam;
+
+            SetProp(hwndDlg, lpWndPropName, (HANDLE)pPeInformationPage);
+        }
+
+        CPeInformationPage *pCPeInformationPage = (CPeInformationPage *)GetProp(hwndDlg, lpWndPropName);
+
+        if (pCPeInformationPage != NULL)
+        {
+            return pCPeInformationPage->PrivateDlgProc(hwndDlg, uMsg, wParam, lParam);
+        }
+
+        if (uMsg == WM_DESTROY)
+        {
+            RemoveProp(hwndDlg, lpWndPropName);
+        }
+
+        return FALSE;
+    }
+
+    static UINT CALLBACK PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+    {
+        switch (uMsg)
+        {
+        case PSPCB_ADDREF:
+            break;
+
+        case PSPCB_CREATE:
+            break;
+
+        case PSPCB_RELEASE:
+            delete (CPeInformationPage *)pPsp->lParam;
+            break;
+
+        default:
+            break;
+        }
+
+        return TRUE;
+    }
+
+private:
+    struct WorkThreadParam
+    {
+        wstring strFilePath;
+        HWND hwndDlg;
+
+    public:
+        WorkThreadParam(const wstring &strFilePath, HWND hwndDlg)
+        {
+            this->strFilePath = strFilePath;
+            this->hwndDlg = hwndDlg;
+        }
+    };
+
+    static DWORD CALLBACK WorkProc(LPVOID lpParam)
+    {
+        // 
+        WorkThreadParam *pParam = (WorkThreadParam *)lpParam;
+        WorkThreadParam param = *pParam;
+
+        delete pParam;
+
+        // 
+        WNDCLASSEX wcex = {sizeof(wcex)};
+        LPCTSTR lpClassName = TEXT("__PeInformationPageMiddleWnd");
+
+        wcex.hInstance = g_hinstDll;
+        wcex.lpszClassName = lpClassName;
+        wcex.lpfnWndProc = DefWindowProc;
+
+        RegisterClassEx(&wcex);
+
+        HWND hMiddleWindow = CreateWindow(lpClassName, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 1555, 100, NULL, NULL, g_hinstDll, NULL);
+
+        if (!IsWindow(hMiddleWindow))
+        {
+            return 0;
+        }
+
+        // 
+        STARTUPINFO si = {sizeof(si)};
+        PROCESS_INFORMATION pi;
+        TCHAR szCmd[MAX_PATH * 2 + 1024];
+        HANDLE hWorkProcess = NULL;
+        TCHAR szDllPath[MAX_PATH] = TEXT("");
+
+        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        wnsprintf(szCmd, RTL_NUMBER_OF(szCmd), TEXT("rundll32.exe \"%s\" GetPeInformationAndReport %I64u \"%ls\""), szDllPath, (unsigned __int64)hMiddleWindow, param.strFilePath.c_str());
+
+        if (CreateProcess(NULL, szCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        {
+            while (IsWindow(hMiddleWindow))
+            {
+                DWORD dwWaitResult = MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, QS_ALLINPUT);
+
+                if (dwWaitResult == WAIT_OBJECT_0)
+                {
+                    break;
+                }
+                else if (dwWaitResult = WAIT_OBJECT_0 + 1)
+                {
+                    MSG msg;
+
+                    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+                    {
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            CloseHandle(pi.hThread);
+            CloseHandle(pi.hProcess);
+        }
+
+        // 获取结果
+        if (IsWindow(param.hwndDlg))
+        {
+            DWORD dwWindowTextLength = GetWindowTextLength(hMiddleWindow);
+
+            if (dwWindowTextLength > 0)
+            {
+                try
+                {
+                    WCHAR *szText = new WCHAR[dwWindowTextLength + 10];
+
+                    if (GetWindowText(hMiddleWindow, szText, dwWindowTextLength + 10) > 0)
+                    {
+                        if (IsWindow(param.hwndDlg))
+                        {
+                            HWND hTreeControl = GetDlgItem(param.hwndDlg, IDC_TREE);
+
+                            if (IsWindow(hTreeControl))
+                            {
+                                SendDlgItemMessage(param.hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
+                                AttachToTreeCtrlW(szText, hTreeControl);
+                                ExpandTreeControlForLevel(hTreeControl, NULL, 2);
+                            }
+                        }
+                    }
+
+                    delete []szText;
+                }
+                catch (bad_alloc &)
+                {
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    INT_PTR PrivateDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        switch (uMsg)
+        {
+        case WM_INITDIALOG:
+            m_hwndDlg = hwndDlg;
+            CloseHandle(CreateThread(NULL, 0, WorkProc, new WorkThreadParam(m_strFilePath, m_hwndDlg), 0, NULL));
+            break;
+
+        case WM_COMMAND:
+            switch (LOWORD(wParam))
+            {
+            case IDC_ABOUT:
+                SlxComAbout(hwndDlg);
+                break;
+
+            default:
+                break;
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        return FALSE;
+    }
+
+private:
+    wstring m_strFilePath;
+    HWND m_hwndDlg;
+};
+
+//////////////////////////////////////////////////////////////////////////
 STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARAM lParam)
 {
     HRESULT hr = E_NOTIMPL;
@@ -2227,6 +2445,33 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
         hr = S_OK;
     }
 
+    if (ShouldAddPeInformationSheet())
+    {
+        PROPSHEETPAGE psp = {sizeof(psp)};
+        HPROPSHEETPAGE hPage;
+        CPeInformationPage *pPropSheetPage = new CPeInformationPage(TtoW(m_pFiles[0].szPath).c_str());
+
+        psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
+        psp.hInstance   = g_hinstDll;
+        psp.pszTemplate = MAKEINTRESOURCE(IDD_PEINFORMATIONPAGE);
+        psp.pszTitle    = TEXT("PE信息");
+        psp.pfnDlgProc  = CPeInformationPage::DlgProc;
+        psp.lParam      = (LPARAM)pPropSheetPage;
+        psp.pfnCallback = CPeInformationPage::PropSheetCallback;
+
+        hPage = CreatePropertySheetPage(&psp);
+
+        if (NULL != hPage)
+        {
+            if (!pfnAddPage(hPage, lParam))
+            {
+                DestroyPropertySheetPage(hPage);
+            }
+        }
+
+        hr = S_OK;
+    }
+
     return hr;
 }
 
@@ -2272,6 +2517,11 @@ BOOL CSlxComContextMenu::ShouldAddHashPropSheet()
 BOOL CSlxComContextMenu::ShouldAddFileTimePropSheet()
 {
     return m_uFileCount > 0 && !(g_osi.dwMajorVersion == 5 && g_osi.dwMinorVersion == 0);
+}
+
+BOOL CSlxComContextMenu::ShouldAddPeInformationSheet()
+{
+    return m_uFileCount == 1 && m_pFiles[0].bIsFile && IsFileLikePeFile(TtoW(m_pFiles[0].szPath).c_str());
 }
 
 void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
