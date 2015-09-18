@@ -11,6 +11,7 @@
 #include <shlobj.h>
 #pragma warning(disable: 4786)
 #include <set>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include "lib/charconv.h"
@@ -2172,6 +2173,114 @@ LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResN
     }
 
     return lpBuffer;
+}
+
+std::string GetFriendlyFileSizeA(unsigned __int64 nSize)
+{
+    const unsigned __int64 nTimes = 1024;           // 单位之间的倍数
+    const unsigned __int64 nKB = nTimes;
+    const unsigned __int64 nMB = nTimes * nKB;
+    const unsigned __int64 nGB = nTimes * nMB;
+    const unsigned __int64 nTB = nTimes * nGB;
+    const char *lpUnit = NULL;
+    unsigned __int64 nLeftValue = 0;                // 小数点左边的数字
+    unsigned __int64 nRightValue = 0;               // 小数点右边的数字
+    stringstream ssResult;
+
+    if (nSize < nKB)
+    {
+        ssResult<<(unsigned)nSize<<" B";
+    }
+    else
+    {
+        if (nSize >= nTB)
+        {
+            nLeftValue = nSize / nTB;
+            nRightValue = nSize % nTB * 100 / nGB % 100;
+            lpUnit = " TB";
+        }
+        else if (nSize >= nGB)
+        {
+            nLeftValue = nSize / nGB;
+            nRightValue = nSize % nGB * 100 / nMB % 100;
+            lpUnit = " GB";
+        }
+        else if (nSize >= nMB)
+        {
+            nLeftValue = nSize / nMB;
+            nRightValue = nSize % nMB * 100 / nKB % 100;
+            lpUnit = " MB";
+        }
+        else
+        {
+            nLeftValue = nSize / nKB;
+            nRightValue = nSize % nKB * 100 / 1 % 100;
+            lpUnit = " KB";
+        }
+
+        // 每三位数用逗号分隔
+        list<unsigned __int64> listValues;
+
+        while (nLeftValue >= 1000)
+        {
+            listValues.push_back(nLeftValue % 1000);
+            nLeftValue /= 1000;
+        }
+
+        if (nLeftValue > 0)
+        {
+            listValues.push_back(nLeftValue);
+        }
+
+        stringstream ssLeftValue;
+        list<unsigned __int64>::reverse_iterator it = listValues.rbegin();
+        for (; it != listValues.rend(); ++it)
+        {
+            if (it == listValues.rbegin())
+            {
+                ssLeftValue<<(unsigned)*it;
+            }
+            else
+            {
+                ssLeftValue<<setw(3)<<setfill('0')<<(unsigned)*it;
+            }
+        }
+
+        ssResult<<ssLeftValue.str()<<'.'<<setw(2)<<setfill('0')<<(unsigned)nRightValue<<lpUnit;
+    }
+
+    return ssResult.str();
+}
+
+std::wstring fmtW(const wchar_t *fmt, ...)
+{
+    wchar_t szText[1024 * 10];
+    va_list val;
+
+    szText[0] = L'\0';
+    va_start(val, fmt);
+    wvnsprintfW(szText, RTL_NUMBER_OF(szText), fmt, val);
+    va_end(val);
+
+    return szText;
+}
+
+LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt)
+{
+    SYSTEMTIME st1970 = {0};
+    FILETIME ft1970;
+    FILETIME ftNewTime;
+
+    st1970.wYear = 1970;
+    st1970.wMonth = 1;
+    st1970.wDay = 1;
+
+    SystemTimeToFileTime(&st1970, &ft1970);
+    FileTimeToLocalFileTime(&ft1970, &ftNewTime);
+    ((PULARGE_INTEGER)&ftNewTime)->QuadPart += (unsigned __int64)dwTime1970 * 1000 * 1000 * 10;
+    FileTimeToSystemTime(&ftNewTime, lpSt);
+
+    return lpSt;
 }
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)

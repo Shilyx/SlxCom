@@ -435,6 +435,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxPeInformation.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxRunDlgPlus.cpp"
 				>
 			</File>
@@ -530,6 +534,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxManualCheckSignature.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxPeInformation.h"
 				>
 			</File>
 			<File
@@ -721,6 +729,22 @@
 			</File>
 			<File
 				RelativePath=".\lib\DummyWinTrustDll.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\GeneralTreeItemW.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\GeneralTreeItemW.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\ReadonlyFileMapping.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\ReadonlyFileMapping.h"
 				>
 			</File>
 		</Filter>

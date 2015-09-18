@@ -87,6 +87,9 @@ BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue);
 std::tstring GetCurrentTimeString();
 std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);
 std::tstring GetDesktopName(HDESK hDesktop);
+std::string GetFriendlyFileSizeA(unsigned __int64 nSize);
+std::wstring fmtW(const wchar_t *fmt, ...);
+LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt);
 
 template <class T>
 std::tstring AnyTypeToString(const T &value)

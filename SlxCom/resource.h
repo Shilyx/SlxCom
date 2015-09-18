@@ -50,6 +50,7 @@
 #define IDD_CLIPBOARD_DIALOG            145
 #define IDR_CLIPBOARDMENU               146
 #define IDR_DIGIB_FONT                  147
+#define IDD_TEST_PEINFORMATION_DIALOG   148
 #define IDC_RUN                         1000
 #define IDC_FILE                        1002
 #define IDC_ARGUMENTS                   1003
@@ -91,6 +92,7 @@
 #define IDC_SUBDIR                      1046
 #define IDC_TYPES                       1047
 #define IDC_CONTENT                     1048
+#define IDC_TREE                        1050
 #define ID_MENU_40001                   40001
 #define ID_MENU_40002                   40002
 #define ID_MENU_40003                   40003
@@ -145,9 +147,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        148
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         40050
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1051
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
