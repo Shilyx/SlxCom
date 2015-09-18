@@ -1,3 +1,32 @@
+// charconv是Windows平台下的字符集转换函数库
+// 作者: Shilyx
+// email: shilyx@yeah.net
+// 
+// 四种类型，四种简写如下：
+// A: string   mbcs字符串
+// W: wstring  unicode字符串
+// T: tstring  定义了_UNICODE时是unicode字符串，其余情况下是mbcs字符串
+// U: strutf8  utf-8字符串
+// tstring和strutf8都是std命名空间中的类型
+// 
+// 十六种变换调用如下（括号内的为别名）：
+// AtoA: string  -> string 
+// WtoW: wstring -> wstring
+// TtoT: tstring -> tstring
+// UtoU: strutf8 -> strutf8
+// AtoU: string  -> strutf8
+// UtoA: strutf8 -> string 
+// WtoU: wstring -> strutf8
+// UtoW: strutf8 -> wstring
+// AtoW: string  -> wstring
+// WtoA: wstring -> string 
+// AtoT: string  -> tstring
+// TtoA: tstring -> string 
+// WtoT: wstring -> tstring
+// TtoW: tstring -> wstring
+// UtoT: strutf8 -> tstring
+// TtoU: tstring -> strutf8
+
 #ifndef _CHARCONV_H
 #define _CHARCONV_H
 
@@ -8,31 +37,6 @@
 #pragma warning(disable: 4786)
 #include <string>
 #include <sstream>
-
-// 四种类型，四种简写如下：
-// A: string   mbcs字符串
-// W: wstring  unicode字符串
-// T: tstring  定义了_UNICODE时是unicode字符串，其余情况下是mbcs字符串
-// U: strutf8  utf-8字符串
-// tstring和strutf8都是std命名空间中的类型
-// 
-// 十六种变换调用如下（括号内的为别名）：
-// AtoA                string  -> string 
-// WtoW                wstring -> wstring
-// TtoT                tstring -> tstring
-// UtoU                strutf8 -> strutf8
-// AtoU (ToUtf8A    )  string  -> strutf8
-// UtoA (ToCommonA  )  strutf8 -> string 
-// WtoU (ToUtf8W    )  wstring -> strutf8
-// UtoW (ToCommonW  )  strutf8 -> wstring
-// AtoW (ToWideChar )  string  -> wstring
-// WtoA (ToMultiByte)  wstring -> string 
-// AtoT                string  -> tstring
-// TtoA                tstring -> string 
-// WtoT                wstring -> tstring
-// TtoW                tstring -> wstring
-// UtoT (ToCommon   )  strutf8 -> tstring
-// TtoU (ToUtf8     )  tstring -> strutf8
 
 _STD_BEGIN
 //strutf8类型定义，同string同类型
@@ -66,28 +70,22 @@ template <class _Self> _Self _StoS(const _Self &_self)
 #define UtoU _StoS<std::strutf8>
 
 //string -> strutf8
-std::strutf8 ToUtf8A(const std::string &str);
-#define AtoU ToUtf8A
+std::strutf8 AtoU(const std::string &str);
 
 //strutf8 -> string
-std::string ToCommonA(const std::strutf8 &str);
-#define UtoA ToCommonA
+std::string UtoA(const std::strutf8 &str);
 
 //wstring -> strutf8
-std::strutf8 ToUtf8W(const std::wstring &str);
-#define WtoU ToUtf8W
+std::strutf8 WtoU(const std::wstring &str);
 
 //strutf8 -> wstring
-std::wstring ToCommonW(const std::strutf8 &str);
-#define UtoW ToCommonW
+std::wstring UtoW(const std::strutf8 &str);
 
 //string -> wstring 
-std::wstring ToWideChar(const std::string &str);
-#define AtoW ToWideChar
+std::wstring AtoW(const std::string &str);
 
 //wstring -> string
-std::string ToMultiByte(const std::wstring &str);
-#define WtoA ToMultiByte
+std::string WtoA(const std::wstring &str);
 
 // string -> tstring
 #ifdef _UNICODE
@@ -123,7 +121,6 @@ std::string ToMultiByte(const std::wstring &str);
 #else
 #  define UtoT UtoA
 #endif
-#define ToCommon UtoT
 
 // tstring - > strutf8
 #ifdef _UNICODE
@@ -131,6 +128,5 @@ std::string ToMultiByte(const std::wstring &str);
 #else
 #  define TtoU AtoU
 #endif
-#define ToUtf8 TtoU
 
 #endif
