@@ -24,6 +24,9 @@ class CImageBuilder
 #define DEFALUT_BK_COLOR (RGB(91, 91, 91))
 public:
     CImageBuilder(int nSize)
+        : m_nHour(100)
+        , m_nMinute(100)
+        , m_nSecond(100)
     {
         HDC hScreenDc = GetDC(NULL);
 
@@ -62,21 +65,44 @@ public:
     }
 
 public:
-    void DrawTextOnWindow(HWND hWnd, LPCTSTR lpText)
+    // 传入当前时间，对比，更新，处理时间字符串，绘制到内存dc，更新窗口
+    void UpdateMemText(HWND hWnd, int nHour, int nMinute, int nSecond)
     {
-        RECT rect;
-        HDC hWindowDc = GetDC(hWnd);
-
-        if (hWindowDc == NULL)
+        if (m_nSecond != nSecond || m_nMinute != nMinute || m_nHour != nHour)
         {
-            return;
+            m_nHour = nHour;
+            m_nMinute = m_nMinute;
+            m_nSecond = m_nSecond;
+
+            TCHAR szTimeString[128];
+            TCHAR szTimeStringAdjusted[RTL_NUMBER_OF(szTimeString) * 2];
+            TCHAR ch = TEXT(':');
+
+            wnsprintf(szTimeString, RTL_NUMBER_OF(szTimeString), TEXT(" %02u %c %02u %c %02u "), nHour, ch, nMinute, ch, nSecond);
+
+            for (int i = 0, j = 0; i < RTL_NUMBER_OF(szTimeString); ++i, ++j)
+            {
+                if (szTimeString[i] == TEXT('1'))
+                {
+                    szTimeStringAdjusted[j++] = TEXT(' ');
+                }
+
+                szTimeStringAdjusted[j] = szTimeString[i];
+
+                if (szTimeStringAdjusted[j] == TEXT('\0'))
+                {
+                    break;
+                }
+            }
+
+            TextOut(m_hMemDc, 0, 0, szTimeStringAdjusted, lstrlen(szTimeStringAdjusted));
+            InvalidateRect(hWnd, NULL, TRUE);
         }
+    }
 
-        TextOut(m_hMemDc, 0, 0, lpText, lstrlen(lpText));
-        GetClientRect(hWnd, &rect);
-        BitBlt(hWindowDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, m_hMemDc, 0, 0, SRCCOPY);
-
-        ReleaseDC(hWnd, hWindowDc);
+    HDC GetDc() const
+    {
+        return m_hMemDc;
     }
 
 private:
@@ -85,6 +111,9 @@ private:
     HGDIOBJ m_hOldBmp;
     HFONT m_hMemFont;
     HGDIOBJ m_hOldFont;
+    int m_nHour;
+    int m_nMinute;
+    int m_nSecond;
 };
 
 CImageBuilder *pImageBuilder = NULL;
@@ -119,7 +148,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     switch (uMsg)
     {
     case WM_CREATE:
-        SetTimer(hWnd, TI_MAIN, 100, NULL);
+        SetTimer(hWnd, TI_MAIN, 31, NULL);
         SetTimer(hWnd, TI_MOUSE_MONITOR, 333, NULL);
         pImageBuilder = new CImageBuilder(72);
         return 0;
@@ -134,6 +163,20 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
+
+    case WM_ERASEBKGND:
+        return 1;
+
+    case WM_PAINT:{
+        PAINTSTRUCT ps;
+        RECT rect;
+        HDC hPaintDc = BeginPaint(hWnd, &ps);
+
+        GetClientRect(hWnd, &rect);
+        BitBlt(hPaintDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, pImageBuilder->GetDc(), 0, 0, SRCCOPY);
+
+        EndPaint(hWnd, &ps);
+        break;}
 
     case WM_TIMER:
         if (wParam == TI_MAIN)
@@ -158,34 +201,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             // 控制展示时间
             if (IsWindowVisible(hWnd))
             {
-                TCHAR szTimeString[128];
-                TCHAR szTimeStringAdjusted[RTL_NUMBER_OF(szTimeString) * 2];
-                TCHAR ch = TEXT(':');
-
-                // 非等宽字体，闪烁冒号时字符串长度频繁变化
-//                 if (stNow.wMilliseconds > 500)
-//                 {
-//                     ch = TEXT(' ');
-//                 }
-
-                wnsprintf(szTimeString, RTL_NUMBER_OF(szTimeString), TEXT(" %02u %c %02u %c %02u "), stNow.wHour, ch, stNow.wMinute, ch, stNow.wSecond);
-
-                for (int i = 0, j = 0; i < RTL_NUMBER_OF(szTimeString); ++i, ++j)
-                {
-                    if (szTimeString[i] == TEXT('1'))
-                    {
-                        szTimeStringAdjusted[j++] = TEXT(' ');
-                    }
-
-                    szTimeStringAdjusted[j] = szTimeString[i];
-
-                    if (szTimeStringAdjusted[j] == TEXT('\0'))
-                    {
-                        break;
-                    }
-                }
-
-                pImageBuilder->DrawTextOnWindow(hWnd, szTimeStringAdjusted);
+                pImageBuilder->UpdateMemText(hWnd, stNow.wHour, stNow.wMinute, stNow.wSecond);
             }
         }
         else if (wParam == TI_MOUSE_MONITOR && IsWindowVisible(hWnd))
