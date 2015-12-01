@@ -379,6 +379,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComConfigLight.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComContextMenu.cpp"
 				>
 			</File>
@@ -482,6 +486,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComAbout.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComConfigLight.h"
 				>
 			</File>
 			<File

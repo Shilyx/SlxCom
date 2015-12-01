@@ -9,6 +9,7 @@
 #include <set>
 #include "lib/charconv.h"
 #include "SlxComAbout.h"
+#include "SlxComConfigLight.h"
 
 using namespace std;
 
@@ -210,12 +211,25 @@ public:
         m_hMenuFont = GetMenuDefaultFont();
         m_hMenuDc = CreateCompatibleDC(NULL);
         m_hOldFont = SelectObject(m_hMenuDc, (HGDIOBJ)m_hMenuFont);
-
         m_hMenu = NULL;
-        UpdateMenu();
 
-        EnableTimePlate(TRUE);
+        // 在正常范围外取值，将导致未定义后果
+        // 菜单项会选中“禁用”，但实际并不禁用
+        DWORD dwInterval = cfglGetLong(L"time_plate.interval.every", 30);
+
+        if (dwInterval == -1 || dwInterval == 0)
+        {
+            EnableTimePlate(FALSE);
+            m_nTimePlageIntervalMinutes = 0;
+        }
+        else
+        {
+            EnableTimePlate(TRUE);
+            m_nTimePlageIntervalMinutes = dwInterval;
+        }
+
         SetTimePlateOption(m_nTimePlageIntervalMinutes);
+        UpdateMenu();
     }
 
     ~MenuMgr()
@@ -290,6 +304,7 @@ public:
             m_nTimePlageIntervalMinutes = 0;
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_DISABLE, MF_BYCOMMAND);
             EnableTimePlate(FALSE);
+            cfglSetLong(L"time_plate.interval.every", -1);
             break;
 
         case SYS_SHOWTIMEPALTE_PER60M:
@@ -297,6 +312,7 @@ public:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER60M, MF_BYCOMMAND);
             EnableTimePlate(TRUE);
             SetTimePlateOption(60);
+            cfglSetLong(L"time_plate.interval.every", 60);
             break;
 
         case SYS_SHOWTIMEPALTE_PER30M:
@@ -304,6 +320,7 @@ public:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER30M, MF_BYCOMMAND);
             EnableTimePlate(TRUE);
             SetTimePlateOption(30);
+            cfglSetLong(L"time_plate.interval.every", 30);
             break;
 
         case SYS_SHOWTIMEPALTE_PER15M:
@@ -311,6 +328,7 @@ public:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER15M, MF_BYCOMMAND);
             EnableTimePlate(TRUE);
             SetTimePlateOption(15);
+            cfglSetLong(L"time_plate.interval.every", 15);
             break;
 
         case SYS_SHOWTIMEPALTE_PER10M:
@@ -318,6 +336,7 @@ public:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER10M, MF_BYCOMMAND);
             EnableTimePlate(TRUE);
             SetTimePlateOption(10);
+            cfglSetLong(L"time_plate.interval.every", 10);
             break;
 
         case SYS_SHOWTIMEPALTE_PER1M:
@@ -325,6 +344,7 @@ public:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER1M, MF_BYCOMMAND);
             EnableTimePlate(TRUE);
             SetTimePlateOption(1);
+            cfglSetLong(L"time_plate.interval.every", 1);
             break;
 
         case SYS_UPDATEMENU:

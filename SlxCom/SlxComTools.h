@@ -6,6 +6,8 @@
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>
+#include <string>
+#include <vector>
 
 enum DRIVER_ACTION
 {
@@ -106,6 +108,45 @@ template <>
 inline std::tstring AnyTypeToString(const std::tstring &value)
 {
     return value;
+}
+
+// 功能：以patten为分隔符将字符串str分隔并置入result中，并返回result的大小，ignore_blank标识是否忽略空白部分
+// 注意：只要函数被调用，result都将首先被置空
+// 注意：原始字符串首尾的空白始终不被置入result中
+// 例如：以*分隔“a*b”和“*a*b”和“a*b*”和“*a*b*”时无论ignore_blank为何得到的结果总是两部分
+template <class T>
+size_t SplitString(const std::basic_string<T> &str, const std::basic_string<T> &patten, std::vector<std::basic_string<T> > &result, bool ignore_blank = true)
+{
+    std::basic_string<T>::size_type pos = str.find(patten);
+    std::basic_string<T>::size_type begin = 0;
+    bool first = true;
+
+    result.clear();
+
+    while (true)
+    {
+        if (pos == str.npos)
+        {
+            if (begin < str.size())
+            {
+                result.push_back(str.substr(begin));
+            }
+
+            return result.size();
+        }
+        else
+        {
+            if (pos > begin || (!first && !ignore_blank))
+            {
+                result.push_back(str.substr(begin, pos - begin));
+            }
+
+            begin = pos + patten.size();
+            pos = str.find(patten, begin);
+
+            first = false;
+        }
+    }
 }
 
 std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess();
