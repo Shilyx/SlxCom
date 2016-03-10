@@ -111,6 +111,8 @@ STDMETHODIMP_(ULONG) CSlxComContextMenu::Release()
 //IShellExtInit
 STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObject *pdtobj, HKEY hkeyProgID)
 {
+    SafeDebugMessage(TEXT("&&&&&&&&&&&&&&&&&& folder:%p obj:%p key:%p\n"), pidlFolder, pdtobj, hkeyProgID);
+
     if(pdtobj == NULL)
     {
         if(pidlFolder == NULL)

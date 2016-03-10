@@ -257,6 +257,11 @@ STDAPI DllRegisterServer(void)
     nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Directory\\shellex\\DragDropHandlers\\%s"),
+        APPNAME);
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
         APPNAME);
     nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
@@ -330,6 +335,11 @@ STDAPI DllUnregisterServer(void)
 
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("Directory\\shellex\\PropertySheetHandlers\\%s"),
+        APPNAME);
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+
+    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
+        TEXT("Directory\\shellex\\DragDropHandlers\\%s"),
         APPNAME);
     nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
 
