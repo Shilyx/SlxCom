@@ -162,6 +162,19 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
         return E_INVALIDARG;
     }
 
+    if (m_strInputFolder.empty())
+    {
+        m_shellExtType = SET_FILE;
+    }
+    else if (m_vectorInputFiles.empty())
+    {
+        m_shellExtType = SET_BACKGROUND;
+    }
+    else
+    {
+        m_shellExtType = SET_DRAGDROP;
+    }
+
     // 旧处理逻辑
     // todo: 基于新逻辑重新实现
     if(pdtobj == NULL)
@@ -262,27 +275,30 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
     }
 }
 
-#define ID_REGISTER             1
-#define ID_UNREGISTER           2
-#define ID_COMBINE              3
-#define ID_COPYFULLPATH         4
-#define ID_APPPATH              5
-#define ID_UNLOCKFILE           6
-#define ID_TRYRUN               7
-#define ID_TRYRUNWITHARGUMENTS  8
-#define ID_RUNCMDHERE           9
-#define ID_OPENWITHNOTEPAD      10
-#define ID_KILLEXPLORER         11
-#define ID_MANUALCHECKSIGNATURE 12
-#define ID_UNESCAPE             13
-#define ID_DRV_INSTALL          14
-#define ID_DRV_START            15
-#define ID_DRV_STOP             16
-#define ID_DRV_UNINSTALL        17
-#define ID_COPY_PICTURE_HTML    18
-#define ID_CREATE_HARD_LINK     19
-#define ID_CREATE_SOFT_LINK     20
-#define IDCOUNT                 21
+enum
+{
+    ID_REGISTER = 10,
+    ID_UNREGISTER,
+    ID_COMBINE,
+    ID_COPYFULLPATH,
+    ID_APPPATH,
+    ID_UNLOCKFILE,
+    ID_TRYRUN,
+    ID_TRYRUNWITHARGUMENTS,
+    ID_RUNCMDHERE,
+    ID_OPENWITHNOTEPAD,
+    ID_KILLEXPLORER,
+    ID_MANUALCHECKSIGNATURE,
+    ID_UNESCAPE,
+    ID_DRV_INSTALL,
+    ID_DRV_START,
+    ID_DRV_STOP,
+    ID_DRV_UNINSTALL,
+    ID_COPY_PICTURE_HTML,
+    ID_CREATE_HARD_LINK,
+    ID_CREATE_SOFT_LINK,
+    IDCOUNT,
+};
 
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
@@ -349,173 +365,176 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
-    //clipboard functions
-    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
-
-    //CopyFilePath
-    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整路径"));
-    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
-
-    //CopyPictureAsHtml
-    if (bExistPicture)
+    if (m_shellExtType != SET_DRAGDROP)
     {
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPY_PICTURE_HTML, TEXT("复制图片（QQ）"));
-        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPY_PICTURE_HTML, MF_BYCOMMAND, g_hCopyPictureHtmlBmp, g_hCopyPictureHtmlBmp);
-    }
+        //clipboard functions
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
 
-    //Dll Register
-    if(bExistCom)
-    {
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("注册组件(&R)"));
-        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);
+        //CopyFilePath
+        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整路径"));
+        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
 
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNREGISTER, TEXT("取消注册组件(&U)"));
-        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNREGISTER, MF_BYCOMMAND, g_hUninstallBmp, g_hUninstallBmp);
-    }
+        //CopyPictureAsHtml
+        if (bExistPicture)
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPY_PICTURE_HTML, TEXT("复制图片（QQ）"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPY_PICTURE_HTML, MF_BYCOMMAND, g_hCopyPictureHtmlBmp, g_hCopyPictureHtmlBmp);
+        }
 
-    //File Combine
-    if(TRUE)
-    {
-        BOOL bCouldCombine = FALSE;
+        //Dll Register
+        if(bExistCom)
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("注册组件(&R)"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);
+
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNREGISTER, TEXT("取消注册组件(&U)"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNREGISTER, MF_BYCOMMAND, g_hUninstallBmp, g_hUninstallBmp);
+        }
+
+        //File Combine
+        if(TRUE)
+        {
+            BOOL bCouldCombine = FALSE;
+
+            if(m_uFileCount == 1)
+            {
+                bCouldCombine = m_pFiles[0].bIsRar;
+            }
+            else if(m_uFileCount == 2)
+            {
+                bCouldCombine = m_pFiles[0].bIsJpg && m_pFiles[1].bIsRar || m_pFiles[0].bIsRar && m_pFiles[1].bIsJpg;
+            }
+
+            if(bCouldCombine)
+            {
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, TEXT("文件合成(&C)"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
+            }
+        }
+
+        //Check Signature
+        if(bExistFile)
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, TEXT("校验数字签名"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
+        }
 
         if(m_uFileCount == 1)
         {
-            bCouldCombine = m_pFiles[0].bIsRar;
-        }
-        else if(m_uFileCount == 2)
-        {
-            bCouldCombine = m_pFiles[0].bIsJpg && m_pFiles[1].bIsRar || m_pFiles[0].bIsRar && m_pFiles[1].bIsJpg;
-        }
+            DWORD dwFileAttribute = GetFileAttributes(m_pFiles[0].szPath);
 
-        if(bCouldCombine)
-        {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, TEXT("文件合成(&C)"));
-            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
-        }
-    }
-
-    //Check Signature
-    if(bExistFile)
-    {
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, TEXT("校验数字签名"));
-        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
-    }
-
-    if(m_uFileCount == 1)
-    {
-        DWORD dwFileAttribute = GetFileAttributes(m_pFiles[0].szPath);
-
-        if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
-        {
-            if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
+            if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
             {
-                if(bShiftDown)
+                if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
                 {
-                    HMENU hPopupMenu = CreatePopupMenu();
-
-                    if(hPopupMenu != NULL)
+                    if(bShiftDown)
                     {
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("尝试运行"));
-                        SetMenuItemBitmaps(hmenu, indexMenu + uMenuIndex - 1, MF_BYPOSITION, g_hTryRunBmp, g_hTryRunBmp);
+                        HMENU hPopupMenu = CreatePopupMenu();
 
-                        //Try to run
-                        InsertMenu(hPopupMenu, 1, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("直接运行"));
-                        SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUN, MF_BYCOMMAND, g_hTryRunBmp, g_hTryRunBmp);
+                        if(hPopupMenu != NULL)
+                        {
+                            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("尝试运行"));
+                            SetMenuItemBitmaps(hmenu, indexMenu + uMenuIndex - 1, MF_BYPOSITION, g_hTryRunBmp, g_hTryRunBmp);
 
-                        InsertMenu(hPopupMenu, 2, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("附带参数运行(&P)"));
-                        SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUNWITHARGUMENTS, MF_BYCOMMAND, g_hTryRunWithArgumentsBmp, g_hTryRunWithArgumentsBmp);
+                            //Try to run
+                            InsertMenu(hPopupMenu, 1, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("直接运行"));
+                            SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUN, MF_BYCOMMAND, g_hTryRunBmp, g_hTryRunBmp);
 
-                        DestroyMenu(hPopupMenu);
+                            InsertMenu(hPopupMenu, 2, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("附带参数运行(&P)"));
+                            SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUNWITHARGUMENTS, MF_BYCOMMAND, g_hTryRunWithArgumentsBmp, g_hTryRunWithArgumentsBmp);
+
+                            DestroyMenu(hPopupMenu);
+                        }
                     }
-                }
 
-                //OpenWithNotepad
-                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_OPENWITHNOTEPAD, TEXT("用记事本打开"));
-                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_OPENWITHNOTEPAD, MF_BYCOMMAND, g_hOpenWithNotepadBmp, g_hOpenWithNotepadBmp);
+                    //OpenWithNotepad
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_OPENWITHNOTEPAD, TEXT("用记事本打开"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_OPENWITHNOTEPAD, MF_BYCOMMAND, g_hOpenWithNotepadBmp, g_hOpenWithNotepadBmp);
 
-                //Unescape
-                TCHAR szUnescapedFileName[MAX_PATH];
+                    //Unescape
+                    TCHAR szUnescapedFileName[MAX_PATH];
 
-                if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(TCHAR)))
-                {
-                    TCHAR szCommandText[MAX_PATH + 100];
-
-                    wnsprintf(
-                        szCommandText,
-                        sizeof(szCommandText) / sizeof(TCHAR),
-                        TEXT("重命名为“%s”"),
-                        PathFindFileName(szUnescapedFileName)
-                        );
-
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNESCAPE, szCommandText);
-                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNESCAPE, MF_BYCOMMAND, g_hUnescapeBmp, g_hUnescapeBmp);
-                }
-
-                //App path
-                TCHAR szCommandInReg[MAX_PATH] = TEXT("");
-
-                ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, sizeof(szCommandInReg) / sizeof(TCHAR));
-
-                if (bShiftDown ||
-                    lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".exe")) == 0 ||
-                    lstrlen(szCommandInReg) > 0
-                    )
-                {
-                    TCHAR szMenuText[MAX_PATH + 1000] = TEXT("添加快捷短语");
-
-                    if (lstrlen(szCommandInReg) > 0)
+                    if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(TCHAR)))
                     {
+                        TCHAR szCommandText[MAX_PATH + 100];
+
                         wnsprintf(
-                            szMenuText,
-                            sizeof(szMenuText) / sizeof(TCHAR),
-                            TEXT("修改快捷短语“%s”"),
-                            szCommandInReg
+                            szCommandText,
+                            sizeof(szCommandText) / sizeof(TCHAR),
+                            TEXT("重命名为“%s”"),
+                            PathFindFileName(szUnescapedFileName)
                             );
+
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNESCAPE, szCommandText);
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNESCAPE, MF_BYCOMMAND, g_hUnescapeBmp, g_hUnescapeBmp);
                     }
 
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_APPPATH, szMenuText);
-                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_APPPATH, MF_BYCOMMAND, g_hAppPathBmp, g_hAppPathBmp);
+                    //App path
+                    TCHAR szCommandInReg[MAX_PATH] = TEXT("");
+
+                    ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, sizeof(szCommandInReg) / sizeof(TCHAR));
+
+                    if (bShiftDown ||
+                        lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".exe")) == 0 ||
+                        lstrlen(szCommandInReg) > 0
+                        )
+                    {
+                        TCHAR szMenuText[MAX_PATH + 1000] = TEXT("添加快捷短语");
+
+                        if (lstrlen(szCommandInReg) > 0)
+                        {
+                            wnsprintf(
+                                szMenuText,
+                                sizeof(szMenuText) / sizeof(TCHAR),
+                                TEXT("修改快捷短语“%s”"),
+                                szCommandInReg
+                                );
+                        }
+
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_APPPATH, szMenuText);
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_APPPATH, MF_BYCOMMAND, g_hAppPathBmp, g_hAppPathBmp);
+                    }
+
+                    //Driver
+                    if (bShiftDown &&
+                        lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".dll")) == 0 ||
+                        lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".sys")) == 0
+                        )
+                    {
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_INSTALL, TEXT("驱动程序-安装"));
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_INSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_START, TEXT("驱动程序-启动"));
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_START, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_STOP, TEXT("驱动程序-停止"));
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_STOP, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_UNINSTALL, TEXT("驱动程序-卸载"));
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_UNINSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+                    }
                 }
 
-                //Driver
-                if (bShiftDown &&
-                    lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".dll")) == 0 ||
-                    lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".sys")) == 0
-                    )
+                if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
                 {
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_INSTALL, TEXT("驱动程序-安装"));
-                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_INSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
-
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_START, TEXT("驱动程序-启动"));
-                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_START, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
-
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_STOP, TEXT("驱动程序-停止"));
-                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_STOP, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
-
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_UNINSTALL, TEXT("驱动程序-卸载"));
-                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_UNINSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+                    //RunCmdHere
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
                 }
-            }
 
-            if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
-            {
-                //RunCmdHere
-                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
-                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
-            }
-
-            if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
-                (dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0 && (bShiftDown || IsFileDenyed(m_pFiles[0].szPath)))
-            {
-                //UnlockFile
-                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("查看锁定情况"));
-                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNLOCKFILE, MF_BYCOMMAND, g_hUnlockFileBmp, g_hUnlockFileBmp);
+                if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
+                    (dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0 && (bShiftDown || IsFileDenyed(m_pFiles[0].szPath)))
+                {
+                    //UnlockFile
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("查看锁定情况"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNLOCKFILE, MF_BYCOMMAND, g_hUnlockFileBmp, g_hUnlockFileBmp);
+                }
             }
         }
     }
 
     // 右键拖动
-    if (!m_strInputFolder.empty() && !m_vectorInputFiles.empty())
+    if (m_shellExtType == SET_DRAGDROP)
     {
         // 文件软硬链接
         if (g_osi.dwMajorVersion >= 6 && m_vectorInputFiles.size() == 1)

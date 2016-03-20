@@ -26,6 +26,13 @@ public:
     }
 };
 
+enum ShellExtType
+{
+    SET_FILE,           // 在文件、文件夹或驱动器上右击
+    SET_BACKGROUND,     // 在文件夹空白处右击
+    SET_DRAGDROP,       // 右键拖动
+};
+
 class CSlxComContextMenu : public IContextMenu, public IShellExtInit, public IShellPropSheetExt
 {
 public:
@@ -76,6 +83,7 @@ protected:
     std::wstring m_strInputFolder;                  // 输入目录
     std::vector<std::wstring> m_vectorInputFiles;   // 输入文件列表
     std::wstring m_strInputFile;                    // 输入文件第一个
+    ShellExtType m_shellExtType;
 };
 
 #endif
