@@ -75,6 +75,11 @@ BOOL KillProcess(DWORD dwProcessId);
 BOOL GetProcessNameById(DWORD dwProcessId, TCHAR szProcessName[], DWORD dwBufferSize);
 LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResName, LPDWORD lpResSize = NULL);
 void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel);
+bool IsPathDirectoryW(LPCWSTR lpPath);
+bool IsPathFileW(LPCWSTR lpPath);
+std::wstring GetEscapedFilePathInDirectoryW(LPCWSTR lpFileName, LPCWSTR lpDestDirectory);
+bool CreateHardLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
+bool CreateSoftLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 
 enum WindowUnalphaValue
 {

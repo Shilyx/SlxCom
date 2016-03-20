@@ -2,6 +2,8 @@
 #define _SLX_COM_CONTEXT_MENU_H
 
 #include <ShlObj.h>
+#include <vector>
+#include <string>
 
 class FileInfo
 {
@@ -69,6 +71,11 @@ protected:
     BOOL ShouldAddHashPropSheet();
     BOOL ShouldAddFileTimePropSheet();
     BOOL ShouldAddPeInformationSheet();
+
+protected:
+    std::wstring m_strInputFolder;                  // 输入目录
+    std::vector<std::wstring> m_vectorInputFiles;   // 输入文件列表
+    std::wstring m_strInputFile;                    // 输入文件第一个
 };
 
 #endif

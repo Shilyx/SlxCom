@@ -119,6 +119,7 @@ IDB_DRIVER              BITMAP                  "res\\Driver.bmp"
 IDB_UNLOCKFILE          BITMAP                  "res\\UnlockFile.bmp"
 IDB_COPY_PICTURE_HTML   BITMAP                  "res\\CopyPictureHtml.bmp"
 IDB_ABOUT_LOGO          BITMAP                  "res\\AboutLogo.bmp"
+IDB_CREATELINK          BITMAP                  "res\\CreateLink.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

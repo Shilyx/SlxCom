@@ -41,6 +41,7 @@ extern HBITMAP g_hAppPathBmp;
 extern HBITMAP g_hDriverBmp;
 extern HBITMAP g_hUnlockFileBmp;
 extern HBITMAP g_hCopyPictureHtmlBmp;
+extern HBITMAP g_hCreateLinkBmp;
 extern BOOL g_bVistaLater;
 extern BOOL g_bElevated;
 
@@ -111,8 +112,58 @@ STDMETHODIMP_(ULONG) CSlxComContextMenu::Release()
 //IShellExtInit
 STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObject *pdtobj, HKEY hkeyProgID)
 {
-    SafeDebugMessage(TEXT("&&&&&&&&&&&&&&&&&& folder:%p obj:%p key:%p\n"), pidlFolder, pdtobj, hkeyProgID);
+    if (pidlFolder != NULL)
+    {
+        WCHAR szFilePath[MAX_PATH] = L"";
 
+        SHGetPathFromIDListW(pidlFolder, szFilePath);
+        m_strInputFolder = szFilePath;
+    }
+
+    if (pdtobj != NULL)
+    {
+        FORMATETC fmt = {CF_HDROP, NULL, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
+        STGMEDIUM stg = {TYMED_HGLOBAL};
+        HDROP hDrop;
+        HRESULT hResult = E_INVALIDARG;
+
+        if (SUCCEEDED(pdtobj->GetData(&fmt, &stg)))
+        {
+            hDrop = (HDROP)GlobalLock(stg.hGlobal);
+
+            if (hDrop != NULL)
+            {
+                UINT uNumFiles = DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
+
+                for (UINT uIndex = 0; uIndex < uNumFiles; ++uIndex)
+                {
+                    WCHAR szFilePath[MAX_PATH] = L"";
+
+                    DragQueryFileW(hDrop, uIndex, szFilePath, RTL_NUMBER_OF(szFilePath));
+
+                    if (PathFileExistsW(szFilePath))
+                    {
+                        m_vectorInputFiles.push_back(szFilePath);
+
+                        if (m_strInputFile.empty())
+                        {
+                            m_strInputFile = szFilePath;
+                        }
+                    }
+                }
+            }
+
+            ReleaseStgMedium(&stg);
+        }
+    }
+
+    if (m_strInputFolder.empty() && m_vectorInputFiles.empty())
+    {
+        return E_INVALIDARG;
+    }
+
+    // 旧处理逻辑
+    // todo: 基于新逻辑重新实现
     if(pdtobj == NULL)
     {
         if(pidlFolder == NULL)
@@ -229,7 +280,9 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 #define ID_DRV_STOP             16
 #define ID_DRV_UNINSTALL        17
 #define ID_COPY_PICTURE_HTML    18
-#define IDCOUNT                 19
+#define ID_CREATE_HARD_LINK     19
+#define ID_CREATE_SOFT_LINK     20
+#define IDCOUNT                 21
 
 //IContextMenu
 STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags)
@@ -457,6 +510,32 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                 //UnlockFile
                 InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("查看锁定情况"));
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNLOCKFILE, MF_BYCOMMAND, g_hUnlockFileBmp, g_hUnlockFileBmp);
+            }
+        }
+    }
+
+    // 右键拖动
+    if (!m_strInputFolder.empty() && !m_vectorInputFiles.empty())
+    {
+        // 文件软硬链接
+        if (g_osi.dwMajorVersion >= 6 && m_vectorInputFiles.size() == 1)
+        {
+            if (IsPathDirectoryW(m_strInputFile.c_str()))
+            {
+                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CREATE_SOFT_LINK, TEXT("在此处创建软链接"));
+                SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CREATE_SOFT_LINK, MF_BYCOMMAND, g_hCreateLinkBmp, g_hCreateLinkBmp);
+            }
+
+            if (IsPathFileW(m_strInputFile.c_str()))
+            {
+                WCHAR chDriverLetter1 = *m_strInputFolder.begin() | 32;
+                WCHAR chDriverLetter2 = *m_strInputFile.begin() | 32;
+
+                if (chDriverLetter1 == chDriverLetter2)
+                {
+                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CREATE_HARD_LINK, TEXT("在此处创建硬链接"));
+                    SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CREATE_HARD_LINK, MF_BYCOMMAND, g_hCreateLinkBmp, g_hCreateLinkBmp);
+                }
             }
         }
     }
@@ -1020,6 +1099,14 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
         break;
     }
+
+    case ID_CREATE_HARD_LINK:
+        CreateHardLinkHelperW(m_strInputFile.c_str(), m_strInputFolder.c_str());
+        break;
+
+    case ID_CREATE_SOFT_LINK:
+        CreateSoftLinkHelperW(m_strInputFile.c_str(), m_strInputFolder.c_str());
+        break;
 
     default:
         return E_INVALIDARG;

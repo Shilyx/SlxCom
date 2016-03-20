@@ -2201,6 +2201,57 @@ void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel)
     }
 }
 
+bool IsPathDirectoryW(LPCWSTR lpPath)
+{
+    DWORD dwFileAttributes = GetFileAttributesW(lpPath);
+
+    return dwFileAttributes != INVALID_FILE_ATTRIBUTES && (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+}
+
+bool IsPathFileW(LPCWSTR lpPath)
+{
+    DWORD dwFileAttributes = GetFileAttributesW(lpPath);
+
+    return dwFileAttributes != INVALID_FILE_ATTRIBUTES && (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+}
+
+std::wstring GetEscapedFilePathInDirectoryW(LPCWSTR lpFileName, LPCWSTR lpDestDirectory)
+{
+    WCHAR szInputFileName[MAX_PATH] = L"";
+    WCHAR szInputFileExt[MAX_PATH] = L"";
+    WCHAR szDestFilePath[MAX_PATH] = L"";
+    int nIndex = 1;
+
+    lstrcpynW(szInputFileName, PathFindFileNameW(lpFileName), RTL_NUMBER_OF(szInputFileName));
+    lstrcpynW(szInputFileExt, PathFindExtensionW(szInputFileName), RTL_NUMBER_OF(szInputFileExt));
+    PathRemoveExtensionW(szInputFileName);
+
+    wnsprintfW(szDestFilePath, RTL_NUMBER_OF(szDestFilePath), L"%ls\\%ls%ls", lpDestDirectory, szInputFileName, szInputFileExt);
+
+    while (PathFileExistsW(szDestFilePath))
+    {
+        wnsprintfW(szDestFilePath, RTL_NUMBER_OF(szDestFilePath), L"%ls\\%ls[%d]%ls", lpDestDirectory, szInputFileName, nIndex++, szInputFileExt);
+    }
+
+    return szDestFilePath;
+}
+
+bool CreateHardLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory)
+{
+    std::wstring strDestFilePath = GetEscapedFilePathInDirectoryW(lpSrcFilePath, lpDestDirectory);
+    std::wstring strArguments = fmtW(L"/c mklink /h \"%ls\" \"%ls\"", strDestFilePath.c_str(), lpSrcFilePath);
+
+    return !!ElevateAndRunW(L"cmd", strArguments.c_str(), lpDestDirectory, SW_HIDE);
+}
+
+bool CreateSoftLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory)
+{
+    std::wstring strDestFilePath = GetEscapedFilePathInDirectoryW(lpSrcFilePath, lpDestDirectory);
+    std::wstring strArguments = fmtW(L"/c mklink /d /j \"%ls\" \"%ls\"", strDestFilePath.c_str(), lpSrcFilePath);
+
+    return !!ElevateAndRunW(L"cmd", strArguments.c_str(), lpDestDirectory, SW_HIDE);
+}
+
 std::string GetFriendlyFileSizeA(unsigned __int64 nSize)
 {
     const unsigned __int64 nTimes = 1024;           // 单位之间的倍数
