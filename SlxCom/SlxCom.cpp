@@ -6,10 +6,13 @@
 #include "SlxComFactory.h"
 #include "resource.h"
 #include "SlxComTools.h"
+#include <set>
 
 #pragma comment(lib, "RpcRt4.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Version.lib")
+
+using namespace std;
 
 #if !defined(UNICODE) || !defined(_UNICODE)
 #error Need UNICODE & _UNICODE pre-defined
@@ -68,6 +71,224 @@ DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
     return 0;
 }
 
+std::set<HWND> GetAllWnds()
+{
+    set<HWND> setWnds;
+    HWND hWindow = FindWindowExW(NULL, NULL, NULL, NULL);
+
+    while (IsWindow(hWindow))
+    {
+        if (IsWindowVisible(hWindow))
+        {
+            setWnds.insert(hWindow);
+        }
+
+        hWindow = FindWindowExW(NULL, hWindow, NULL, NULL);
+    }
+
+    return setWnds;
+}
+
+HWND GetShellDllDefViewWnd()
+{
+    HWND hShellDllDefView = NULL;
+    vector<HWND> vectorDesktopWnds;
+    HWND hWindow = FindWindowExW(NULL, NULL, L"Progman", L"Program Manager");
+
+    while (IsWindow(hWindow))
+    {
+        vectorDesktopWnds.push_back(hWindow);
+        hWindow = FindWindowExW(NULL, hWindow, L"Progman", L"Program Manager");
+    }
+
+    hWindow = FindWindowExW(NULL, NULL, L"WorkerW", L"");
+
+    while (IsWindow(hWindow))
+    {
+        vectorDesktopWnds.push_back(hWindow);
+        hWindow = FindWindowExW(NULL, hWindow, L"WorkerW", L"");
+    }
+
+    for (vector<HWND>::const_iterator it = vectorDesktopWnds.begin(); it != vectorDesktopWnds.end(); ++it)
+    {
+        HWND hWindow = *it;
+        hShellDllDefView = FindWindowExW(hWindow, NULL, L"SHELLDLL_DefView", NULL);
+
+        if (IsWindow(hShellDllDefView))
+        {
+            break;
+        }
+    }
+
+    return hShellDllDefView;
+}
+
+HWND GetDesktopListViewWnd()
+{
+    HWND hShellDllDefView = GetShellDllDefViewWnd();
+    HWND hSysListView32 = FindWindowExW(hShellDllDefView, NULL, L"SysListView32", L"FolderView");
+
+    if (!IsWindow(hSysListView32))
+    {
+        hSysListView32 = FindWindowExW(hShellDllDefView, NULL, L"SysListView32", NULL);
+    }
+
+    return hSysListView32;
+}
+
+void ModifyStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
+{
+    DWORD_PTR dwStyle = GetWindowLongPtr(hWindow, GWL_STYLE);
+
+    dwStyle |= dwAdd;
+    dwStyle &= ~dwRemove;
+
+    SetWindowLongPtr(hWindow, GWL_STYLE, dwStyle);
+}
+
+void ModifyExStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
+{
+    DWORD_PTR dwStyle = GetWindowLongPtr(hWindow, GWL_EXSTYLE);
+
+    dwStyle |= dwAdd;
+    dwStyle &= ~dwRemove;
+
+    SetWindowLongPtr(hWindow, GWL_EXSTYLE, dwStyle);
+}
+
+vector<POINT> GetAllIconPositions(HWND hListView)
+{
+    vector<POINT> vectorPositions;
+    int nCount = (int)SendMessageW(hListView, LVM_GETITEMCOUNT, 0, 0);
+
+    for (int i = 0; i < nCount; ++i)
+    {
+        POINT pt = {-1, -1};
+        SendMessageW(hListView, LVM_GETITEMPOSITION, i, (LPARAM)&pt);
+        vectorPositions.push_back(pt);
+    }
+
+    return vectorPositions;
+}
+
+vector<POINT> GetAllIconShouldBePositions(HWND hListView, int nCellSize, int nTaskBarSize, int nIconCount)
+{
+    RECT rect;
+    vector<POINT> vectorPositions;
+
+    GetWindowRect(hListView, &rect);
+
+    int nRowCount = (rect.bottom - rect.top - nTaskBarSize) / nCellSize;
+
+    for (int i = 0; i < nIconCount; ++i)
+    {
+        POINT pt;
+
+        pt.x = (i / nRowCount) * nCellSize;
+        pt.y = (i % nRowCount) * nCellSize;
+        vectorPositions.push_back(pt);
+    }
+
+    return vectorPositions;
+}
+
+void SetListViewIconPositions(HWND hListView, const vector<POINT> &vectorPositions)
+{
+    LVITEMW li = {LVIF_PARAM};
+    int nCount = (int)SendMessageW(hListView, LVM_GETITEMCOUNT, 0, 0);
+
+    for (int i = 0; i < nCount; ++i)
+    {
+        li.iItem = i;
+        li.lParam = i;
+
+        SendMessageW(hListView, LVM_SETITEM, 0, (LPARAM)&li);
+    }
+
+}
+
+bool operator==(const POINT &pt1, const POINT &pt2)
+{
+    return pt1.x == pt2.x && pt1.y == pt2.y;
+}
+
+DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
+{
+//     MessageBox(NULL, NULL, NULL, MB_ICONERROR | MB_TOPMOST);
+    while (true)
+    {
+        HWND hListView = GetDesktopListViewWnd();
+        HWND hSddv = GetParent(hListView);
+
+        if (!IsWindow(hListView) || !IsWindow(hSddv) || !IsWindowVisible(hSddv))
+        {
+            Sleep(1000);
+            continue;
+        }
+
+        DWORD dwProcessId = 0;
+
+        GetWindowThreadProcessId(hSddv, &dwProcessId);
+
+        if (dwProcessId != GetCurrentProcessId())
+        {
+            Sleep(1000);
+            continue;
+        }
+
+        SafeDebugMessage(TEXT("ÕÒµ½ÁËListView %p"), hListView);
+
+        ModifyStyle(hListView, LVS_AUTOARRANGE, 0);
+        ModifyExStyle(hListView, LVS_EX_SNAPTOGRID, 0);
+//         ModifyStyle(hListView, LVS_LIST, LVS_ICON);
+
+        vector<POINT> vectorPositions = GetAllIconPositions(hListView);
+        int nCellSize = 100;
+
+        if (vectorPositions.size() > 1)
+        {
+            nCellSize = vectorPositions.at(1).y - vectorPositions.at(0).y;
+
+            if (nCellSize < 0)
+            {
+                nCellSize = -nCellSize;
+            }
+        }
+
+        SafeDebugMessage(TEXT("CellSize£º%d\n"), nCellSize);
+
+        ModifyStyle(hListView, 0, LVS_AUTOARRANGE);
+        ModifyExStyle(hListView, 0, LVS_EX_SNAPTOGRID);
+        ModifyStyle(hListView, LVS_ALIGNTOP, LVS_ALIGNLEFT);
+
+        RECT rect;
+
+        GetWindowRect(hSddv, &rect);
+        SetWindowPos(hSddv, NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top - 300, SWP_NOZORDER);
+
+        do 
+        {
+            bool bChanged = false;
+            vector<POINT> vectorPositions = GetAllIconPositions(hListView);
+            vector<POINT> vectorShouldBePositions = GetAllIconShouldBePositions(hListView, nCellSize, 40, (int)vectorPositions.size());
+
+            if (vectorPositions != vectorShouldBePositions)
+            {
+                SetListViewIconPositions(hListView, vectorShouldBePositions);
+            }
+
+            if (IsDebuggerPresent() && MessageBox(NULL, NULL, NULL, MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
+            {
+                DebugBreak();
+            }
+            Sleep(3000);
+
+        } while (IsWindow(hListView));
+    }
+
+    return 0;
+}
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
@@ -80,6 +301,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
         if(IsExplorer())
         {
+            //CloseHandle(CreateThread(NULL, 0, ReorderDesktopIcons, NULL, 0, NULL));
+
             FILETIME ftExit, ftKernel, ftUser;
             FILETIME ftCreation = {0};
             FILETIME ftNow;
