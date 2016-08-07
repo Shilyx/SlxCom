@@ -1069,6 +1069,38 @@ VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
     CloseServiceHandle(hScManager);
 }
 
+void WINAPI DriverActionW(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdLine, int nCmdShow)
+{
+    int nArgc = 0;
+    LPWSTR *lpArgv = CommandLineToArgvW(lpszCmdLine, &nArgc);
+
+    if (nArgc < 2)
+    {
+        return;
+    }
+
+    if (lstrcmpiW(lpArgv[0], L"install") == 0)
+    {
+        DrvAction(hwndStub, lpArgv[1], DA_INSTALL);
+    }
+    else if (lstrcmpiW(lpArgv[0], L"start") == 0)
+    {
+        DrvAction(hwndStub, lpArgv[1], DA_START);
+    }
+    else if (lstrcmpiW(lpArgv[0], L"stop") == 0)
+    {
+        DrvAction(hwndStub, lpArgv[1], DA_STOP);
+    }
+    else if (lstrcmpiW(lpArgv[0], L"uninstall") == 0)
+    {
+        DrvAction(hwndStub, lpArgv[1], DA_UNINSTALL);
+    }
+    else
+    {
+
+    }
+}
+
 int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...)
 {
     TCHAR szText[2000];

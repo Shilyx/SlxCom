@@ -78,6 +78,7 @@ protected:
     BOOL ShouldAddHashPropSheet();
     BOOL ShouldAddFileTimePropSheet();
     BOOL ShouldAddPeInformationSheet();
+    static void CallDriverAction(LPCWSTR lpAction, LPCWSTR lpFilePath);
 
 protected:
     std::wstring m_strInputFolder;                  // ÊäÈëÄ¿Â¼

@@ -277,7 +277,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 
 enum
 {
-    ID_REGISTER = 10,
+    ID_REGISTER = 33,
     ID_UNREGISTER,
     ID_COMBINE,
     ID_COPYFULLPATH,
@@ -571,6 +571,18 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
 STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax)
 {
+    if(uFlags & GCS_UNICODE)
+    {
+        memset(pszName, 0, cchMax * 2);
+    }
+    else
+    {
+        memset(pszName, 0, cchMax);
+    }
+
+    return S_OK;
+
+
     LPCSTR lpText = "";
 
     if(idCmd == ID_REGISTER)
@@ -1076,19 +1088,19 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     }
 
     case ID_DRV_INSTALL:
-        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_INSTALL);
+        CallDriverAction(L"install", m_strInputFile.c_str());
         break;
 
     case ID_DRV_START:
-        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_START);
+        CallDriverAction(L"start", m_strInputFile.c_str());
         break;
 
     case ID_DRV_STOP:
-        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_STOP);
+        CallDriverAction(L"stop", m_strInputFile.c_str());
         break;
 
     case ID_DRV_UNINSTALL:
-        DrvAction(pici->hwnd, m_pFiles[0].szPath, DA_UNINSTALL);
+        CallDriverAction(L"uninstall", m_strInputFile.c_str());
         break;
 
     case ID_COPY_PICTURE_HTML:
@@ -2630,6 +2642,18 @@ BOOL CSlxComContextMenu::ShouldAddFileTimePropSheet()
 BOOL CSlxComContextMenu::ShouldAddPeInformationSheet()
 {
     return m_uFileCount == 1 && m_pFiles[0].bIsFile && IsFileLikePeFile(TtoW(m_pFiles[0].szPath).c_str());
+}
+
+void CSlxComContextMenu::CallDriverAction(LPCWSTR lpAction, LPCWSTR lpFilePath)
+{
+    WCHAR szDllPath[MAX_PATH];
+    WCHAR szArguments[MAX_PATH * 2 + 1024];
+
+    GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+    PathQuoteSpacesW(szDllPath);
+
+    wnsprintfW(szArguments, RTL_NUMBER_OF(szArguments), L"%ls DriverAction %ls \"%ls\"", szDllPath, lpAction, lpFilePath);
+    ElevateAndRunW(L"rundll32.exe", szArguments, NULL, SW_HIDE);
 }
 
 void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
