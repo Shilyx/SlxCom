@@ -1017,10 +1017,6 @@ VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
 
     if (daValue == DA_INSTALL)
     {
-        TCHAR szImagePath[MAX_PATH * 4] = TEXT("\\??\\");
-
-        StrCatBuff(szImagePath, lpFilePath, sizeof(szImagePath) / sizeof(TCHAR));
-
         hService = CreateService(
             hScManager,
             szServiceName,
@@ -1029,7 +1025,7 @@ VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
             SERVICE_KERNEL_DRIVER,
             SERVICE_DEMAND_START,
             SERVICE_ERROR_IGNORE,
-            szImagePath,
+            lpFilePath,
             NULL,
             NULL,
             NULL,

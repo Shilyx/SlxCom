@@ -136,9 +136,9 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
 
                 SetClassLongPtr(hEdit, GCLP_WNDPROC, (LONG_PTR)NewEditWindowProc);
 
-                TCHAR szText[1000];
-                wsprintf(szText, TEXT("SlxCom::Edit:老：%x 新：%x"), lpOldEditProc, GetClassLongPtr(hEdit, GCLP_WNDPROC));
-                OutputDebugString(szText);
+//                 TCHAR szText[1000];
+//                 wsprintf(szText, TEXT("SlxCom::Edit:老：%x 新：%x"), lpOldEditProc, GetClassLongPtr(hEdit, GCLP_WNDPROC));
+//                 OutputDebugString(szText);
             }
 
             if (bIsXpOrEarlier)
@@ -151,9 +151,9 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
 
                     SetClassLongPtr(hList, GCLP_WNDPROC, (LONG_PTR)NewListViewWindowProc);
 
-                    TCHAR szText[1000];
-                    wsprintf(szText, TEXT("SlxCom::ListView:老：%x 新：%x"), lpOldListViewProc, GetClassLongPtr(hList, GCLP_WNDPROC));
-                    OutputDebugString(szText);
+//                     TCHAR szText[1000];
+//                     wsprintf(szText, TEXT("SlxCom::ListView:老：%x 新：%x"), lpOldListViewProc, GetClassLongPtr(hList, GCLP_WNDPROC));
+//                     OutputDebugString(szText);
                 }
             }
 
