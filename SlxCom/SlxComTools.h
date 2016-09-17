@@ -80,6 +80,7 @@ bool IsPathFileW(LPCWSTR lpPath);
 std::wstring GetEscapedFilePathInDirectoryW(LPCWSTR lpFileName, LPCWSTR lpDestDirectory);
 bool CreateHardLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 bool CreateSoftLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
+void AutoCloseMessageBoxForThreadInSeconds(DWORD dwThreadId, int nSeconds);
 
 enum WindowUnalphaValue
 {

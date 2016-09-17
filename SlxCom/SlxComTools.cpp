@@ -991,6 +991,100 @@ VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode)
     MessageBox(hWindow, szMessage, TEXT("信息"), uType);
 }
 
+struct AutoCloseMessageBoxParam
+{
+    DWORD dwThreadIdToCheck;
+    int nCloseAfterSeconds;
+};
+
+static BOOL CALLBACK EnumMessageBoxProc(HWND hwnd, LPARAM lParam)
+{
+    HWND &hTargetWnd = *(HWND *)lParam;
+    WCHAR szClassName[128] = L"";
+
+    GetClassNameW(hwnd, szClassName, RTL_NUMBER_OF(szClassName));
+
+    if (lstrcmpiW(szClassName, L"#32770") == 0 &&
+        IsWindow(FindWindowExW(hwnd, NULL, L"Static", NULL)) &&
+        IsWindow(FindWindowExW(hwnd, NULL, L"Button", NULL)))
+    {
+        hTargetWnd = hwnd;
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static DWORD CALLBACK AutoCloseMessageBoxProc(LPVOID lpParam)
+{
+    AutoCloseMessageBoxParam param = *(AutoCloseMessageBoxParam *)lpParam;
+
+    delete (AutoCloseMessageBoxParam *)lpParam;
+
+    HWND hTargetWnd = NULL;
+    WCHAR szOldText[128];
+    WCHAR szNewText[128];
+
+    // 最多检测30秒，30秒内仍没有MessageBox弹出，将不再检测
+    for (int i = 0; i < 3 * 30; ++i)
+    {
+        EnumThreadWindows(param.dwThreadIdToCheck, EnumMessageBoxProc, (LPARAM)&hTargetWnd);
+
+        if (IsWindow(hTargetWnd))
+        {
+            GetWindowTextW(hTargetWnd, szOldText, RTL_NUMBER_OF(szOldText));
+
+            if (lstrlenW(szOldText) > 4)
+            {
+                lstrcpynW(szOldText + 4, L"...", 10);
+            }
+
+            break;
+        }
+
+        Sleep(333);
+    }
+
+    for (int i = param.nCloseAfterSeconds; i > 0 && IsWindow(hTargetWnd); --i)
+    {
+        if (i > 60)
+        {
+            wnsprintfW(szNewText, RTL_NUMBER_OF(szNewText), L"%s 约%d分钟后自动关闭", szOldText, i / 60);
+        }
+        else
+        {
+            wnsprintfW(szNewText, RTL_NUMBER_OF(szNewText), L"%s %d秒后自动关闭", szOldText, i);
+        }
+
+        SetWindowTextW(hTargetWnd, szNewText);
+
+        Sleep(1000);
+    }
+
+    if (IsWindow(hTargetWnd))
+    {
+        SetWindowTextW(hTargetWnd, L"关闭中...");
+        EndDialog(hTargetWnd, 0);
+    }
+
+    return 0;
+}
+
+void AutoCloseMessageBoxForThreadInSeconds(DWORD dwThreadId, int nSeconds)
+{
+    if (nSeconds < 0)
+    {
+        nSeconds = 0;
+    }
+
+    AutoCloseMessageBoxParam *param = new AutoCloseMessageBoxParam;
+
+    param->dwThreadIdToCheck = dwThreadId;
+    param->nCloseAfterSeconds = nSeconds;
+
+    CloseHandle(CreateThread(NULL, 0, AutoCloseMessageBoxProc, (LPVOID)param, 0, NULL));
+}
+
 VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
 {
     if (daValue != DA_INSTALL   &&
@@ -1074,6 +1168,8 @@ void WINAPI DriverActionW(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdL
     {
         return;
     }
+
+    AutoCloseMessageBoxForThreadInSeconds(GetCurrentThreadId(), 6);
 
     if (lstrcmpiW(lpArgv[0], L"install") == 0)
     {

@@ -678,20 +678,21 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_REGISTER:
     case ID_UNREGISTER:
     {
-        if (m_uFileCount == 1)
-        {
-            TCHAR szArguments[MAX_PATH * 2];
-
-            wnsprintf(
-                szArguments,
-                RTL_NUMBER_OF(szArguments),
-                TEXT("%s \"%s\""),
-                LOWORD(pici->lpVerb) == ID_REGISTER ? TEXT("") : TEXT("/u"),
-                m_pFiles[0].szPath);
-
-            ElevateAndRun(TEXT("regsvr32.exe"), szArguments, NULL, SW_SHOW);
-        }
-        else
+        // 始终采用多文件处理方式
+//         if (m_uFileCount == 1)
+//         {
+//             TCHAR szArguments[MAX_PATH * 2];
+// 
+//             wnsprintf(
+//                 szArguments,
+//                 RTL_NUMBER_OF(szArguments),
+//                 TEXT("%s \"%s\""),
+//                 LOWORD(pici->lpVerb) == ID_REGISTER ? TEXT("") : TEXT("/u"),
+//                 m_pFiles[0].szPath);
+// 
+//             ElevateAndRun(TEXT("regsvr32.exe"), szArguments, NULL, SW_SHOW);
+//         }
+//         else
         {
             tstringstream ssArguments;
 
@@ -2671,6 +2672,8 @@ void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
         return;
     }
 
+    AutoCloseMessageBoxForThreadInSeconds(GetCurrentThreadId(), 6);
+
     vector<wstring> vectorFiles(lpArgs, lpArgs + nArgCount);
 
     TCHAR szCmd[MAX_PATH + 1024];
@@ -2729,7 +2732,7 @@ void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
         ssResults<<vectorFiles.at(i);
     }
 
-    MessageBoxW(NULL, ssResults.str().c_str(), TEXT("RegSvr32 执行结果"), MB_ICONINFORMATION | MB_TOPMOST);
+    MessageBoxW(NULL, ssResults.str().c_str(), TEXT("执行结果"), MB_ICONINFORMATION | MB_TOPMOST);
 }
 
 void WINAPI BatchRegisterDllsW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
