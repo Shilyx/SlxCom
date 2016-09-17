@@ -2722,11 +2722,11 @@ void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
 
         if (vectorExitCodes[i] == 0)
         {
-            ssResults<<L"[成功]";
+            ssResults<<L"[成功] ";
         }
         else
         {
-            ssResults<<L"[失败]";
+            ssResults<<L"[失败] ";
         }
 
         ssResults<<vectorFiles.at(i);
