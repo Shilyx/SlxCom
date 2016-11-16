@@ -27,6 +27,8 @@ public:
         : m_nHour(100)
         , m_nMinute(100)
         , m_nSecond(100)
+        , m_nTextWidth(488)
+        , m_nTextHeight(99)
     {
         HDC hScreenDc = GetDC(NULL);
 
@@ -52,6 +54,8 @@ public:
         DeleteObject(hBkBrush);
 
         ReleaseDC(NULL, hScreenDc);
+
+        CalcTextSize();
     }
 
     ~CImageBuilder()
@@ -105,6 +109,22 @@ public:
         return m_hMemDc;
     }
 
+    int GetTextWidth() const
+    {
+        return m_nTextWidth;
+    }
+
+    int GetTextHeight() const
+    {
+        return m_nTextHeight;
+    }
+
+private:
+    void CalcTextSize()
+    {
+        m_nTextWidth = (int)GetDrawTextSizeInDc(m_hMemDc, TEXT(" 88 : 88 : 88 "), (UINT *)&m_nTextHeight);
+    }
+
 private:
     HDC m_hMemDc;
     HBITMAP m_hMemBmp;
@@ -114,9 +134,11 @@ private:
     int m_nHour;
     int m_nMinute;
     int m_nSecond;
+    int m_nTextWidth;           // 88:88:88的宽度
+    int m_nTextHeight;          // 88:88:88的高度
 };
 
-CImageBuilder *pImageBuilder = NULL;
+static CImageBuilder *g_pImageBuilder = NULL;
 
 static void UpdateWindowLayeredValue(HWND hWnd, BOOL bForceUpdate = FALSE)
 {
@@ -150,7 +172,6 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_CREATE:
         SetTimer(hWnd, TI_MAIN, 31, NULL);
         SetTimer(hWnd, TI_MOUSE_MONITOR, 333, NULL);
-        pImageBuilder = new CImageBuilder(72);
         return 0;
 
     case WM_RBUTTONDOWN:
@@ -173,7 +194,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         HDC hPaintDc = BeginPaint(hWnd, &ps);
 
         GetClientRect(hWnd, &rect);
-        BitBlt(hPaintDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, pImageBuilder->GetDc(), 0, 0, SRCCOPY);
+        BitBlt(hPaintDc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, g_pImageBuilder->GetDc(), 0, 0, SRCCOPY);
 
         EndPaint(hWnd, &ps);
         break;}
@@ -201,7 +222,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             // 控制展示时间
             if (IsWindowVisible(hWnd))
             {
-                pImageBuilder->UpdateMemText(hWnd, stNow.wHour, stNow.wMinute, stNow.wSecond);
+                g_pImageBuilder->UpdateMemText(hWnd, stNow.wHour, stNow.wMinute, stNow.wSecond);
             }
         }
         else if (wParam == TI_MOUSE_MONITOR && IsWindowVisible(hWnd))
@@ -247,6 +268,8 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
         }
     }
 
+    g_pImageBuilder = new CImageBuilder(72);
+
     WNDCLASSEX wcex = {sizeof(wcex)};
 
     wcex.lpszClassName  = CLASS_NAME;
@@ -268,8 +291,8 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
             WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_POPUP,
             100,
             100,
-            480,
-            99,
+            g_pImageBuilder->GetTextWidth(),
+            g_pImageBuilder->GetTextHeight(),
             NULL,
             NULL,
             g_hinstDll,
