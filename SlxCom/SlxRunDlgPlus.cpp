@@ -1,6 +1,7 @@
 #include "SlxRunDlgPlus.h"
 #include <Windows.h>
 #include "SlxComTools.h"
+#include "SlxElevateBridge.h"
 #include <map>
 #include <memory>
 #include <vector>
@@ -12,11 +13,17 @@ extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 
 class CRunDlgPlus
 {
+    enum
+    {
+        ID_ADMIN = 0xf3,
+        ID_ADMIN_BRIDGE,
+    };
 public:
     CRunDlgPlus(HWND hDlg)
         : m_hDlg(hDlg)
         , m_procOldDlgProc(NULL)
         , m_hRunAdminMode(NULL)
+        , m_hRunAdminModeByBridge(NULL)
     {
         if (IsWindow(m_hDlg))
         {
@@ -148,7 +155,20 @@ private:
                             rectNewButton.right - rectNewButton.left,
                             rectNewButton.bottom - rectNewButton.top,
                             m_hDlg,
-                            (HMENU)0x112,
+                            (HMENU)ID_ADMIN,
+                            g_hinstDll,
+                            NULL);
+                        m_hRunAdminModeByBridge = CreateWindowEx(
+                            WS_EX_LEFT | WS_EX_LTRREADING,
+                            TEXT("BUTTON"),
+                            TEXT("ÇÅÊ½ÌáÈ¨(&E)"),
+                            WS_CHILDWINDOW | BS_PUSHBUTTON | BS_TEXT | SW_SHOW,
+                            -110,
+                            -110,
+                            11,
+                            11,
+                            m_hDlg,
+                            (HMENU)ID_ADMIN_BRIDGE,
                             g_hinstDll,
                             NULL);
 
@@ -158,28 +178,41 @@ private:
                             SetWindowPos(m_hRunAdminMode, GetWindow(hCommit, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
                             SendMessage(m_hRunAdminMode, WM_SETFONT, SendMessage(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
                             ShowWindow(m_hRunAdminMode, SW_SHOW);
-                            PostMessage(m_hDlg, WM_COMMAND, MAKELONG(0, CBN_EDITCHANGE), (LPARAM)m_hComboBox);
                         }
+
+                        PostMessage(m_hDlg, WM_COMMAND, MAKELONG(0, CBN_EDITCHANGE), (LPARAM)m_hComboBox);
                     }
                 }
                 return 0;
 
             case WM_COMMAND:
-                if (LOWORD(wParam) == 0x112 && HIWORD(wParam) == BN_CLICKED && (HWND)lParam == m_hRunAdminMode && IsWindow(m_hComboBox))
+                if ((LOWORD(wParam) == ID_ADMIN || LOWORD(wParam) == ID_ADMIN_BRIDGE) &&
+                    HIWORD(wParam) == BN_CLICKED &&
+                    IsWindow(m_hComboBox))
                 {
                     WCHAR szText[8192] = TEXT("/c start ");
                     int nLength = lstrlenW(szText);
                     SHELLEXECUTEINFOW si = {sizeof(si)};
+                    BOOL bSucceed = FALSE;
 
                     GetWindowTextW(m_hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
 
-                    si.hwnd = m_hDlg;
-                    si.lpVerb = L"runas";
-                    si.lpFile = L"cmd.exe";
-                    si.lpParameters = szText;
-                    si.nShow = SW_HIDE;
+                    if (LOWORD(wParam) == ID_ADMIN)
+                    {
+                        si.hwnd = m_hDlg;
+                        si.lpVerb = L"runas";
+                        si.lpFile = L"cmd.exe";
+                        si.lpParameters = szText;
+                        si.nShow = SW_HIDE;
 
-                    if (ShellExecuteExW(&si))
+                        bSucceed = ShellExecuteExW(&si);
+                    }
+                    else if (LOWORD(wParam) == ID_ADMIN_BRIDGE)
+                    {
+                        bSucceed = ElevateAndRunW(L"cmd.exe", szText, NULL, SW_HIDE) > 32;
+                    }
+
+                    if (bSucceed)
                     {
                         PostMessage(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
 
@@ -192,7 +225,10 @@ private:
                 }
                 else if (HIWORD(wParam) == CBN_EDITCHANGE && m_hComboBox == (HWND)lParam)
                 {
-                    EnableWindow(m_hRunAdminMode, GetWindowTextLength(m_hComboBox) > 0);
+                    BOOL bShouldEnabled = GetWindowTextLength(m_hComboBox) > 0;
+
+                    EnableWindow(m_hRunAdminMode, bShouldEnabled);
+                    EnableWindow(m_hRunAdminModeByBridge, bShouldEnabled);
                 }
                 break;
 
@@ -241,6 +277,7 @@ private:
     HWND m_hDlg;
     WNDPROC m_procOldDlgProc;
     HWND m_hRunAdminMode;
+    HWND m_hRunAdminModeByBridge;
     HWND m_hComboBox;
 };
 
