@@ -155,6 +155,19 @@ size_t SplitString(const std::basic_string<T> &str, const std::basic_string<T> &
     }
 }
 
+template <class T>
+void Replace(std::basic_string<T> &str, const std::basic_string<T> &old_str, const std::basic_string<T> &new_str)
+{
+    std::basic_string<T>::size_type offset = str.find(old_str);
+
+    while (offset != str.npos)
+    {
+        str.replace(offset, old_str.length(), new_str);
+
+        offset = str.find(old_str, offset + new_str.length());
+    }
+}
+
 std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess();
 
 std::tstring RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, LPCTSTR lpDefaultData = TEXT(""));

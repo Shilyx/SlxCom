@@ -7,11 +7,14 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <memory>
 #include "lib/charconv.h"
 #include "SlxComAbout.h"
 #include "SlxComConfigLight.h"
+#include "lib/StringMatch.h"
 
 using namespace std;
+using namespace tr1;
 
 #define NOTIFYWNDCLASS      TEXT("__slxcom_work_ni_notify_wnd")
 #define ICON_COUNT          10
@@ -76,9 +79,11 @@ static struct
 #ifdef _WIN64
     { TEXT("用户IE(32)"),       TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Microsoft\\Internet Explorer")},
 #endif
-    { TEXT("Session Manager"), TEXT("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager")},
-    { TEXT("映像劫持"),          TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options")},
+    { TEXT("Session Manager"),  TEXT("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager")},
+    { TEXT("映像劫持"),          TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options")},
     { TEXT("已知dll"),          TEXT("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\KnownDLLs")},
+    { TEXT("User Shell Folders"), TEXT("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders")},
+    { TEXT("ShellIconOverlayIdentifiers"), TEXT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers")},
 };
 
 static enum
@@ -111,10 +116,184 @@ public:
     virtual ~MenuItem() { }
     virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const = 0;
     virtual bool operator<(const MenuItem &other) const { return m_nCmdId < other.m_nCmdId;}
+    virtual wstring GetMenuItemText() const { return L"菜单项"; }
 
 protected:
     int m_nCmdId;
     tstring m_strText;
+};
+
+// 转义字符串
+// 定位注册表
+// 定位文件、目录
+// 访问网页
+// ping地址
+enum CBType
+{
+    CT_NONE = 0x0,
+    CT_ESCAPE_STRING = 0x1,
+    CT_LOCATE_REGPATH = 0x2,
+    CT_LOCATE_FILEPATH = 0x4,
+    CT_BROWSE_WEB_ADDRESS = 0x8,
+    CT_PING_IP_ADDRESS = 0x10,
+};
+
+class MenuItemClipboardW : public MenuItem
+{
+public:
+    MenuItemClipboardW(int nCmdId, CBType cbType, LPCWSTR lpText)
+        : m_cbType(cbType)
+    {
+        AssignString(m_strText, lpText);
+    }
+
+    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const
+    {
+        switch (m_cbType)
+        {
+        case CT_ESCAPE_STRING:
+            {
+                wstring strText = m_strText;
+                Replace<wchar_t>(strText, L"\\", L"\\\\");
+                SetClipboardText(strText.c_str());
+            }
+            break;
+
+        case CT_LOCATE_REGPATH:
+            BrowseForRegPath(m_strText.c_str());
+            break;
+
+        case CT_LOCATE_FILEPATH:
+            BrowseForFile(m_strText.c_str());
+            break;
+
+        case CT_BROWSE_WEB_ADDRESS:
+            ShellExecuteW(hWindow, L"open", m_strText.c_str(), NULL, NULL, SW_SHOW);
+            break;
+
+        case CT_PING_IP_ADDRESS:
+            ShellExecuteW(hWindow, L"open", L"cmd", (L"/c ping " + m_strText + L" -t").c_str(), NULL, SW_SHOW);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    virtual wstring GetMenuItemText() const
+    {
+        wstring strMenuItemText = L"任务项";
+        wstring strSubText;
+
+        if (m_strText.length() > 65)
+        {
+            strSubText = m_strText.substr(0, 100);
+            strSubText += L"...";
+        }
+        else
+        {
+            strSubText = m_strText;
+        }
+
+        switch (m_cbType)
+        {
+        case CT_ESCAPE_STRING:
+            strMenuItemText = L"转义后复制到剪贴板\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_LOCATE_REGPATH:
+            strMenuItemText = L"跳转到注册表路径\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_LOCATE_FILEPATH:
+            strMenuItemText = L"定位文件\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_BROWSE_WEB_ADDRESS:
+            strMenuItemText = L"访问网页\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_PING_IP_ADDRESS:
+            strMenuItemText = L"ping此地址\t";
+            strMenuItemText += strSubText;
+            break;
+
+        default:
+            break;
+        }
+
+        return strMenuItemText;
+    }
+
+    static bool GetClipboardStringAndType(wstring &strText, CBType &cbType)
+    {
+        bool bSucceed = false;
+
+        if (OpenClipboard(NULL))
+        {
+            if (IsClipboardFormatAvailable(CF_UNICODETEXT))
+            {
+                HGLOBAL hData = (HGLOBAL)GetClipboardData(CF_UNICODETEXT);
+
+                if (hData)
+                {
+                    LPCWSTR lpText = (LPCWSTR)GlobalLock((HANDLE)hData);
+
+                    if (lpText)
+                    {
+                        AssignString(strText, lpText);
+                        GlobalUnlock(hData);
+
+                        bSucceed = !strText.empty();
+                    }
+                }
+            }
+
+            CloseClipboard();
+        }
+
+        if (bSucceed)
+        {
+            cbType = CT_NONE;
+
+            if (strText.find(L'\\') != wstring::npos)
+            {
+                (unsigned &)cbType |= CT_ESCAPE_STRING;
+            }
+
+            if (strText.substr(0, 5) == L"HKEY_")
+            {
+                (unsigned &)cbType |= CT_LOCATE_REGPATH;
+            }
+
+            if (PathFileExistsW(strText.c_str()))
+            {
+                (unsigned &)cbType |= CT_LOCATE_FILEPATH;
+            }
+
+            // (25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|[\w\-]+(\.[\w\-]+)*
+            if (SmMatchExact(strText.c_str(), L"(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}|[\\w\\-]+(\\.[\\w\\-]+)*", true))
+            {
+                (unsigned &)cbType |= CT_PING_IP_ADDRESS;
+                (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
+            }
+            // ((https?|ftp)://)?[\w\-]+(\.[\w\-]+)*(:\d{1,5})?(/[^/]+)*/?
+            else if (SmMatchExact(strText.c_str(), L"((https?|ftp)://)?[\\w\\-]+(\\.[\\w\\-]+)*(:\\d{1,5})?(/[^/]+)*/?", true))
+            {
+                (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
+            } 
+        }
+
+        return bSucceed;
+    }
+
+private:
+    CBType m_cbType;
+    wstring m_strText;
 };
 
 class MenuItemRegistry : public MenuItem
@@ -791,14 +970,64 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             POINT pt;
 
             GetCursorPos(&pt);
-
             SetForegroundWindow(hWnd);
             pMenuMgr->TrackAndDealPopupMenu(pt.x, pt.y);
         }
-//         else if (lParam == WM_LBUTTONDBLCLK)
-//         {
-//             PostMessage(hWnd, WM_HOTKEY, HK_PAINTVIEW, 0);
-//         }
+        else if (lParam == WM_LBUTTONUP)
+        {
+            map<int, shared_ptr<MenuItem>> mapItems;
+            int nMenuId = 100;
+            wstring strCbText;
+            CBType cbType = CT_NONE;
+
+            if (MenuItemClipboardW::GetClipboardStringAndType(strCbText, cbType))
+            {
+                unsigned nType = (unsigned)cbType;
+                unsigned nCurrentType = 1;
+
+                for (int i = 0; i < 32; ++i)
+                {
+                    if (nCurrentType & nType)
+                    {
+                        mapItems[nMenuId] = shared_ptr<MenuItem>(new MenuItemClipboardW(nMenuId, (CBType)nCurrentType, strCbText.c_str()));
+                        ++nMenuId;
+                    }
+
+                    nCurrentType <<= 1;
+                }
+            }
+
+            if (!mapItems.empty())
+            {
+                POINT pt;
+                HMENU hMenu = CreatePopupMenu();
+
+                GetCursorPos(&pt);
+                SetForegroundWindow(hWnd);
+
+                for (map<int, shared_ptr<MenuItem>>::const_iterator it = mapItems.begin(); it != mapItems.end(); ++it)
+                {
+                    AppendMenuW(hMenu, MF_STRING, it->first, it->second->GetMenuItemText().c_str());
+                }
+
+                int nCmd = TrackPopupMenu(
+                    hMenu,
+                    TPM_RETURNCMD | TPM_NONOTIFY | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+                    pt.x,
+                    pt.y,
+                    NULL,
+                    hWnd,
+                    NULL
+                    );
+
+                if (mapItems.count(nCmd))
+                {
+                    mapItems[nCmd]->DoJob(hWnd, NULL);
+                }
+
+                DestroyMenu(hMenu);
+            }
+        }
 
         if (nIconShowIndex >= RTL_NUMBER_OF(arrIcons))
         {

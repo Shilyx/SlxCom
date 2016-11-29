@@ -759,6 +759,10 @@
 				RelativePath=".\lib\ReadonlyFileMapping.h"
 				>
 			</File>
+			<File
+				RelativePath=".\lib\StringMatch.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
