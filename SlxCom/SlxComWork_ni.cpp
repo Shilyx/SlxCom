@@ -155,6 +155,12 @@ public:
             {
                 wstring strText = m_strText;
                 Replace<wchar_t>(strText, L"\\", L"\\\\");
+                Replace<wchar_t>(strText, L"\"", L"\\\"");
+                Replace<wchar_t>(strText, L"\'", L"\\\'");
+                Replace<wchar_t>(strText, L"\r", L"\\r");
+                Replace<wchar_t>(strText, L"\n", L"\\n");
+                Replace<wchar_t>(strText, L"\t", L"\\t");
+                Replace<wchar_t>(strText, L"\b", L"\\b");
                 SetClipboardText(strText.c_str());
             }
             break;
@@ -260,7 +266,9 @@ public:
         {
             cbType = CT_NONE;
 
-            if (strText.find(L'\\') != wstring::npos)
+            if (strText.find(L'\\') != wstring::npos ||
+                strText.find(L'\"') != wstring::npos ||
+                strText.find(L'\'') != wstring::npos)
             {
                 (unsigned &)cbType |= CT_ESCAPE_STRING;
             }
@@ -275,14 +283,14 @@ public:
                 (unsigned &)cbType |= CT_LOCATE_FILEPATH;
             }
 
-            // (25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|[\w\-]+(\.[\w\-]+)*
-            if (SmMatchExact(strText.c_str(), L"(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}|[\\w\\-]+(\\.[\\w\\-]+)*", true))
+            // (25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|[\w\-]+(\.[\w\-]+)*?(\.[\w\-]{1,5})
+            if (SmMatchExact(strText.c_str(), L"(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}|[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})", true))
             {
                 (unsigned &)cbType |= CT_PING_IP_ADDRESS;
                 (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
             }
-            // ((https?|ftp)://)?[\w\-]+(\.[\w\-]+)*(:\d{1,5})?(/[^/]+)*/?
-            else if (SmMatchExact(strText.c_str(), L"((https?|ftp)://)?[\\w\\-]+(\\.[\\w\\-]+)*(:\\d{1,5})?(/[^/]+)*/?", true))
+            // ((https?|ftp)://)?[\w\-]+(\.[\w\-]+)*?(\.[\w\-]{1,5})(:\d{1,5})?(/[^/]+)*/?
+            else if (SmMatchExact(strText.c_str(), L"((https?|ftp)://)?[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})(:\\d{1,5})?(/[^/]+)*/?", true))
             {
                 (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
             } 
