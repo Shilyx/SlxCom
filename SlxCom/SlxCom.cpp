@@ -47,6 +47,7 @@ OSVERSIONINFO g_osi = {sizeof(g_osi)};
 BOOL g_bVistaLater = FALSE;
 BOOL g_bXPLater = FALSE;
 BOOL g_bElevated = FALSE;
+BOOL g_bHasWin10Bash = FALSE;
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
@@ -289,6 +290,26 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
     return 0;
 }
 
+DWORD CALLBACK CheckWin10BashProc(LPVOID)
+{
+    WCHAR szBashPath[MAX_PATH];
+
+    GetSystemDirectoryW(szBashPath, RTL_NUMBER_OF(szBashPath));
+    PathAppendW(szBashPath, L"\\bash.exe");
+
+    if (PathFileExistsW(szBashPath))
+    {
+        g_bHasWin10Bash = TRUE;
+
+        if (IsExplorer())
+        {
+            OutputDebugStringW(L"SlxCom检测到系统中安装了ubuntu子系统");
+        }
+    }
+
+    return 0;
+}
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     if(dwReason == DLL_PROCESS_ATTACH)
@@ -298,6 +319,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_bVistaLater = g_osi.dwMajorVersion >= 6;
         g_bXPLater = g_bVistaLater || (g_osi.dwMajorVersion == 5 && g_osi.dwMinorVersion >= 1);
         g_bElevated = IsAdminMode();
+
+        if (g_osi.dwMajorVersion >= 10)
+        {
+            CloseHandle(CreateThread(NULL, 0, CheckWin10BashProc, NULL, 0, NULL));
+        }
 
         if(IsExplorer())
         {

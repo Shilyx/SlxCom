@@ -44,6 +44,7 @@ extern HBITMAP g_hCopyPictureHtmlBmp;
 extern HBITMAP g_hCreateLinkBmp;
 extern BOOL g_bVistaLater;
 extern BOOL g_bElevated;
+extern BOOL g_bHasWin10Bash;
 
 volatile HANDLE m_hManualCheckSignatureThread = NULL;
 static HANDLE g_hManualCheckSignatureMutex = CreateMutex(NULL, FALSE, NULL);
@@ -286,6 +287,7 @@ enum
     ID_TRYRUN,
     ID_TRYRUNWITHARGUMENTS,
     ID_RUNCMDHERE,
+    ID_RUNBASHHERE,
     ID_OPENWITHNOTEPAD,
     ID_KILLEXPLORER,
     ID_MANUALCHECKSIGNATURE,
@@ -520,6 +522,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     //RunCmdHere
                     InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
+
+                    if (g_bHasWin10Bash)
+                    {
+                        // Win10BashHere
+                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNBASHHERE, TEXT("在此处运行Bash"));
+                        SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNBASHHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
+                    }
                 }
 
                 if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
@@ -627,6 +636,10 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
     else if(idCmd == ID_RUNCMDHERE)
     {
         lpText = "在当前目录启动命令行。";
+    }
+    else if(idCmd == ID_RUNBASHHERE)
+    {
+        lpText = "在当前目录启动Win10 linux子系统bash。";
     }
     else if(idCmd == ID_OPENWITHNOTEPAD)
     {
@@ -871,6 +884,27 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
         GetEnvironmentVariable(TEXT("ComSpec"), szApplication, MAX_PATH);
         StrCatBuff(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
+
+        if (GetKeyState(VK_CONTROL) < 0 && g_bVistaLater && !g_bElevated)
+        {
+            RunCommandEx(szApplication, szArgument, NULL, TRUE);
+        }
+        else
+        {
+            RunCommandEx(szApplication, szArgument, NULL, FALSE);
+        }
+
+        break;
+    }
+
+    case ID_RUNBASHHERE:
+    {
+        TCHAR szApplication[MAX_PATH * 2] = TEXT("");
+        TCHAR szArgument[MAX_PATH * 2] = TEXT("/c pushd \"");
+
+        GetEnvironmentVariable(TEXT("ComSpec"), szApplication, MAX_PATH);
+        StrCatBuff(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
+        StrCatBuff(szArgument, TEXT("\" && bash"), RTL_NUMBER_OF(szArgument));
 
         if (GetKeyState(VK_CONTROL) < 0 && g_bVistaLater && !g_bElevated)
         {
