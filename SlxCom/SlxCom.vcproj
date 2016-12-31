@@ -391,6 +391,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComIconHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComOverlay.cpp"
 				>
 			</File>
@@ -498,6 +502,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComIconHandler.h"
 				>
 			</File>
 			<File

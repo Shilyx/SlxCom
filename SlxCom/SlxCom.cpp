@@ -25,6 +25,8 @@ DEFINE_GUID(GUID_SLXCOM, 0x191b1456, 0x2dc2, 0x41a7, 0xa3, 0xfa, 0xac, 0x4d, 0x1
 static LPCTSTR g_lpGuidSlxCom = TEXT("{191B1456-2DC2-41a7-A3FA-AC4D017889DA}");
 
 HINSTANCE g_hinstDll = NULL;
+WCHAR g_szSlxComDllFullPath[MAX_PATH] = L"";              // slxcom.dll完整路径
+WCHAR g_szSlxComDllDirectory[MAX_PATH] = L"";             // slxcom.dll所在的目录
 HBITMAP g_hInstallBmp = NULL;
 HBITMAP g_hUninstallBmp = NULL;
 HBITMAP g_hCombineBmp = NULL;
@@ -365,7 +367,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
             }
         }
 
-        g_hinstDll                  = hInstance;
+        g_hinstDll = hInstance;
+        GetModuleFileNameW(g_hinstDll, g_szSlxComDllFullPath, RTL_NUMBER_OF(g_szSlxComDllFullPath));
+        lstrcpynW(g_szSlxComDllDirectory, g_szSlxComDllFullPath, RTL_NUMBER_OF(g_szSlxComDllDirectory));
+        GetModuleFileNameW(g_hinstDll, g_szSlxComDllDirectory, RTL_NUMBER_OF(g_szSlxComDllDirectory));
+        PathRemoveFileSpecW(g_szSlxComDllDirectory);
+
         g_hInstallBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
         g_hUninstallBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
         g_hCombineBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COMBINE));
@@ -522,6 +529,8 @@ STDAPI DllRegisterServer(void)
         APPNAME);
     nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
 
+    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, TEXT("dllfile\\ShellEx\\IconHandler"), NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+
     wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
         TEXT("CLSID\\%s\\InprocServer32"),
         g_lpGuidSlxCom);
@@ -618,6 +627,8 @@ STDAPI DllUnregisterServer(void)
         TEXT("CLSID\\%s"),
         g_lpGuidSlxCom);
     nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+
+    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("dllfile\\ShellEx\\IconHandler"));
 
     nSumValue += !!ConfigBrowserLinkFilePosition(FALSE);
 

@@ -1,6 +1,7 @@
 #include "SlxComFactory.h"
 #include "SlxComOverlay.h"
 #include "SlxComContextMenu.h"
+#include "SlxComIconHandler.h"
 
 CSlxComFactory::CSlxComFactory()
 {
@@ -51,46 +52,51 @@ STDMETHODIMP CSlxComFactory::CreateInstance(IUnknown * pUnkOuter, REFIID riid, v
         return CLASS_E_NOAGGREGATION;
     }
 
-    if(riid == IID_IShellIconOverlayIdentifier)
+    try
     {
-        CSlxComOverlay *pOverlay = new CSlxComOverlay;
-
-        if(pOverlay == NULL)
+        if (riid == IID_IShellIconOverlayIdentifier)
         {
-            return E_OUTOFMEMORY;
+            CSlxComOverlay *pOverlay = new CSlxComOverlay;
+            HRESULT hr = pOverlay->QueryInterface(riid, ppv);
+
+            if (FAILED(hr))
+            {
+                delete pOverlay;
+            }
+
+            return hr;
         }
-
-        HRESULT hr = pOverlay->QueryInterface(riid, ppv);
-
-        if(FAILED(hr))
+        else if (riid == IID_IShellExtInit || riid == IID_IContextMenu || riid == IID_IShellPropSheetExt)
         {
-            delete pOverlay;
-        }
+            CSlxComContextMenu *pContextMenu = new CSlxComContextMenu;
+            HRESULT hr = pContextMenu->QueryInterface(riid, ppv);
 
-        return hr;
+            if (FAILED(hr))
+            {
+                delete pContextMenu;
+            }
+
+            return hr;
+        }
+        else if (riid == IID_IPersistFile || riid == IID_IExtractIconW)
+        {
+            CSlxComIconHandler *pIconHandler = new CSlxComIconHandler;
+            HRESULT hr = pIconHandler->QueryInterface(riid, ppv);
+
+            if (FAILED(hr))
+            {
+                delete pIconHandler;
+            }
+
+            return hr;
+        }
     }
-    else if(riid == IID_IShellExtInit || riid == IID_IContextMenu || riid == IID_IShellPropSheetExt)
+    catch (...)
     {
-        CSlxComContextMenu *pContextMenu = new CSlxComContextMenu;
-
-        if(pContextMenu == NULL)
-        {
-            return E_OUTOFMEMORY;
-        }
-
-        HRESULT hr = pContextMenu->QueryInterface(riid, ppv);
-
-        if(FAILED(hr))
-        {
-            delete pContextMenu;
-        }
-
-        return hr;
+        return E_OUTOFMEMORY;
     }
-    else
-    {
-        return E_NOINTERFACE;
-    }
+
+    return E_NOINTERFACE;
 }
 
 STDMETHODIMP CSlxComFactory::LockServer(BOOL fLock)
