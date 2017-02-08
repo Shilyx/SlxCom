@@ -40,6 +40,7 @@ BOOL IsExplorer();
 BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
 BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize);
 // BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy);
+VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode);
 int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...);
 BOOL EnableDebugPrivilege(BOOL bEnable);
 BOOL IsFileDenyed(LPCTSTR lpFilePath);

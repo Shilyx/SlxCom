@@ -20,6 +20,7 @@ using namespace tr1;
 #define ICON_COUNT          10
 #define TIMER_ICON          1
 #define TIMER_MENU          2
+#define TIMER_DEBUGBREAK    3
 #define REG_QUESTION_TITLE  TEXT("处理注册表路径不存在的问题")
 #define COMPACT_WIDTH       400
 
@@ -27,9 +28,11 @@ static enum
 {
     WM_CALLBACK = WM_USER + 112,
     WM_HIDEICON,
+    WM_SET_DEBUGBREAK_TASK,
 };
 
-extern HBITMAP g_hKillExplorerBmp; //SlxCom.cpp
+extern HBITMAP g_hKillExplorerBmp;  // SlxCom.cpp
+extern BOOL g_bDebugMode;           // SlxCom.cpp
 
 static HHOOK g_hMsgHook = NULL;
 static BOOL g_bChangeButtonText = FALSE;
@@ -92,6 +95,7 @@ static enum
     SYS_HIDEICON,
     SYS_ABOUT,
     SYS_RESETEXPLORER,
+    SYS_DEBUGBREAK,
     SYS_WINDOWMANAGER,
     SYS_SHOWTIMEPALTE_DISABLE,
     SYS_SHOWTIMEPALTE_PER60M,
@@ -432,6 +436,16 @@ public:
 
     void TrackAndDealPopupMenu(int x, int y)
     {
+        if (g_bDebugMode)
+        {
+            DeleteMenu(m_hMenu, SYS_DEBUGBREAK, MF_BYCOMMAND);
+
+            if (IsDebuggerPresent())
+            {
+                AppendMenu(m_hMenu, MF_STRING, SYS_DEBUGBREAK, TEXT("5秒后DebugBreak"));
+            }
+        }
+
         int nCmd = TrackPopupMenu(
             m_hMenu,
             TPM_RETURNCMD | TPM_NONOTIFY | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
@@ -471,6 +485,10 @@ public:
             {
                 ResetExplorer();
             }
+            break;
+
+        case SYS_DEBUGBREAK:
+            PostMessage(m_hWindow, WM_SET_DEBUGBREAK_TASK, 0, 0);
             break;
 
         case SYS_WINDOWMANAGER:
@@ -866,12 +884,23 @@ private:
     HDC m_hMenuDc;
 };
 
+static DWORD CALLBACK DebugBreakProc(LPVOID)
+{
+    if (IsDebuggerPresent())
+    {
+        DebugBreak();
+    }
+
+    return 0;
+}
+
 static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static NOTIFYICONDATA nid = {sizeof(nid)};
     static int nIconShowIndex = INT_MAX;
     static HICON arrIcons[ICON_COUNT] = {NULL};
     static MenuMgr *pMenuMgr = NULL;
+    static int nDebugBreakIndex = -1;
 
     if (uMsg == WM_CREATE)
     {
@@ -901,6 +930,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         //
         SetTimer(hWnd, TIMER_ICON, 55, NULL);
         SetTimer(hWnd, TIMER_MENU, 60 * 1000 + 52, NULL);
+        SetTimer(hWnd, TIMER_DEBUGBREAK, 1000, NULL);
 
         PostMessage(hWnd, WM_TIMER, TIMER_MENU, 0);
 
@@ -931,6 +961,18 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         else if (TIMER_MENU == wParam)
         {
             pMenuMgr->UpdateMenu();
+        }
+        else if (TIMER_DEBUGBREAK == wParam)
+        {
+            if (nDebugBreakIndex > 0)
+            {
+                --nDebugBreakIndex;
+
+                if (nDebugBreakIndex == 0)
+                {
+                    CloseHandle(CreateThread(NULL, 0, DebugBreakProc, NULL, 0, NULL));
+                }
+            }
         }
     }
     else if (uMsg == WM_HOTKEY)
@@ -1045,6 +1087,10 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     else if (uMsg == WM_HIDEICON)
     {
         Shell_NotifyIcon(NIM_DELETE, &nid);
+    }
+    else if (uMsg == WM_SET_DEBUGBREAK_TASK)
+    {
+        nDebugBreakIndex = 5;
     }
 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);

@@ -299,6 +299,7 @@ enum
     ID_COPY_PICTURE_HTML,
     ID_CREATE_HARD_LINK,
     ID_CREATE_SOFT_LINK,
+    ID_LOAD_DLL,
     IDCOUNT,
 };
 
@@ -573,6 +574,19 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         //结束Explorer
         InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_KILLEXPLORER, TEXT("结束Explorer进程"));
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_KILLEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
+    }
+
+    extern BOOL g_bDebugMode;
+    if (bShiftDown && g_bDebugMode)
+    {
+        HMODULE hModule = GetModuleHandleW(m_strInputFile.c_str());
+
+        // 加载dll
+        if (lstrcmpiW(PathFindExtensionW(m_strInputFile.c_str()), L".dll") == 0)
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOAD_DLL, hModule ? TEXT("卸载此dll") : TEXT("加载此dll"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_LOAD_DLL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+        }
     }
 
     return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, IDCOUNT);
@@ -1172,6 +1186,33 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_CREATE_SOFT_LINK:
         CreateSoftLinkHelperW(m_strInputFile.c_str(), m_strInputFolder.c_str());
+        break;
+
+    case ID_LOAD_DLL:
+        {
+            HMODULE hModule = GetModuleHandleW(m_strInputFile.c_str());
+
+            AutoCloseMessageBoxForThreadInSeconds(GetCurrentThreadId(), 6);
+
+            if (hModule)
+            {
+                FreeLibrary(hModule);
+                ShowErrorMessage(NULL, GetLastError());
+            }
+            else
+            {
+                hModule = LoadLibraryW(m_strInputFile.c_str());
+
+                if (!hModule)
+                {
+                    ShowErrorMessage(NULL, GetLastError());
+                }
+                else
+                {
+                    MessageBoxFormat(NULL, TEXT("info"), MB_ICONINFORMATION | MB_TOPMOST, L"成功加载dll到0x%p位置", hModule);
+                }
+            }
+        }
         break;
 
     default:

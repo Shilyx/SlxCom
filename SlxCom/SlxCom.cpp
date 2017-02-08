@@ -50,6 +50,7 @@ BOOL g_bVistaLater = FALSE;
 BOOL g_bXPLater = FALSE;
 BOOL g_bElevated = FALSE;
 BOOL g_bHasWin10Bash = FALSE;
+BOOL g_bDebugMode = FALSE;                                  // 调试模式，dll文件名中含有DEBUG字样后启用
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
@@ -372,6 +373,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         lstrcpynW(g_szSlxComDllDirectory, g_szSlxComDllFullPath, RTL_NUMBER_OF(g_szSlxComDllDirectory));
         GetModuleFileNameW(g_hinstDll, g_szSlxComDllDirectory, RTL_NUMBER_OF(g_szSlxComDllDirectory));
         PathRemoveFileSpecW(g_szSlxComDllDirectory);
+
+        WCHAR szDllName[MAX_PATH];
+        lstrcpynW(szDllName, PathFindFileNameW(g_szSlxComDllFullPath), RTL_NUMBER_OF(szDllName));
+        CharLowerBuffW(szDllName, RTL_NUMBER_OF(szDllName));
+        g_bDebugMode = StrStrW(PathFindFileNameW(g_szSlxComDllFullPath), L"debug") != NULL ||
+            StrStrW(PathFindFileNameW(g_szSlxComDllFullPath), L"dbg") != NULL ;
+
+        if (g_bDebugMode && IsExplorer())
+        {
+            SafeDebugMessage(L"SlxCom 启用Debug模式\n");
+        }
 
         g_hInstallBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
         g_hUninstallBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
