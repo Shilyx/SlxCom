@@ -45,6 +45,8 @@ HBITMAP g_hDriverBmp = NULL;
 HBITMAP g_hUnlockFileBmp = NULL;
 HBITMAP g_hCopyPictureHtmlBmp = NULL;
 HBITMAP g_hCreateLinkBmp = NULL;
+HBITMAP g_hEdfBmp = NULL;
+HBITMAP g_hLocateBmp = NULL;
 OSVERSIONINFO g_osi = {sizeof(g_osi)};
 BOOL g_bVistaLater = FALSE;
 BOOL g_bXPLater = FALSE;
@@ -403,6 +405,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_hUnlockFileBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNLOCKFILE));
         g_hCopyPictureHtmlBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COPY_PICTURE_HTML));
         g_hCreateLinkBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_CREATELINK));
+        g_hEdfBmp                   = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_EDF));
+        g_hLocateBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_LOCATE));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

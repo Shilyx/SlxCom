@@ -120,6 +120,8 @@ IDB_UNLOCKFILE          BITMAP                  "res\\UnlockFile.bmp"
 IDB_COPY_PICTURE_HTML   BITMAP                  "res\\CopyPictureHtml.bmp"
 IDB_ABOUT_LOGO          BITMAP                  "res\\AboutLogo.bmp"
 IDB_CREATELINK          BITMAP                  "res\\CreateLink.bmp"
+IDB_EDF                 BITMAP                  "res\\Edf.bmp"
+IDB_LOCATE              BITMAP                  "res\\Locate.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -94,6 +94,9 @@ enum WindowUnalphaValue
 
 BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue);
 
+bool DumpStringToFile(const std::wstring &strText, LPCWSTR lpFilePath);
+std::wstring GetStringFromFileMost4kBytes(LPCWSTR lpFilePath);
+
 std::tstring GetCurrentTimeString();
 std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);
 std::tstring GetDesktopName(HDESK hDesktop);

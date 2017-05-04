@@ -13,6 +13,7 @@
 #include "SlxElevateBridge.h"
 #include "SlxAppPath.h"
 #include "SlxPeInformation.h"
+#include "SlxComExpandDirFiles.h"
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>
@@ -42,6 +43,8 @@ extern HBITMAP g_hDriverBmp;
 extern HBITMAP g_hUnlockFileBmp;
 extern HBITMAP g_hCopyPictureHtmlBmp;
 extern HBITMAP g_hCreateLinkBmp;
+extern HBITMAP g_hEdfBmp;
+extern HBITMAP g_hLocateBmp;
 extern BOOL g_bVistaLater;
 extern BOOL g_bElevated;
 extern BOOL g_bHasWin10Bash;
@@ -300,6 +303,9 @@ enum
     ID_CREATE_HARD_LINK,
     ID_CREATE_SOFT_LINK,
     ID_LOAD_DLL,
+    ID_EXPAND_DIR_FILES,
+    ID_UNEXPAND_DIR_FILES,
+    ID_LOCATE_EXPAND_SOURCE_FILE,
     IDCOUNT,
 };
 
@@ -586,6 +592,31 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         {
             InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOAD_DLL, hModule ? TEXT("卸载此dll") : TEXT("加载此dll"));
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_LOAD_DLL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
+        }
+    }
+
+    // 定位展开的文件
+    if (!m_strInputFile.empty() && m_uFileCount == 1)
+    {
+        if (PathFileExistsW((m_strInputFile + L":edf").c_str()))
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOCATE_EXPAND_SOURCE_FILE, TEXT("打开展开前文件位置"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_LOCATE_EXPAND_SOURCE_FILE, MF_BYCOMMAND, g_hLocateBmp, g_hLocateBmp);
+        }
+    }
+
+    // 展开与取消展开文件
+    if (m_bIsBackground && g_osi.dwMajorVersion >= 6)
+    {
+        if (EdfCanBeUnexpanded(m_strInputFolder.c_str()))
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNEXPAND_DIR_FILES, TEXT("取消展开这里的所有目录"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNEXPAND_DIR_FILES, MF_BYCOMMAND, g_hEdfBmp, g_hEdfBmp);
+        }
+        else if (bShiftDown && EdfCanBeExpanded(m_strInputFolder.c_str()))
+        {
+            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_EXPAND_DIR_FILES, TEXT("展开这里的所有目录"));
+            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_EXPAND_DIR_FILES, MF_BYCOMMAND, g_hEdfBmp, g_hEdfBmp);
         }
     }
 
@@ -1212,6 +1243,39 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                     MessageBoxFormat(NULL, TEXT("info"), MB_ICONINFORMATION | MB_TOPMOST, L"成功加载dll到0x%p位置", hModule);
                 }
             }
+        }
+        break;
+
+    case ID_LOCATE_EXPAND_SOURCE_FILE:
+        {
+            wstring strOldFilePath = GetStringFromFileMost4kBytes((m_strInputFile + L":edf").c_str());
+
+            if (strOldFilePath.empty())
+            {
+                ShowErrorMessage(pici->hwnd, ERROR_FILE_NOT_FOUND);
+            }
+            else
+            {
+                BrowseForFile(strOldFilePath.c_str());
+            }
+        }
+        break;
+
+    case ID_EXPAND_DIR_FILES:
+        EdfDoExpand(m_strInputFolder.c_str());
+        break;
+
+    case ID_UNEXPAND_DIR_FILES:
+        if (IDYES == MessageBoxW(
+            pici->hwnd,
+            L"注意：这会删除所有前段时间展开的文件（名如“@@...”）！\r\n"
+            L"复制、移动、改名的文件也会受到影响，其他目录或子目录内的文件不受影响。\r\n"
+            L"\r\n"
+            L"是否继续？",
+            L"请确认",
+            MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON3))
+        {
+            EdfDoUnexpand(m_strInputFolder.c_str());
         }
         break;
 

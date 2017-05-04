@@ -2154,6 +2154,44 @@ BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue)
     return SetLayeredWindowAttributes(hWindow, 0, (BYTE)nValue, LWA_ALPHA);
 }
 
+bool DumpStringToFile(const std::wstring &strText, LPCWSTR lpFilePath)
+{
+    bool bRet = false;
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+        DWORD dwBytesWritten = 0;
+        std::string strTextUtf8 = WtoU(strText);
+
+        bRet = !!WriteFile(hFile, strTextUtf8.c_str(), (DWORD)strTextUtf8.size(), &dwBytesWritten, NULL);
+        CloseHandle(hFile);
+    }
+
+    return bRet;
+}
+
+std::wstring GetStringFromFileMost4kBytes(LPCWSTR lpFilePath)
+{
+    std::wstring strResult;
+    char szBuffer[4096];
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+        DWORD dwBytesRead = 0;
+
+        if (ReadFile(hFile, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL))
+        {
+            strResult = UtoW(string(szBuffer, dwBytesRead));
+        }
+
+        CloseHandle(hFile);
+    }
+
+    return strResult;
+}
+
 tstring GetCurrentTimeString()
 {
     TCHAR szTime[32] = TEXT("");

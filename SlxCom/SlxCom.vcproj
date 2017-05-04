@@ -387,6 +387,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComExpandDirFiles.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComFactory.cpp"
 				>
 			</File>
@@ -498,6 +502,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComContextMenu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComExpandDirFiles.h"
 				>
 			</File>
 			<File
@@ -676,11 +684,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\Edf.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\Install.bmp"
 				>
 			</File>
 			<File
 				RelativePath=".\res\KillExplorer.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\Locate.bmp"
 				>
 			</File>
 			<File
