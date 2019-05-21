@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,29 +22,30 @@
     <ProjectGuid>{337A517D-3224-4DD6-A5AA-FCDA309283BC}</ProjectGuid>
     <RootNamespace>SlxCom</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -94,7 +95,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x500;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -127,7 +128,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x500;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -158,7 +159,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x500;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
@@ -193,7 +194,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x500;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED;%(PreprocessorDefinitions);_WIN32_WINNT=0x500;WINVER=0x500</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
@@ -224,12 +225,18 @@
   <ItemGroup>
     <ClCompile Include="DesktopIconManager.cpp" />
     <ClCompile Include="lib\charconv.cpp" />
+    <ClCompile Include="lib\GeneralTreeItemW.cpp" />
+    <ClCompile Include="lib\ReadonlyFileMapping.cpp" />
+    <ClCompile Include="SlxAppPath.cpp" />
     <ClCompile Include="SlxClipboard.cpp" />
     <ClCompile Include="SlxCom.cpp" />
     <ClCompile Include="SlxComAbout.cpp" />
     <ClCompile Include="SlxComConfig.cpp" />
+    <ClCompile Include="SlxComConfigLight.cpp" />
     <ClCompile Include="SlxComContextMenu.cpp" />
+    <ClCompile Include="SlxComExpandDirFiles.cpp" />
     <ClCompile Include="SlxComFactory.cpp" />
+    <ClCompile Include="SlxComIconHandler.cpp" />
     <ClCompile Include="SlxComOverlay.cpp" />
     <ClCompile Include="SlxComPeTools.cpp" />
     <ClCompile Include="SlxComTools.cpp" />
@@ -238,10 +245,14 @@
     <ClCompile Include="SlxComWork_ni.cpp" />
     <ClCompile Include="SlxComWork_sd.cpp" />
     <ClCompile Include="SlxCrypto.c" />
+    <ClCompile Include="SlxElevateBridge.cpp" />
     <ClCompile Include="SlxFileHandles.cpp" />
     <ClCompile Include="SlxManualCheckSignature.cpp" />
     <ClCompile Include="SlxPaintView.cpp" />
+    <ClCompile Include="SlxPeInformation.cpp" />
+    <ClCompile Include="SlxRunDlgPlus.cpp" />
     <ClCompile Include="SlxStringStatusCache.cpp" />
+    <ClCompile Include="SlxTimePlate.cpp" />
     <ClCompile Include="SlxUnlockFile.cpp" />
     <ClCompile Include="WindowManager.cpp" />
     <ClCompile Include="WindowManagerProcess.cpp" />
@@ -288,10 +299,19 @@
     <ClInclude Include="DesktopIconManager.h" />
     <ClInclude Include="lib\charconv.h" />
     <ClInclude Include="lib\deelx.h" />
+    <ClInclude Include="lib\DummyWinTrustDll.h" />
+    <ClInclude Include="lib\GeneralTreeItemW.h" />
+    <ClInclude Include="lib\ReadonlyFileMapping.h" />
+    <ClInclude Include="lib\StringMatch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SlxAppPath.h" />
     <ClInclude Include="SlxComAbout.h" />
+    <ClInclude Include="SlxComConfigLight.h" />
     <ClInclude Include="SlxComContextMenu.h" />
+    <ClInclude Include="SlxComDirShortcut.h" />
+    <ClInclude Include="SlxComExpandDirFiles.h" />
     <ClInclude Include="SlxComFactory.h" />
+    <ClInclude Include="SlxComIconHandler.h" />
     <ClInclude Include="SlxComOverlay.h" />
     <ClInclude Include="SlxComPeTools.h" />
     <ClInclude Include="SlxComTools.h" />
@@ -300,9 +320,13 @@
     <ClInclude Include="SlxComWork_ni.h" />
     <ClInclude Include="SlxComWork_sd.h" />
     <ClInclude Include="SlxCrypto.h" />
+    <ClInclude Include="SlxElevateBridge.h" />
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />
+    <ClInclude Include="SlxPeInformation.h" />
+    <ClInclude Include="SlxRunDlgPlus.h" />
     <ClInclude Include="SlxStringStatusCache.h" />
+    <ClInclude Include="SlxTimePlate.h" />
     <ClInclude Include="WindowManager.h" />
     <ClInclude Include="WindowManagerProcess.h" />
   </ItemGroup>

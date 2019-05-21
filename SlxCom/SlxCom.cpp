@@ -8,6 +8,10 @@
 #include "SlxComTools.h"
 #include <set>
 
+#ifndef LVS_EX_SNAPTOGRID
+#define LVS_EX_SNAPTOGRID       0x00080000  // Icons automatically snap to grid.
+#endif
+
 #pragma comment(lib, "RpcRt4.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Version.lib")

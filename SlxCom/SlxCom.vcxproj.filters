@@ -18,16 +18,52 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SlxCom.cpp">
+    <ClCompile Include="lib\charconv.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="DesktopIconManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManagerProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxPeInformation.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxRunDlgPlus.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxStringStatusCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxTimePlate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxUnlockFile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComAbout.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SlxComConfig.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComConfigLight.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="SlxComContextMenu.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComExpandDirFiles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="SlxComFactory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxComIconHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SlxComOverlay.cpp">
@@ -45,7 +81,16 @@
     <ClCompile Include="SlxComWork_lvm.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComWork_ni.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="SlxComWork_sd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxCrypto.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxElevateBridge.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SlxFileHandles.cpp">
@@ -54,38 +99,23 @@
     <ClCompile Include="SlxManualCheckSignature.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SlxStringStatusCache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxUnlockFile.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\charconv.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxComWork_ni.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="SlxPaintView.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxComAbout.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxCrypto.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DesktopIconManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowManagerProcess.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SlxClipboard.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxCom.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxAppPath.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\GeneralTreeItemW.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ReadonlyFileMapping.cpp">
+      <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -196,10 +226,52 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="lib\deelx.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\charconv.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="DesktopIconManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManagerProcess.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxPeInformation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxRunDlgPlus.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxStringStatusCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxTimePlate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComAbout.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComConfigLight.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="SlxComContextMenu.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SlxComDirShortcut.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComExpandDirFiles.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="SlxComFactory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComIconHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SlxComOverlay.h">
@@ -217,7 +289,16 @@
     <ClInclude Include="SlxComWork_lvm.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SlxComWork_ni.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="SlxComWork_sd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxCrypto.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxElevateBridge.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SlxFileHandles.h">
@@ -226,32 +307,20 @@
     <ClInclude Include="SlxManualCheckSignature.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SlxStringStatusCache.h">
+    <ClInclude Include="SlxAppPath.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="lib\deelx.h">
+    <ClInclude Include="lib\GeneralTreeItemW.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="lib\charconv.h">
+    <ClInclude Include="lib\ReadonlyFileMapping.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="SlxComWork_ni.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="lib\StringMatch.h">
+      <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="SlxComAbout.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SlxCrypto.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DesktopIconManager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowManager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowManagerProcess.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="lib\DummyWinTrustDll.h">
+      <Filter>lib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

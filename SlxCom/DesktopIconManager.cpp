@@ -4,6 +4,10 @@
 #include <list>
 #include "SlxComTools.h"
 
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL                  0x020E
+#endif
+
 using namespace std;
 
 class CMButtonUpListener
