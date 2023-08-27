@@ -16,33 +16,15 @@
     <Filter Include="lib">
       <UniqueIdentifier>{ce8d1c5a-acf5-4b9d-a152-a2962e4d9f95}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\bird">
+      <UniqueIdentifier>{8918a095-01fe-458b-a8ad-480f5c378b61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{2d9bc3fb-ccfd-43ad-864e-89bdf9e5b908}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lib\charconv.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="DesktopIconManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowManagerProcess.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxPeInformation.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxRunDlgPlus.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxStringStatusCache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxTimePlate.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SlxUnlockFile.cpp">
+    <ClCompile Include="SlxCom.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SlxComAbout.cpp">
@@ -87,9 +69,6 @@
     <ClCompile Include="SlxComWork_sd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SlxCrypto.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="SlxElevateBridge.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -102,14 +81,41 @@
     <ClCompile Include="SlxPaintView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SlxClipboard.cpp">
+    <ClCompile Include="SlxPeInformation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SlxCom.cpp">
+    <ClCompile Include="SlxRunDlgPlus.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxStringStatusCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxTimePlate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxUnlockFile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManagerProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxCrypto.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DesktopIconManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SlxAppPath.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SlxClipboard.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\charconv.cpp">
+      <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="lib\GeneralTreeItemW.cpp">
       <Filter>lib</Filter>
@@ -122,135 +128,21 @@
     <None Include="SlxCom.def">
       <Filter>源文件</Filter>
     </None>
-    <None Include="res\AddToCopy.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\AddToCut.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\AppPath.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\CheckSignature.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Combine.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\CopyFullPath.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Default.jpg">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Driver.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Install.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\KillExplorer.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Main.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Mark.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\OpenWithNotepad.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="POINTER.cur">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\RunCmdHere.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\TryRun.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\TryRunWithArguments.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Unescape.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\Uninstall.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\UnlockFile.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\CopyPictureHtml.bmp">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\0.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\1.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\2.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\3.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\4.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\5.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\6.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\7.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\8.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\bird\9.ico">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="res\AboutLogo.bmp">
-      <Filter>资源文件</Filter>
-    </None>
     <None Include="res\AboutSlxCom.htm">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\bird\bird.zip">
+      <Filter>资源文件\bird</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\deelx.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\charconv.h">
-      <Filter>lib</Filter>
-    </ClInclude>
     <ClInclude Include="DesktopIconManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WindowManager.h">
+    <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WindowManagerProcess.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SlxPeInformation.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SlxRunDlgPlus.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SlxStringStatusCache.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SlxTimePlate.h">
+    <ClInclude Include="SlxAppPath.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SlxComAbout.h">
@@ -307,8 +199,32 @@
     <ClInclude Include="SlxManualCheckSignature.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SlxAppPath.h">
+    <ClInclude Include="SlxPeInformation.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxRunDlgPlus.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxStringStatusCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxTimePlate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManagerProcess.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\charconv.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\deelx.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\DummyWinTrustDll.h">
+      <Filter>lib</Filter>
     </ClInclude>
     <ClInclude Include="lib\GeneralTreeItemW.h">
       <Filter>lib</Filter>
@@ -319,18 +235,127 @@
     <ClInclude Include="lib\StringMatch.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="lib\DummyWinTrustDll.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="SlxCom.manifest">
-      <Filter>资源文件</Filter>
-    </Manifest>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SlxCom.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\AboutLogo.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\AddToCopy.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\AddToCut.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\AppPath.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\CheckSignature.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Combine.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\CopyFullPath.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\CopyPictureHtml.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\CreateLink.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Default.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Driver.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Edf.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Install.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\KillExplorer.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Locate.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Main.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Mark.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\OpenWithNotepad.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\RunCmdHere.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\TryRun.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\TryRunWithArguments.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Unescape.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\Uninstall.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\UnlockFile.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\bird\2.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\3.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\4.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\5.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\6.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\7.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\8.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\9.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\0.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+    <Image Include="res\bird\1.ico">
+      <Filter>资源文件\bird</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="res\DS-DIGIB.TTF">
+      <Filter>资源文件</Filter>
+    </Font>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\Dummy_WinTrust_x64.lib">
+      <Filter>libs</Filter>
+    </Library>
+    <Library Include="libs\Dummy_WinTrust_Win32.lib">
+      <Filter>libs</Filter>
+    </Library>
   </ItemGroup>
 </Project>

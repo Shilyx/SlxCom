@@ -411,7 +411,7 @@ IDI_BIRD_9              ICON                    "res\\bird\\9.ico"
 // RT_MANIFEST
 //
 
-123                     RT_MANIFEST             "SlxCom.manifest"
+123                     RT_MANIFEST             "res\\SlxCom.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //

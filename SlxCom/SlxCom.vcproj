@@ -21,8 +21,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)_$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)_generated\$(ProjectName)\$(ConfigurationName)$(PlatformName)\"
 			ConfigurationType="2"
 			CharacterSet="1"
 			>
@@ -44,11 +44,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x500;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x500;WINVER=0x500;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				TreatWChar_tAsBuiltInType="false"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -64,8 +64,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib gdiplus.lib Shlwapi.lib Ws2_32.lib Shell32.lib ComCtl32.Lib IPHlpApi.Lib RpcRT4.Lib wldap32.lib PsApi.lib WinMM.Lib WtsApi32.lib Version.lib Snmpapi.lib Mpr.lib Dnsapi.lib Wininet.lib Winhttp.lib oleacc.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
 				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
@@ -77,7 +78,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="SlxCom.manifest"
+				AdditionalManifestFiles="res\SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -93,13 +94,12 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)_$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)_generated\$(ProjectName)\$(ConfigurationName)$(PlatformName)\"
 			ConfigurationType="2"
 			CharacterSet="1"
 			>
@@ -122,11 +122,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x500;WINVER=0x500;_DEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				TreatWChar_tAsBuiltInType="false"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -142,13 +142,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib gdiplus.lib Shlwapi.lib Ws2_32.lib Shell32.lib ComCtl32.Lib IPHlpApi.Lib RpcRT4.Lib wldap32.lib PsApi.lib WinMM.Lib WtsApi32.lib Version.lib Snmpapi.lib Mpr.lib Dnsapi.lib Wininet.lib Winhttp.lib oleacc.lib"
 				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
 				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				TargetMachine="17"
 			/>
@@ -157,7 +157,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="SlxCom.manifest"
+				AdditionalManifestFiles="res\SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -173,13 +173,12 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)_$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)_generated\$(ProjectName)\$(ConfigurationName)$(PlatformName)\"
 			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -203,13 +202,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x500;WINVER=0x500;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				TreatWChar_tAsBuiltInType="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				DebugInformationFormat="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -222,9 +221,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib gdiplus.lib Shlwapi.lib Ws2_32.lib Shell32.lib ComCtl32.Lib IPHlpApi.Lib RpcRT4.Lib wldap32.lib PsApi.lib WinMM.Lib WtsApi32.lib Version.lib Snmpapi.lib Mpr.lib Dnsapi.lib Wininet.lib Winhttp.lib oleacc.lib"
 				LinkIncremental="1"
-				GenerateManifest="true"
+				AdditionalLibraryDirectories=""
 				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
@@ -238,7 +237,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="SlxCom.manifest"
+				AdditionalManifestFiles="res\SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -254,13 +253,12 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)_$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)_generated\$(ProjectName)\$(ConfigurationName)$(PlatformName)\"
 			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -285,13 +283,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x500;WINVER=0x500;NDEBUG;_WINDOWS;_USRDLL;SLXCOM_EXPORTS;ISOLATION_AWARE_ENABLED"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				TreatWChar_tAsBuiltInType="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				DebugInformationFormat="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -304,14 +302,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib"
+				AdditionalDependencies="libs\Dummy_WinTrust_$(PlatformName).lib gdiplus.lib Shlwapi.lib Ws2_32.lib Shell32.lib ComCtl32.Lib IPHlpApi.Lib RpcRT4.Lib wldap32.lib PsApi.lib WinMM.Lib WtsApi32.lib Version.lib Snmpapi.lib Mpr.lib Dnsapi.lib Wininet.lib Winhttp.lib oleacc.lib"
 				OutputFile="$(OutDir)\$(ProjectName)64.dll"
 				LinkIncremental="1"
-				GenerateManifest="true"
+				AdditionalLibraryDirectories=""
 				AdditionalManifestDependencies=""
 				ModuleDefinitionFile="SlxCom.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -322,7 +319,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="SlxCom.manifest"
+				AdditionalManifestFiles="res\SlxCom.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -338,7 +335,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
@@ -505,6 +501,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComDirShortcut.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComExpandDirFiles.h"
 				>
 			</File>
@@ -591,46 +591,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\res\bird\0.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\1.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\2.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\3.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\4.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\5.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\6.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\7.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\8.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\res\bird\9.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\res\AboutLogo.bmp"
 				>
 			</File>
@@ -712,15 +672,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\POINTER.cur"
-				>
-			</File>
-			<File
 				RelativePath=".\res\RunCmdHere.bmp"
 				>
 			</File>
 			<File
-				RelativePath=".\SlxCom.manifest"
+				RelativePath=".\res\SlxCom.manifest"
 				>
 			</File>
 			<File
@@ -747,6 +703,54 @@
 				RelativePath=".\res\UnlockFile.bmp"
 				>
 			</File>
+			<Filter
+				Name="bird"
+				>
+				<File
+					RelativePath=".\res\bird\0.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\1.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\2.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\3.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\4.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\5.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\6.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\7.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\8.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\9.ico"
+					>
+				</File>
+				<File
+					RelativePath=".\res\bird\bird.zip"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="lib"
@@ -785,6 +789,18 @@
 			</File>
 			<File
 				RelativePath=".\lib\StringMatch.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="libs"
+			>
+			<File
+				RelativePath=".\libs\Dummy_WinTrust_Win32.lib"
+				>
+			</File>
+			<File
+				RelativePath=".\libs\Dummy_WinTrust_x64.lib"
 				>
 			</File>
 		</Filter>
