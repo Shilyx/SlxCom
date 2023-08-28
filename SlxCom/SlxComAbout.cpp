@@ -13,31 +13,31 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
     {
     case WM_INITDIALOG:
     {
-        TCHAR szBaseInfo[1000];
-        TCHAR szVersion[100] = TEXT("");
+        WCHAR szBaseInfo[1000];
+        WCHAR szVersion[100] = L"";
 
         GetVersionString(g_hinstDll, szVersion, RTL_NUMBER_OF(szVersion));
-        wnsprintf(
+        wnsprintfW(
             szBaseInfo,
             RTL_NUMBER_OF(szBaseInfo),
 #ifdef _WIN64
-            TEXT("SlxCom (x64) Version: %s"),
+            L"SlxCom (x64) Version: %s",
 #else
-            TEXT("SlxCom (x86) Version: %s"),
+            L"SlxCom (x86) Version: %s",
 #endif
             szVersion
             );
 
-        SetDlgItemText(hwndDlg, IDC_BASEINFO, szBaseInfo);
-        SetDlgItemText(hwndDlg, IDC_COPYRIGHT,
-            TEXT("Copyright Shilyx Studio")
+        SetDlgItemTextW(hwndDlg, IDC_BASEINFO, szBaseInfo);
+        SetDlgItemTextW(hwndDlg, IDC_COPYRIGHT,
+            L"Copyright Shilyx Studio"
 #if _MSC_VER > 1200
-            TEXT(" \251")
+            L" \251"
 #else
-            TEXT(" (C)")
+            L" (C)"
 #endif
-            TEXT(" 2013"));
-        SetDlgItemText(hwndDlg, IDC_LINK, TEXT("查看功能列表和版本更新日志..."));
+            L" 2013");
+        SetDlgItemTextW(hwndDlg, IDC_LINK, L"查看功能列表和版本更新日志...");
         return FALSE;
     }
 
@@ -51,14 +51,14 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
     case WM_LBUTTONDOWN:
         if (s_bInLinkArea)
         {
-            TCHAR szHtmFile[MAX_PATH];
+            WCHAR szHtmFile[MAX_PATH];
 
-            GetTempPath(RTL_NUMBER_OF(szHtmFile), szHtmFile);
-            PathAppend(szHtmFile, TEXT("\\AboutSlxCom.htm"));
+            GetTempPathW(RTL_NUMBER_OF(szHtmFile), szHtmFile);
+            PathAppendW(szHtmFile, L"\\AboutSlxCom.htm");
 
-            if (SaveResourceToFile(TEXT("RT_FILE"), MAKEINTRESOURCE(IDR_ABOUT), szHtmFile))
+            if (SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_ABOUT), szHtmFile))
             {
-                ShellExecute(hwndDlg, TEXT("open"), szHtmFile, NULL, NULL, SW_SHOW);
+                ShellExecuteW(hwndDlg, L"open", szHtmFile, NULL, NULL, SW_SHOW);
             }
         }
         break;
@@ -104,7 +104,7 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
         if (s_bInLinkArea)
         {
-            SetCursor(LoadCursor(NULL, IDC_HAND));
+            SetCursor(LoadCursorW(NULL, IDC_HAND));
         }
 
         break;
@@ -119,5 +119,5 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 void SlxComAbout(HWND hParentWindow)
 {
-    DialogBox(g_hinstDll, MAKEINTRESOURCE(IDD_ABOUT), hParentWindow, DlgProc);
+    DialogBoxW(g_hinstDll, MAKEINTRESOURCEW(IDD_ABOUT), hParentWindow, DlgProc);
 }

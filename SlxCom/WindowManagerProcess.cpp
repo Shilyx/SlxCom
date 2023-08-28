@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <Shlwapi.h>
 
-#define CLASS_NAME TEXT("__slx_WindowManagerProcess_140829")
+#define CLASS_NAME L"__slx_WindowManagerProcess_140829"
 
 extern HINSTANCE g_hinstDll; // SlxCom.cpp
 static DWORD gs_dwSlxComWindowManagerWindowProcessId = 0;
@@ -33,7 +33,7 @@ static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
         {
             if (wParam == WM_RBUTTONUP)
             {
-                PostMessage(gs_hMainWindow, WM_TASK, (WPARAM)hTargetWindow, MAKELONG(lpMhs->pt.x, lpMhs->pt.y));
+                PostMessageW(gs_hMainWindow, WM_TASK, (WPARAM)hTargetWindow, MAKELONG(lpMhs->pt.x, lpMhs->pt.y));
             }
 
             return 1;
@@ -45,15 +45,15 @@ static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
 
 static void DoTask(HWND hTargetWindow, int x, int y)
 {
-    TCHAR szClassName[1024] = TEXT("");
-    TCHAR szWindowText[1024] = TEXT("");
+    WCHAR szClassName[1024] = L"";
+    WCHAR szWindowText[1024] = L"";
 
-    GetClassName(hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
-    GetWindowText(hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+    GetClassNameW(hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
+    GetWindowTextW(hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
 
-    SafeDebugMessage(TEXT("%x[%s][%s], %d,%d\r\n"), hTargetWindow, szClassName, szWindowText, x, y);
+    SafeDebugMessage(L"%x[%s][%s], %d,%d\r\n", hTargetWindow, szClassName, szWindowText, x, y);
 
-    if (!IsWindow(FindWindow(TEXT("#32768"), NULL)) &&
+    if (!IsWindow(FindWindowW(L"#32768", NULL)) &&
         !IsWindowFullScreen(hTargetWindow))
     {
         LONG_PTR dwStyle = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
@@ -64,7 +64,7 @@ static void DoTask(HWND hTargetWindow, int x, int y)
             {
                 if (AllowSetForegroundWindow(gs_dwSlxComWindowManagerWindowProcessId))
                 {
-                    PostMessage(gs_hSlxComWindowManagerWindow, WM_SCREEN_CONTEXT_MENU, (WPARAM)hTargetWindow, MAKELONG(x, y));
+                    PostMessageW(gs_hSlxComWindowManagerWindow, WM_SCREEN_CONTEXT_MENU, (WPARAM)hTargetWindow, MAKELONG(x, y));
                 }
             }
         }
@@ -97,9 +97,9 @@ static LRESULT CALLBACK HookWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-static HWND CreateOneWindow(LPCTSTR lpWindowText)
+static HWND CreateOneWindow(LPCWSTR lpWindowText)
 {
-    HWND hMainWnd = CreateWindowEx(
+    HWND hMainWnd = CreateWindowExW(
         0,
         CLASS_NAME,
         lpWindowText,
@@ -143,13 +143,13 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
 
     GetWindowThreadProcessId(gs_hSlxComWindowManagerWindow, &gs_dwSlxComWindowManagerWindowProcessId);
 
-    DWORD dwProcessId = StrToInt(lpArgValue[0]);
+    DWORD dwProcessId = StrToIntW(lpArgValue[0]);
     HANDLE hProcess = OpenProcess(SYNCHRONIZE, FALSE, dwProcessId);
 
 #ifdef _DEBUG
     if (hProcess == NULL)
     {
-        hProcess = CreateEvent(NULL, FALSE, FALSE, NULL);
+        hProcess = CreateEventW(NULL, FALSE, FALSE, NULL);
     }
 #endif
 
@@ -158,24 +158,24 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
         return;
     }
 
-    WNDCLASSEX wcex = {sizeof(wcex)};
+    WNDCLASSEXW wcex = {sizeof(wcex)};
     wcex.lpfnWndProc = HookWndProc;
     wcex.lpszClassName = CLASS_NAME;
     wcex.hInstance = g_hinstDll;
     wcex.style = CS_HREDRAW | CS_VREDRAW;
 
-    RegisterClassEx(&wcex);
+    RegisterClassExW(&wcex);
 
     gs_hMainWindow = CreateOneWindow(CLASS_NAME);
 
     DWORD dwThreadId = 0;
-    HHOOK hHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, g_hinstDll, 0);
+    HHOOK hHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, g_hinstDll, 0);
     UINT_PTR nTimerId = SetTimer(NULL, 0, 345, NULL);
     MSG msg;
 
     while (TRUE)
     {
-        int nRet = GetMessage(&msg, NULL, 0, 0);
+        int nRet = GetMessageW(&msg, NULL, 0, 0);
 
         if (nRet <= 0)
         {
@@ -191,7 +191,7 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
         }
 
         TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        DispatchMessageW(&msg);
     }
 
     KillTimer(NULL, nTimerId);

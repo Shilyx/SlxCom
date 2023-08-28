@@ -13,7 +13,7 @@ public:
     BOOL bIsJpg;
     BOOL bIsPicture;
     BOOL bIsRar;
-    TCHAR szPath[MAX_PATH];
+    WCHAR szPath[MAX_PATH];
 
     FileInfo()
     {
@@ -22,7 +22,7 @@ public:
         bIsJpg = FALSE;
         bIsPicture = FALSE;
         bIsRar = FALSE;
-        lstrcpyn(szPath, TEXT(""), sizeof(szPath) / sizeof(TCHAR));
+        lstrcpynW(szPath, L"", sizeof(szPath) / sizeof(WCHAR));
     }
 };
 
@@ -61,12 +61,12 @@ public:
     // 校验 属性页
     static DWORD CALLBACK HashCalcProc(LPVOID lpParam);
     static INT_PTR CALLBACK HashPropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    static UINT CALLBACK HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp);
+    static UINT CALLBACK HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGEW pPsp);
 
     // 文件时间 属性页
     static BOOL FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles, UINT uFileCount);
     static INT_PTR CALLBACK FileTimePropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    static UINT CALLBACK FileTimePropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp);
+    static UINT CALLBACK FileTimePropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGEW pPsp);
 
 protected:
     volatile DWORD m_dwRefCount;

@@ -803,10 +803,10 @@ bool IsFileLikePeFile(const wchar_t *lpPeFilePath)
 
 class CTestGetPeInformationDialog
 {
-#define TESTGETPEINFORMATION_OBJECT_PROP_NAME TEXT("__TestGetPeInformationObject")
+#define TESTGETPEINFORMATION_OBJECT_PROP_NAME L"__TestGetPeInformationObject"
 
 public:
-    CTestGetPeInformationDialog(HINSTANCE hInstance, LPCTSTR lpTemplate, HWND hParent)
+    CTestGetPeInformationDialog(HINSTANCE hInstance, LPCWSTR lpTemplate, HWND hParent)
         : m_hInstance(hInstance)
         , m_lpTemplate(lpTemplate)
         , m_hwndDlg(NULL)
@@ -816,7 +816,7 @@ public:
 
     INT_PTR DoModel()
     {
-        return DialogBoxParam(m_hInstance, m_lpTemplate, m_hParent, TestGetPeInformationDialogProc, (LPARAM)this);
+        return DialogBoxParamW(m_hInstance, m_lpTemplate, m_hParent, TestGetPeInformationDialogProc, (LPARAM)this);
     }
 
 private:
@@ -824,10 +824,10 @@ private:
     {
         if (uMsg == WM_INITDIALOG)
         {
-            SetProp(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME, (HANDLE)lParam);
+            SetPropW(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME, (HANDLE)lParam);
         }
 
-        CTestGetPeInformationDialog *pTestGetPeInformationDialog = (CTestGetPeInformationDialog *)GetProp(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME);
+        CTestGetPeInformationDialog *pTestGetPeInformationDialog = (CTestGetPeInformationDialog *)GetPropW(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME);
 
         if (pTestGetPeInformationDialog != NULL)
         {
@@ -856,13 +856,13 @@ private:
 
             WCHAR szSelfPath[MAX_PATH];
 
-            GetModuleFileName(m_hInstance, szSelfPath, RTL_NUMBER_OF(szSelfPath));
+            GetModuleFileNameW(m_hInstance, szSelfPath, RTL_NUMBER_OF(szSelfPath));
             LoadPeFile(szSelfPath);
 
             break;}
 
         case WM_CLOSE:
-            RemoveProp(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME);
+            RemovePropW(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME);
             EndDialog(hwndDlg, 0);
             break;
 
@@ -914,7 +914,7 @@ private:
 
     void LoadPeFile(LPCWSTR lpFilePath)
     {
-        SendDlgItemMessage(m_hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
+        SendDlgItemMessageW(m_hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
         AttachToTreeCtrlUtf8(GetPeInformation(lpFilePath), GetDlgItem(m_hwndDlg, IDC_TREE));
         ExpandTreeControlForLevel(GetDlgItem(m_hwndDlg, IDC_TREE), NULL, 2);
     }
@@ -923,14 +923,14 @@ private:
     HWND m_hwndDlg;
     HWND m_hParent;
     HINSTANCE m_hInstance;
-    LPCTSTR m_lpTemplate;
+    LPCWSTR m_lpTemplate;
 };
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
 void CALLBACK TestShowPeInformationW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd)
 {
-    CTestGetPeInformationDialog(g_hinstDll, MAKEINTRESOURCE(IDD_TEST_PEINFORMATION_DIALOG), NULL).DoModel();
+    CTestGetPeInformationDialog(g_hinstDll, MAKEINTRESOURCEW(IDD_TEST_PEINFORMATION_DIALOG), NULL).DoModel();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -955,7 +955,7 @@ void CALLBACK GetPeInformationAndReportW(HWND hwndStub, HINSTANCE hInstance, LPW
     {
         if (nArgc >= 2)
         {
-            HWND hTargetWindow = (HWND)StrToInt64Def(WtoT(lpArgv[0]).c_str(), 0);
+            HWND hTargetWindow = (HWND)StrToInt64Def(WtoW(lpArgv[0]).c_str(), 0);
 
             if (IsWindow(hTargetWindow))
             {

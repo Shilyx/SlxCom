@@ -12,9 +12,9 @@ using namespace std;
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
-#define NOTIFYWNDCLASS  TEXT("__slx_WindowManager_20140629")
-#define BASE_REG_PATH   TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager")
-#define RECORD_REG_PATH TEXT("Software\\Shilyx Studio\\SlxCom\\WindowManager\\Records")
+#define NOTIFYWNDCLASS  L"__slx_WindowManager_20140629"
+#define BASE_REG_PATH   L"Software\\Shilyx Studio\\SlxCom\\WindowManager"
+#define RECORD_REG_PATH L"Software\\Shilyx Studio\\SlxCom\\WindowManager\\Records"
 
 static enum
 {
@@ -70,7 +70,7 @@ static enum
 class CNotifyClass
 {
 public:
-    CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCTSTR lpCreateTime, BOOL bShowBalloonThisTime)
+    CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCWSTR lpCreateTime, BOOL bShowBalloonThisTime)
     {
         m_bUseNotifyIcon = uId > 0;
 
@@ -94,14 +94,14 @@ public:
             m_nid.uID = uId;
             m_nid.uCallbackMessage = WM_CALLBACK;
 
-            lstrcpyn(m_nid.szTip, GetTargetWindowBaseInfo().c_str(), RTL_NUMBER_OF(m_nid.szTip));
+            lstrcpynW(m_nid.szTip, GetTargetWindowBaseInfo().c_str(), RTL_NUMBER_OF(m_nid.szTip));
 
             m_hIcon = GetWindowIcon(m_hTargetWindow);
             m_hIconSm = GetWindowIconSmall(m_hTargetWindow);
 
             if (m_hIcon == NULL)
             {
-                m_hIcon = LoadIcon(NULL, IDI_INFORMATION);
+                m_hIcon = LoadIconW(NULL, IDI_INFORMATION);
             }
 
             if (m_hIconSm == NULL)
@@ -114,11 +114,11 @@ public:
 
             if (ms_bShowBalloon && bShowBalloonThisTime)
             {
-                lstrcpyn(m_nid.szInfoTitle, TEXT("SlxCom WindowManager"), RTL_NUMBER_OF(m_nid.szInfoTitle));
-                wnsprintf(
+                lstrcpynW(m_nid.szInfoTitle, L"SlxCom WindowManager", RTL_NUMBER_OF(m_nid.szInfoTitle));
+                wnsprintfW(
                     m_nid.szInfo,
                     RTL_NUMBER_OF(m_nid.szInfo),
-                    TEXT("窗口“%s”（句柄：%#x）已被收纳。"),
+                    L"窗口“%s”（句柄：%#x）已被收纳。",
                     GetTargetWindowCaption().c_str(),
                     hTargetWindow
                     );
@@ -126,7 +126,7 @@ public:
                 m_nid.uFlags |= NIF_INFO;
             }
 
-            Shell_NotifyIcon(NIM_ADD, &m_nid);
+            Shell_NotifyIconW(NIM_ADD, &m_nid);
             m_nid.uFlags &= ~NIF_INFO;
 
             RecordToRegistry();
@@ -137,7 +137,7 @@ public:
     {
         if (m_bUseNotifyIcon)
         {
-            Shell_NotifyIcon(NIM_DELETE, &m_nid);
+            Shell_NotifyIconW(NIM_DELETE, &m_nid);
             ReleaseTargetWindow();
             RemoveFromRegistry();
         }
@@ -168,7 +168,7 @@ public:
 
                 if (ms_bDestroyOnShow)
                 {
-                    PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
+                    PostMessageW(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
                 }
             }
         }
@@ -176,24 +176,24 @@ public:
 
     void DoContextMenu(int x, int y)
     {
-        TCHAR szSimpleText[8192] = TEXT("");
+        WCHAR szSimpleText[8192] = L"";
         HMENU hMenu = CreatePopupMenu();
         HMENU hPopupMenu = CreatePopupMenu();
 
-        AppendMenu(hMenu, MF_STRING, CMD_ABOUT, TEXT("关于SlxCom(&A)..."));
-        AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-        AppendMenu(hMenu, MF_STRING, CMD_DETAIL, TEXT("显示窗口信息(&D)"));
-        AppendMenu(hMenu, MF_STRING, CMD_PINWINDOW, TEXT("置顶窗口(&T)\tAlt+Ctrl(Shift)+T"));
+        AppendMenuW(hMenu, MF_STRING, CMD_ABOUT, L"关于SlxCom(&A)...");
+        AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenuW(hMenu, MF_STRING, CMD_DETAIL, L"显示窗口信息(&D)");
+        AppendMenuW(hMenu, MF_STRING, CMD_PINWINDOW, L"置顶窗口(&T)\tAlt+Ctrl(Shift)+T");
 
         if (m_bUseNotifyIcon)
         {
-            AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-            AppendMenu(hMenu, MF_STRING, CMD_SWITCHVISIABLE, TEXT("显示窗口(&S)\tAlt+Ctrl(Shift)+H"));
-            AppendMenu(hMenu, MF_STRING, CMD_DESTROYICON, TEXT("移除托盘图标(&Y)"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, TEXT("被控窗口可见后销毁托盘图标(&A)"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, TEXT("窗口隐藏时显示气泡通知(&B)"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, TEXT("窗口最小化时候自动进入托盘(&M)"));
-            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("SlxCom托盘图标管理器全局配置(&G)"));
+            AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
+            AppendMenuW(hMenu, MF_STRING, CMD_SWITCHVISIABLE, L"显示窗口(&S)\tAlt+Ctrl(Shift)+H");
+            AppendMenuW(hMenu, MF_STRING, CMD_DESTROYICON, L"移除托盘图标(&Y)");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_DESTROYONSHOW, L"被控窗口可见后销毁托盘图标(&A)");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_SHOWBALLOON, L"窗口隐藏时显示气泡通知(&B)");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_HIDEONMINIMAZE, L"窗口最小化时候自动进入托盘(&M)");
+            AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"SlxCom托盘图标管理器全局配置(&G)");
 
             CheckMenuItemHelper(hPopupMenu, CMD_DESTROYONSHOW, MF_BYCOMMAND, ms_bDestroyOnShow);
             CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
@@ -202,36 +202,36 @@ public:
         }
         else
         {
-            AppendMenu(hMenu, MF_STRING, CMD_ADD_WINDOW, TEXT("收纳窗口(&C)\tAlt+Ctrl(Shift)+C"));
-            AppendMenu(hMenu, MF_STRING, CMD_HIDE_WINDOW, TEXT("收纳并隐藏窗口(&S)\tAlt+Ctrl(Shift)+H"));
+            AppendMenuW(hMenu, MF_STRING, CMD_ADD_WINDOW, L"收纳窗口(&C)\tAlt+Ctrl(Shift)+C");
+            AppendMenuW(hMenu, MF_STRING, CMD_HIDE_WINDOW, L"收纳并隐藏窗口(&S)\tAlt+Ctrl(Shift)+H");
         }
 
-        AppendMenu(hMenu, MF_STRING, CMD_OPEN_IMAGE_PATH, TEXT("打开窗口进程所在的目录"));
-        AppendMenu(hMenu, MF_STRING, CMD_KILL_WINDOW_PROCESS, TEXT("结束窗口所属的进程"));
+        AppendMenuW(hMenu, MF_STRING, CMD_OPEN_IMAGE_PATH, L"打开窗口进程所在的目录");
+        AppendMenuW(hMenu, MF_STRING, CMD_KILL_WINDOW_PROCESS, L"结束窗口所属的进程");
 
         {
             HMENU hPopupMenu = CreatePopupMenu();
 
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_HWNDVALUE,  TEXT("窗口句柄值"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_CLASSNAME,  TEXT("窗口类名"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_WINDOWTEXT, TEXT("窗口标题"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_CHILDTREE,  TEXT("整个窗口树"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_PROCESSID,  TEXT("进程id"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_IMAGEPATH,  TEXT("进程路径"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_IMAGENAME,  TEXT("进程名"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_COPY_THREADID,   TEXT("线程id"));
-            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("复制到剪贴板(&C)"));
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_HWNDVALUE,  L"窗口句柄值");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_CLASSNAME,  L"窗口类名");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_WINDOWTEXT, L"窗口标题");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_CHILDTREE,  L"整个窗口树");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_PROCESSID,  L"进程id");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_IMAGEPATH,  L"进程路径");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_IMAGENAME,  L"进程名");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_THREADID,   L"线程id");
+            AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"复制到剪贴板(&C)");
         }
 
         {
             HMENU hPopupMenu = CreatePopupMenu();
 
-            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_100, TEXT("100%"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_80,  TEXT("80%"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_60,  TEXT("60%"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_40,  TEXT("40%"));
-            AppendMenu(hPopupMenu, MF_STRING, CMD_ALPHA_20,  TEXT("20%"));
-            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("不透明度(&A)"));
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_100, L"100%");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_80,  L"80%");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_60,  L"60%");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_40,  L"40%");
+            AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_20,  L"20%");
+            AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"不透明度(&A)");
         }
 
         CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
@@ -240,7 +240,7 @@ public:
         {
             if (IsWindowVisible(m_hTargetWindow))
             {
-                ModifyMenu(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND | MF_STRING, CMD_SWITCHVISIABLE, TEXT("隐藏窗口(&H)\tAlt+Ctrl(Shift)+H"));
+                ModifyMenuW(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND | MF_STRING, CMD_SWITCHVISIABLE, L"隐藏窗口(&H)\tAlt+Ctrl(Shift)+H");
             }
         }
         else
@@ -269,17 +269,17 @@ public:
 
         case CMD_DESTROYONSHOW:
             ms_bDestroyOnShow = !ms_bDestroyOnShow;
-            SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("DestroyOnShow"), REG_DWORD, &ms_bDestroyOnShow, sizeof(ms_bDestroyOnShow));
+            SHSetValueW(HKEY_CURRENT_USER, BASE_REG_PATH, L"DestroyOnShow", REG_DWORD, &ms_bDestroyOnShow, sizeof(ms_bDestroyOnShow));
             break;
 
         case CMD_SHOWBALLOON:
             ms_bShowBalloon = !ms_bShowBalloon;
-            SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("ShowBalloon"), REG_DWORD, &ms_bShowBalloon, sizeof(ms_bShowBalloon));
+            SHSetValueW(HKEY_CURRENT_USER, BASE_REG_PATH, L"ShowBalloon", REG_DWORD, &ms_bShowBalloon, sizeof(ms_bShowBalloon));
             break;
 
         case CMD_HIDEONMINIMAZE:
             ms_bHideOnMinimaze = !ms_bHideOnMinimaze;
-            SHSetValue(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("HideOnMinimaze"), REG_DWORD, &ms_bHideOnMinimaze, sizeof(ms_bHideOnMinimaze));
+            SHSetValueW(HKEY_CURRENT_USER, BASE_REG_PATH, L"HideOnMinimaze", REG_DWORD, &ms_bHideOnMinimaze, sizeof(ms_bHideOnMinimaze));
             break;
 
         case CMD_PINWINDOW:
@@ -291,11 +291,11 @@ public:
             break;
 
         case CMD_DETAIL:
-            MessageBox(NULL, GetTargetWindowFullInfo().c_str(), TEXT("info"), MB_ICONINFORMATION | MB_TOPMOST);
+            MessageBoxW(NULL, GetTargetWindowFullInfo().c_str(), L"info", MB_ICONINFORMATION | MB_TOPMOST);
             break;
 
         case CMD_DESTROYICON:
-            PostMessage(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
+            PostMessageW(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
             break;
 
         case CMD_ADD_WINDOW:
@@ -309,12 +309,12 @@ public:
             break;
 
         case CMD_COPY_CLASSNAME:
-            GetClassName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
+            GetClassNameW(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
             SetClipboardText(szSimpleText);
             break;
 
         case CMD_COPY_WINDOWTEXT:
-            GetWindowText(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
+            GetWindowTextW(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
             SetClipboardText(szSimpleText);
             break;
 
@@ -337,7 +337,7 @@ public:
 
         case CMD_COPY_IMAGENAME:
             GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText));
-            SetClipboardText(PathFindFileName(szSimpleText));
+            SetClipboardText(PathFindFileNameW(szSimpleText));
             break;
 
         case CMD_COPY_THREADID:
@@ -367,7 +367,7 @@ public:
         case CMD_OPEN_IMAGE_PATH:
             if (GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText)) > 0)
             {
-                if (PathFileExists(szSimpleText))
+                if (PathFileExistsW(szSimpleText))
                 {
                     BrowseForFile(szSimpleText);
                 }
@@ -382,15 +382,15 @@ public:
 
                 if (dwProcessId != 0)
                 {
-                    TCHAR szProcessName[MAX_PATH] = TEXT("null");
+                    WCHAR szProcessName[MAX_PATH] = L"null";
 
                     GetProcessNameById(dwProcessId, szProcessName, RTL_NUMBER_OF(szProcessName));
 
                     if (IDYES == MessageBoxFormat(
                         m_hManagerWindow,
-                        TEXT("请确认"),
+                        L"请确认",
                         MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3,
-                        TEXT("要结束进程（%s，%lu）吗？"),
+                        L"要结束进程（%s，%lu）吗？",
                         szProcessName,
                         dwProcessId))
                     {
@@ -412,14 +412,14 @@ public:
         DestroyMenu(hMenu);
     }
 
-    tstring GetTargetWindowFullInfo()
+    wstring GetTargetWindowFullInfo()
     {
-        LPCTSTR lpCrLf = TEXT("\r\n");
-        tstringstream ss;
+        LPCWSTR lpCrLf = L"\r\n";
+        wstringstream ss;
         DWORD dwProcessId = 0;
         DWORD dwThreadId = 0;
-        TCHAR szClassName[1024] = TEXT("");
-        TCHAR szWindowText[1024] = TEXT("");
+        WCHAR szClassName[1024] = L"";
+        WCHAR szWindowText[1024] = L"";
         RECT rect = {0};
         DWORD dwStyle = 0;
         DWORD dwExStyle = 0;
@@ -427,93 +427,93 @@ public:
         if (IsWindow(m_hTargetWindow))
         {
             dwThreadId = GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
-            GetClassName(m_hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
-            GetWindowText(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+            GetClassNameW(m_hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
+            GetWindowTextW(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
             GetWindowRect(m_hTargetWindow, &rect);
             dwStyle = (DWORD)GetWindowLongPtr(m_hTargetWindow, GWL_STYLE);
             dwExStyle = (DWORD)GetWindowLongPtr(m_hTargetWindow, GWL_EXSTYLE);
         }
 
-        ss<<TEXT("窗口句柄：0x")<<hex<<m_hTargetWindow;
+        ss<<L"窗口句柄：0x"<<hex<<m_hTargetWindow;
         if (!IsWindow(m_hTargetWindow))
         {
-            ss<<TEXT("，无效");
+            ss<<L"，无效";
         }
         else
         {
             if (IsWindowTopMost(m_hTargetWindow))
             {
-                ss<<TEXT("，置顶");
+                ss<<L"，置顶";
             }
 
             if (IsWindowVisible(m_hTargetWindow))
             {
-                ss<<TEXT("，可见");
+                ss<<L"，可见";
             }
             else
             {
-                ss<<TEXT("，隐藏");
+                ss<<L"，隐藏";
             }
 
             if (IsZoomed(m_hTargetWindow))
             {
-                ss<<TEXT("，最大化");
+                ss<<L"，最大化";
             }
 
             if (IsIconic(m_hTargetWindow))
             {
-                ss<<TEXT("，最小化");
+                ss<<L"，最小化";
             }
         }
         ss<<lpCrLf;
 
-        ss<<TEXT("窗口类：")<<szClassName<<lpCrLf;
-        ss<<TEXT("窗口标题：")<<szWindowText<<lpCrLf;
-        ss<<TEXT("线程id：0x")<<hex<<dwThreadId<<TEXT("(")<<dec<<dwThreadId<<TEXT(")")<<lpCrLf;
-        ss<<TEXT("进程id：0x")<<hex<<dwProcessId<<TEXT("(")<<dec<<dwProcessId<<TEXT(")")<<lpCrLf;
-        ss<<TEXT("风格：0x")<<hex<<dwStyle<<lpCrLf;
-        ss<<TEXT("扩展风格：0x")<<hex<<dwExStyle<<lpCrLf;
-        ss<<TEXT("当前位置：")<<dec<<rect.left<<TEXT("，")<<rect.top<<TEXT("，")<<rect.right<<TEXT("，")<<rect.bottom<<lpCrLf;
-        ss<<TEXT("收纳于：")<<m_strCreateTime<<lpCrLf;
+        ss<<L"窗口类："<<szClassName<<lpCrLf;
+        ss<<L"窗口标题："<<szWindowText<<lpCrLf;
+        ss<<L"线程id：0x"<<hex<<dwThreadId<<L"("<<dec<<dwThreadId<<L")"<<lpCrLf;
+        ss<<L"进程id：0x"<<hex<<dwProcessId<<L"("<<dec<<dwProcessId<<L")"<<lpCrLf;
+        ss<<L"风格：0x"<<hex<<dwStyle<<lpCrLf;
+        ss<<L"扩展风格：0x"<<hex<<dwExStyle<<lpCrLf;
+        ss<<L"当前位置："<<dec<<rect.left<<L"，"<<rect.top<<L"，"<<rect.right<<L"，"<<rect.bottom<<lpCrLf;
+        ss<<L"收纳于："<<m_strCreateTime<<lpCrLf;
 
         return ss.str();
     }
 
     void RefreshInfo()
     {
-        tstring strNewTip = GetTargetWindowBaseInfo();
+        wstring strNewTip = GetTargetWindowBaseInfo();
 
         // 
-        if (StrCmpNI(strNewTip.c_str(), m_nid.szTip, RTL_NUMBER_OF(m_nid.szTip)) != 0)
+        if (StrCmpNIW(strNewTip.c_str(), m_nid.szTip, RTL_NUMBER_OF(m_nid.szTip)) != 0)
         {
-            lstrcpyn(m_nid.szTip, strNewTip.c_str(), RTL_NUMBER_OF(m_nid.szTip));
-            Shell_NotifyIcon(NIM_MODIFY, &m_nid);
+            lstrcpynW(m_nid.szTip, strNewTip.c_str(), RTL_NUMBER_OF(m_nid.szTip));
+            Shell_NotifyIconW(NIM_MODIFY, &m_nid);
         }
     }
 
-    tstring GetTargetWindowCaption()
+    wstring GetTargetWindowCaption()
     {
-        tstring result;
-        TCHAR szWindowText[32] = TEXT("");
+        wstring result;
+        WCHAR szWindowText[32] = L"";
 
-        GetWindowText(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
+        GetWindowTextW(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
         result = szWindowText;
 
         if (GetWindowTextLength(m_hTargetWindow) >= RTL_NUMBER_OF(szWindowText))
         {
-            result += TEXT("...");
+            result += L"...";
         }
 
         return result;
     }
 
-    tstring GetTargetWindowBaseInfo()
+    wstring GetTargetWindowBaseInfo()
     {
-        TCHAR szTip[128];
-        TCHAR szWindowStatus[32] = TEXT("");
+        WCHAR szTip[128];
+        WCHAR szWindowStatus[32] = L"";
         BOOL bIsWindow = IsWindow(m_hTargetWindow);
         BOOL bIsWindowVisiable = FALSE;
-        LPCTSTR lpCrLf = TEXT("\r\n");
+        LPCWSTR lpCrLf = L"\r\n";
 
         if (bIsWindow)
         {
@@ -521,26 +521,26 @@ public:
 
             if (bIsWindowVisiable)
             {
-                lstrcpyn(szWindowStatus, TEXT("可见"), RTL_NUMBER_OF(szWindowStatus));
+                lstrcpynW(szWindowStatus, L"可见", RTL_NUMBER_OF(szWindowStatus));
             }
             else
             {
-                lstrcpyn(szWindowStatus, TEXT("隐藏"), RTL_NUMBER_OF(szWindowStatus));
+                lstrcpynW(szWindowStatus, L"隐藏", RTL_NUMBER_OF(szWindowStatus));
             }
         }
         else
         {
-            lstrcpyn(szWindowStatus, TEXT("无效"), RTL_NUMBER_OF(szWindowStatus));
+            lstrcpynW(szWindowStatus, L"无效", RTL_NUMBER_OF(szWindowStatus));
         }
 
         // 
-        wnsprintf(
+        wnsprintfW(
             szTip,
             RTL_NUMBER_OF(szTip),
-            TEXT("SlxCom WindowManager\r\n")
-            TEXT("窗口句柄：%#x\r\n")
-            TEXT("窗口状态：%s\r\n")
-            TEXT("窗口标题：%s"),
+            L"SlxCom WindowManager\r\n"
+            L"窗口句柄：%#x\r\n"
+            L"窗口状态：%s\r\n"
+            L"窗口标题：%s",
             m_hTargetWindow,
             szWindowStatus,
             GetTargetWindowCaption().c_str()
@@ -591,18 +591,18 @@ public:
         }
     }
 
-    static map<HWND, tstring> GetAndClearLastNotifys()
+    static map<HWND, wstring> GetAndClearLastNotifys()
     {
-        map<HWND, tstring> result;
-        set<tstring> setToDelete;
-        tstring strRegPath = RECORD_REG_PATH;
-        TCHAR szHwnd[32] = TEXT("");
+        map<HWND, wstring> result;
+        set<wstring> setToDelete;
+        wstring strRegPath = RECORD_REG_PATH;
+        WCHAR szHwnd[32] = L"";
         HKEY hKey = NULL;
 
-        strRegPath += TEXT("\\");
+        strRegPath += L"\\";
         strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
 
-        if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_CURRENT_USER, strRegPath.c_str(), 0, KEY_QUERY_VALUE, &hKey))
+        if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, strRegPath.c_str(), 0, KEY_QUERY_VALUE, &hKey))
         {
             DWORD dwValueCount = 0;
             DWORD dwMaxValueNameLen = 0;
@@ -620,7 +620,7 @@ public:
                 dwMaxValueNameLen *= 2;
                 dwMaxDataLen += 1;
 
-                TCHAR *szValueName = (TCHAR *)malloc(dwMaxValueNameLen);
+                WCHAR *szValueName = (WCHAR *)malloc(dwMaxValueNameLen);
                 unsigned char *szData = (unsigned char *)malloc(dwMaxDataLen);
 
                 if (szValueName != NULL && szData != NULL)
@@ -634,7 +634,7 @@ public:
                         ZeroMemory(szValueName, dwMaxValueNameLen);
                         ZeroMemory(szData, dwMaxDataLen);
 
-                        if (ERROR_SUCCESS == RegEnumValue(
+                        if (ERROR_SUCCESS == RegEnumValueW(
                             hKey,
                             dwIndex,
                             szValueName,
@@ -655,7 +655,7 @@ public:
                                 }
                                 else
                                 {
-                                    result.insert(make_pair(hWnd, (TCHAR *)szData));
+                                    result.insert(make_pair(hWnd, (WCHAR *)szData));
                                 }
                             }
                         }
@@ -676,10 +676,10 @@ public:
             RegCloseKey(hKey);
         }
 
-        set<tstring>::iterator it = setToDelete.begin();
+        set<wstring>::iterator it = setToDelete.begin();
         for (; it != setToDelete.end(); ++it)
         {
-            SHDeleteValue(HKEY_CURRENT_USER, strRegPath.c_str(), it->c_str());
+            SHDeleteValueW(HKEY_CURRENT_USER, strRegPath.c_str(), it->c_str());
         }
 
         return result;
@@ -693,29 +693,29 @@ public:
 private:
     void RecordToRegistry()
     {
-        TCHAR szNull[] = TEXT("");
-        tstring strRegPath = RECORD_REG_PATH;
-        TCHAR szHwnd[32] = TEXT("");
+        WCHAR szNull[] = L"";
+        wstring strRegPath = RECORD_REG_PATH;
+        WCHAR szHwnd[32] = L"";
 
-        SHSetValue(HKEY_CURRENT_USER, RECORD_REG_PATH, NULL, REG_SZ, szNull, (lstrlen(szNull) + 1) * sizeof(TCHAR));
+        SHSetValueW(HKEY_CURRENT_USER, RECORD_REG_PATH, NULL, REG_SZ, szNull, (lstrlenW(szNull) + 1) * sizeof(WCHAR));
 
-        strRegPath += TEXT("\\");
+        strRegPath += L"\\";
         strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
-        wnsprintf(szHwnd, RTL_NUMBER_OF(szHwnd), TEXT("%u"), m_hTargetWindow);
+        wnsprintfW(szHwnd, RTL_NUMBER_OF(szHwnd), L"%u", m_hTargetWindow);
 
-        SHSetTempValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd, REG_SZ, m_strCreateTime.c_str(), (DWORD)(m_strCreateTime.length() + 1) * sizeof(TCHAR));
+        SHSetTempValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd, REG_SZ, m_strCreateTime.c_str(), (DWORD)(m_strCreateTime.length() + 1) * sizeof(WCHAR));
     }
 
     void RemoveFromRegistry()
     {
-        tstring strRegPath = RECORD_REG_PATH;
-        TCHAR szHwnd[32] = TEXT("");
+        wstring strRegPath = RECORD_REG_PATH;
+        WCHAR szHwnd[32] = L"";
 
-        strRegPath += TEXT("\\");
+        strRegPath += L"\\";
         strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
-        wnsprintf(szHwnd, RTL_NUMBER_OF(szHwnd), TEXT("%u"), m_hTargetWindow);
+        wnsprintfW(szHwnd, RTL_NUMBER_OF(szHwnd), L"%u", m_hTargetWindow);
 
-        SHDeleteValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd);
+        SHDeleteValueW(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd);
     }
 
     void ReleaseTargetWindow()
@@ -748,24 +748,24 @@ private:
         if (IsWindow(hTargetWindow))
         {
             LONG_PTR nExStyle = GetWindowLongPtr(hTargetWindow, GWL_EXSTYLE);
-            TCHAR szNewWindowText[4096];
-            LPTSTR lpWindowText = szNewWindowText;
+            WCHAR szNewWindowText[4096];
+            LPWSTR lpWindowText = szNewWindowText;
 
             if (nExStyle & WS_EX_TOPMOST)
             {
-                lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已取消置顶<<<<"));
+                lpWindowText += wnsprintfW(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), L"已取消置顶<<<<");
                 SetWindowPos(hTargetWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             }
             else
             {
-                lpWindowText += wnsprintf(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), TEXT("已置顶>>>>"));
+                lpWindowText += wnsprintfW(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), L"已置顶>>>>");
                 SetWindowPos(hTargetWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             }
 
             if (GetWindowTextLength(hTargetWindow) < RTL_NUMBER_OF(szNewWindowText) - 100)
             {
-                GetWindowText(hTargetWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
-                SetWindowText(hTargetWindow, szNewWindowText);
+                GetWindowTextW(hTargetWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
+                SetWindowTextW(hTargetWindow, szNewWindowText);
 
                 for (int i = 0; i < 3; i += 1)
                 {
@@ -775,7 +775,7 @@ private:
                 }
 
                 Sleep(500);
-                SetWindowText(hTargetWindow, lpWindowText);
+                SetWindowTextW(hTargetWindow, lpWindowText);
             }
         }
 
@@ -786,10 +786,10 @@ private:
     BOOL m_bUseNotifyIcon;
     HWND m_hManagerWindow;
     HWND m_hTargetWindow;
-    NOTIFYICONDATA m_nid;
+    NOTIFYICONDATAW m_nid;
     HICON m_hIcon;
     HICON m_hIconSm;
-    tstring m_strCreateTime;
+    wstring m_strCreateTime;
 
 private:
     static BOOL ms_bDestroyOnShow;
@@ -797,9 +797,9 @@ private:
     static BOOL ms_bHideOnMinimaze;
 };
 
-BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("DestroyOnShow"), TRUE);
-BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("ShowBalloon"), TRUE);
-BOOL CNotifyClass::ms_bHideOnMinimaze = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, TEXT("HideOnMinimaze"), FALSE);
+BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"DestroyOnShow", TRUE);
+BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"ShowBalloon", TRUE);
+BOOL CNotifyClass::ms_bHideOnMinimaze = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"HideOnMinimaze", FALSE);
 
 class CWindowManager
 {
@@ -808,7 +808,7 @@ public:
     {
         m_hInstance = hInstance;
         RegisterWindowClass(m_hInstance);
-        m_hWindow = CreateWindowEx(
+        m_hWindow = CreateWindowExW(
             0,
             NOTIFYWNDCLASS,
             NOTIFYWNDCLASS,
@@ -822,9 +822,9 @@ public:
 
         if (m_hWindow)
         {
-            map<HWND, tstring> mapLastNotifys = CNotifyClass::GetAndClearLastNotifys();
+            map<HWND, wstring> mapLastNotifys = CNotifyClass::GetAndClearLastNotifys();
 
-            map<HWND, tstring>::iterator it = mapLastNotifys.begin();
+            map<HWND, wstring>::iterator it = mapLastNotifys.begin();
             for (; it != mapLastNotifys.end(); ++it)
             {
                 if (IsWindow(it->first))
@@ -836,12 +836,12 @@ public:
 //             ShowWindow(m_hWindow, SW_SHOW);
             UpdateWindow(m_hWindow);
 
-            RegisterHotKey(m_hWindow, HK_HIDEWINDOW, MOD_ALT | MOD_CONTROL, TEXT('H'));
-            RegisterHotKey(m_hWindow, HK_HIDEWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('H'));
-            RegisterHotKey(m_hWindow, HK_PINWINDOW, MOD_ALT | MOD_CONTROL, TEXT('T'));
-            RegisterHotKey(m_hWindow, HK_PINWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('T'));
-            RegisterHotKey(m_hWindow, HK_ADDWINDOW, MOD_ALT | MOD_CONTROL, TEXT('C'));
-            RegisterHotKey(m_hWindow, HK_ADDWINDOW2, MOD_ALT | MOD_SHIFT, TEXT('C'));
+            RegisterHotKey(m_hWindow, HK_HIDEWINDOW, MOD_ALT | MOD_CONTROL, L'H');
+            RegisterHotKey(m_hWindow, HK_HIDEWINDOW2, MOD_ALT | MOD_SHIFT, L'H');
+            RegisterHotKey(m_hWindow, HK_PINWINDOW, MOD_ALT | MOD_CONTROL, L'T');
+            RegisterHotKey(m_hWindow, HK_PINWINDOW2, MOD_ALT | MOD_SHIFT, L'T');
+            RegisterHotKey(m_hWindow, HK_ADDWINDOW, MOD_ALT | MOD_CONTROL, L'C');
+            RegisterHotKey(m_hWindow, HK_ADDWINDOW2, MOD_ALT | MOD_SHIFT, L'C');
         }
     }
 
@@ -869,11 +869,11 @@ public:
     void Run()
     {
         // 启动钩子进程
-        TCHAR szCmd[MAX_PATH * 2 + 1024] = TEXT("");
-        TCHAR szDllPath[MAX_PATH] = TEXT("");
+        WCHAR szCmd[MAX_PATH * 2 + 1024] = L"";
+        WCHAR szDllPath[MAX_PATH] = L"";
 
-        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
-        wnsprintf(szCmd, RTL_NUMBER_OF(szCmd), TEXT("rundll32.exe \"%s\" SlxWindowManagerProcess %lu %lu"), szDllPath, GetCurrentProcessId(), m_hWindow);
+        GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        wnsprintfW(szCmd, RTL_NUMBER_OF(szCmd), L"rundll32.exe \"%s\" SlxWindowManagerProcess %lu %lu", szDllPath, GetCurrentProcessId(), m_hWindow);
 
         RunCommand(szCmd, NULL);
 
@@ -882,7 +882,7 @@ public:
 
         while (TRUE)
         {
-            int nRet = GetMessage(&msg, NULL, 0, 0);
+            int nRet = GetMessageW(&msg, NULL, 0, 0);
 
             if (nRet <= 0)
             {
@@ -890,7 +890,7 @@ public:
             }
 
             TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            DispatchMessageW(&msg);
         }
     }
 
@@ -907,7 +907,7 @@ private:
         }
     }
 
-    BOOL AddWindow(HWND hWindow, LPCTSTR lpCreateTime = NULL, BOOL bShowBalloonThisTime = TRUE)
+    BOOL AddWindow(HWND hWindow, LPCWSTR lpCreateTime = NULL, BOOL bShowBalloonThisTime = TRUE)
     {
         UINT uId = GetNewId();
         CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hWindow, uId, lpCreateTime, bShowBalloonThisTime);
@@ -957,13 +957,13 @@ private:
 private:
     static void RegisterWindowClass(HINSTANCE hInstance)
     {
-        WNDCLASSEX wcex = {sizeof(wcex)};
+        WNDCLASSEXW wcex = {sizeof(wcex)};
         wcex.lpfnWndProc = WindowManagerWindowProc;
         wcex.lpszClassName = NOTIFYWNDCLASS;
         wcex.hInstance = hInstance;
         wcex.style = CS_HREDRAW | CS_VREDRAW;
 
-        RegisterClassEx(&wcex);
+        RegisterClassExW(&wcex);
     }
 
     static CWindowManager *GetManagerClass(HWND hWnd)
@@ -1123,11 +1123,11 @@ private:
 static DWORD CALLBACK WindowManagerProc(LPVOID lpParam)
 {
     HINSTANCE hInstance = (HINSTANCE)lpParam;
-    TCHAR szImagePath[MAX_PATH] = TEXT("");
+    WCHAR szImagePath[MAX_PATH] = L"";
 
-    GetModuleFileName(GetModuleHandle(NULL), szImagePath, RTL_NUMBER_OF(szImagePath));
+    GetModuleFileNameW(GetModuleHandleW(NULL), szImagePath, RTL_NUMBER_OF(szImagePath));
 
-    if (lstrcmpi(TEXT("rundll32.exe"), PathFindFileName(szImagePath)) != 0)
+    if (lstrcmpiW(L"rundll32.exe", PathFindFileNameW(szImagePath)) != 0)
     {
         DWORD dwSleepTime = 1;
         while (!IsWindow(GetTrayNotifyWndInProcess()))
@@ -1156,7 +1156,7 @@ void StartWindowManager(HINSTANCE hinstDll)
     CloseHandle(hThread);
 }
 
-void __stdcall T3(HWND hwndStub, HINSTANCE hAppInstance, LPTSTR lpszCmdLine, int nCmdShow)
+void __stdcall T3(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdLine, int nCmdShow)
 {
     extern HINSTANCE g_hinstDll; //SlxCom.cpp
     WindowManagerProc((LPVOID)g_hinstDll);

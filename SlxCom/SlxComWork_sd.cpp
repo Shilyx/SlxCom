@@ -65,7 +65,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
 
     while(TRUE)
     {
-        int nRet = GetMessage(&msg, NULL, 0, 0);
+        int nRet = GetMessageW(&msg, NULL, 0, 0);
 
         if(nRet <= 0)
         {
@@ -77,7 +77,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
             if(!IsWindow(hTrayNotifyWnd))
             {
                 //设定托盘承载窗口的新窗口过程
-                HWND hParentWnd = FindWindowEx(NULL, NULL, TEXT("Shell_TrayWnd"), NULL);
+                HWND hParentWnd = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
                 HWND hChildWindow = NULL;
 
                 while(IsWindow(hParentWnd))
@@ -88,7 +88,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
 
                     if(dwProcessId == GetCurrentProcessId())
                     {
-                        hChildWindow = FindWindowEx(hParentWnd, NULL, TEXT("TrayNotifyWnd"), NULL);
+                        hChildWindow = FindWindowExW(hParentWnd, NULL, L"TrayNotifyWnd", NULL);
 
                         if(IsWindow(hChildWindow))
                         {
@@ -96,7 +96,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
                         }
                     }
 
-                    hParentWnd = FindWindowEx(NULL, hParentWnd, TEXT("Shell_TrayWnd"), NULL);
+                    hParentWnd = FindWindowExW(NULL, hParentWnd, L"Shell_TrayWnd", NULL);
                 }
 
                 if(IsWindow(hParentWnd))
@@ -113,7 +113,7 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
 
                 if(IsWindow(hParent))
                 {
-                    HWND hStart = FindWindowEx(hParent, NULL, TEXT("Button"), NULL);
+                    HWND hStart = FindWindowExW(hParent, NULL, L"Button", NULL);
 
                     if(IsWindow(hStart))
                     {
@@ -149,15 +149,15 @@ DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
 
 BOOL StartHookShowDesktop()
 {
-    TCHAR szExePath[MAX_PATH];
-    TCHAR szExplorerPath[MAX_PATH];
+    WCHAR szExePath[MAX_PATH];
+    WCHAR szExplorerPath[MAX_PATH];
 
-    GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
+    GetModuleFileNameW(GetModuleHandleW(NULL), szExePath, MAX_PATH);
 
-    GetSystemDirectory(szExplorerPath, MAX_PATH);
-    PathAppend(szExplorerPath, TEXT("..\\Explorer.exe"));
+    GetSystemDirectoryW(szExplorerPath, MAX_PATH);
+    PathAppendW(szExplorerPath, L"..\\Explorer.exe");
 
-    if(lstrcmpi(szExplorerPath, szExePath) == 0)
+    if(lstrcmpiW(szExplorerPath, szExePath) == 0)
     {
         HANDLE hThread = CreateThread(NULL, 0, WaitAndHookShowDesktop, NULL, 0, NULL);
         CloseHandle(hThread);

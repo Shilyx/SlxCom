@@ -59,7 +59,7 @@ CSlxComContextMenu::CSlxComContextMenu()
 
     m_pFiles = new FileInfo[1];
     m_uFileCount = 1;
-    lstrcpy(m_pFiles[0].szPath, TEXT("1:\\"));
+    lstrcpyW(m_pFiles[0].szPath, L"1:\\");
 }
 
 CSlxComContextMenu::~CSlxComContextMenu()
@@ -189,16 +189,16 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
         }
         else
         {
-            TCHAR szPath[MAX_PATH];
+            WCHAR szPath[MAX_PATH];
 
-            if(SHGetPathFromIDList(pidlFolder, szPath))
+            if(SHGetPathFromIDListW(pidlFolder, szPath))
             {
                 m_uFileCount = 1;
 
                 delete []m_pFiles;
 
                 m_pFiles = new FileInfo[m_uFileCount];
-                lstrcpyn(m_pFiles[0].szPath, szPath, MAX_PATH);
+                lstrcpynW(m_pFiles[0].szPath, szPath, MAX_PATH);
 
                 return S_OK;
             }
@@ -222,7 +222,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
             if(hDrop != NULL)
             {
                 UINT uIndex;
-                UINT uNumFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
+                UINT uNumFiles = DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
 
                 if(uNumFiles > 0)
                 {
@@ -233,33 +233,33 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 
                     for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
                     {
-                        DragQueryFile(hDrop, uIndex, m_pFiles[uIndex].szPath, MAX_PATH);
+                        DragQueryFileW(hDrop, uIndex, m_pFiles[uIndex].szPath, MAX_PATH);
 
-                        DWORD dwAttribute = GetFileAttributes(m_pFiles[uIndex].szPath);
+                        DWORD dwAttribute = GetFileAttributesW(m_pFiles[uIndex].szPath);
 
                         if(dwAttribute != INVALID_FILE_ATTRIBUTES && (dwAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
                         {
-                            LPCTSTR lpExtension = PathFindExtension(m_pFiles[uIndex].szPath);
+                            LPCWSTR lpExtension = PathFindExtensionW(m_pFiles[uIndex].szPath);
 
-                            if(lstrcmpi(lpExtension, TEXT(".dll")) == 0 || lstrcmpi(lpExtension, TEXT(".ocx")) == 0)
+                            if(lstrcmpiW(lpExtension, L".dll") == 0 || lstrcmpiW(lpExtension, L".ocx") == 0)
                             {
                                 m_pFiles[uIndex].bIsDll = TRUE;
                             }
-                            else if(lstrcmpi(lpExtension, TEXT(".jpg")) == 0 || lstrcmpi(lpExtension, TEXT(".jpeg")) == 0)
+                            else if(lstrcmpiW(lpExtension, L".jpg") == 0 || lstrcmpiW(lpExtension, L".jpeg") == 0)
                             {
                                 m_pFiles[uIndex].bIsJpg = TRUE;
                                 m_pFiles[uIndex].bIsPicture = TRUE;
                             }
-                            else if (lstrcmpi(lpExtension, TEXT(".gif")) == 0 ||
-                                     lstrcmpi(lpExtension, TEXT(".bmp")) == 0 ||
-                                     lstrcmpi(lpExtension, TEXT(".png")) == 0 ||
-                                     lstrcmpi(lpExtension, TEXT(".dib")) == 0 ||
-                                     lstrcmpi(lpExtension, TEXT(".tif")) == 0 ||
-                                     lstrcmpi(lpExtension, TEXT(".tiff")) == 0)
+                            else if (lstrcmpiW(lpExtension, L".gif") == 0 ||
+                                     lstrcmpiW(lpExtension, L".bmp") == 0 ||
+                                     lstrcmpiW(lpExtension, L".png") == 0 ||
+                                     lstrcmpiW(lpExtension, L".dib") == 0 ||
+                                     lstrcmpiW(lpExtension, L".tif") == 0 ||
+                                     lstrcmpiW(lpExtension, L".tiff") == 0)
                             {
                                 m_pFiles[uIndex].bIsPicture = TRUE;
                             }
-                            else if(lstrcmpi(lpExtension, TEXT(".rar")) == 0)
+                            else if(lstrcmpiW(lpExtension, L".rar") == 0)
                             {
                                 m_pFiles[uIndex].bIsRar = TRUE;
                             }
@@ -326,11 +326,11 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
         for (; nMenuIndex < nCount; nMenuIndex += 1)
         {
-            TCHAR szText[100] = TEXT("");
+            WCHAR szText[100] = L"";
 
-            GetMenuString(hmenu, nMenuIndex, szText, RTL_NUMBER_OF(szText), MF_BYPOSITION);
+            GetMenuStringW(hmenu, nMenuIndex, szText, RTL_NUMBER_OF(szText), MF_BYPOSITION);
 
-            if (lstrcmpi(szText, TEXT("刷新(&E)")) == 0)
+            if (lstrcmpiW(szText, L"刷新(&E)") == 0)
             {
                 m_bIsBackground = TRUE;
                 break;
@@ -377,26 +377,26 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     if (m_shellExtType != SET_DRAGDROP)
     {
         //clipboard functions
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, TEXT(""));
+        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_SEPARATOR | MF_BYPOSITION, 0, L"");
 
         //CopyFilePath
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, TEXT("复制完整路径"));
+        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPYFULLPATH, L"复制完整路径");
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPYFULLPATH, MF_BYCOMMAND, g_hCopyFullPathBmp, g_hCopyFullPathBmp);
 
         //CopyPictureAsHtml
         if (bExistPicture)
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPY_PICTURE_HTML, TEXT("复制图片（QQ）"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COPY_PICTURE_HTML, L"复制图片（QQ）");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COPY_PICTURE_HTML, MF_BYCOMMAND, g_hCopyPictureHtmlBmp, g_hCopyPictureHtmlBmp);
         }
 
         //Dll Register
         if(bExistCom)
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, TEXT("注册组件(&R)"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, L"注册组件(&R)");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);
 
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNREGISTER, TEXT("取消注册组件(&U)"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNREGISTER, L"取消注册组件(&U)");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNREGISTER, MF_BYCOMMAND, g_hUninstallBmp, g_hUninstallBmp);
         }
 
@@ -416,7 +416,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
             if(bCouldCombine)
             {
-                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, TEXT("文件合成(&C)"));
+                InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, L"文件合成(&C)");
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
             }
         }
@@ -424,13 +424,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         //Check Signature
         if(bExistFile)
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, TEXT("校验数字签名"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, L"校验数字签名");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
         }
 
         if(m_uFileCount == 1)
         {
-            DWORD dwFileAttribute = GetFileAttributes(m_pFiles[0].szPath);
+            DWORD dwFileAttribute = GetFileAttributesW(m_pFiles[0].szPath);
 
             if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
             {
@@ -442,14 +442,14 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
                         if(hPopupMenu != NULL)
                         {
-                            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, TEXT("尝试运行"));
+                            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, L"尝试运行");
                             SetMenuItemBitmaps(hmenu, indexMenu + uMenuIndex - 1, MF_BYPOSITION, g_hTryRunBmp, g_hTryRunBmp);
 
                             //Try to run
-                            InsertMenu(hPopupMenu, 1, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, TEXT("直接运行"));
+                            InsertMenuW(hPopupMenu, 1, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUN, L"直接运行");
                             SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUN, MF_BYCOMMAND, g_hTryRunBmp, g_hTryRunBmp);
 
-                            InsertMenu(hPopupMenu, 2, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, TEXT("附带参数运行(&P)"));
+                            InsertMenuW(hPopupMenu, 2, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_TRYRUNWITHARGUMENTS, L"附带参数运行(&P)");
                             SetMenuItemBitmaps(hPopupMenu, idCmdFirst + ID_TRYRUNWITHARGUMENTS, MF_BYCOMMAND, g_hTryRunWithArgumentsBmp, g_hTryRunWithArgumentsBmp);
 
                             DestroyMenu(hPopupMenu);
@@ -457,69 +457,69 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     }
 
                     //OpenWithNotepad
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_OPENWITHNOTEPAD, TEXT("用记事本打开"));
+                    InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_OPENWITHNOTEPAD, L"用记事本打开");
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_OPENWITHNOTEPAD, MF_BYCOMMAND, g_hOpenWithNotepadBmp, g_hOpenWithNotepadBmp);
 
                     //Unescape
-                    TCHAR szUnescapedFileName[MAX_PATH];
+                    WCHAR szUnescapedFileName[MAX_PATH];
 
-                    if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(TCHAR)))
+                    if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR)))
                     {
-                        TCHAR szCommandText[MAX_PATH + 100];
+                        WCHAR szCommandText[MAX_PATH + 100];
 
-                        wnsprintf(
+                        wnsprintfW(
                             szCommandText,
-                            sizeof(szCommandText) / sizeof(TCHAR),
-                            TEXT("重命名为“%s”"),
-                            PathFindFileName(szUnescapedFileName)
+                            sizeof(szCommandText) / sizeof(WCHAR),
+                            L"重命名为“%s”",
+                            PathFindFileNameW(szUnescapedFileName)
                             );
 
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNESCAPE, szCommandText);
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNESCAPE, szCommandText);
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNESCAPE, MF_BYCOMMAND, g_hUnescapeBmp, g_hUnescapeBmp);
                     }
 
                     //App path
-                    TCHAR szCommandInReg[MAX_PATH] = TEXT("");
+                    WCHAR szCommandInReg[MAX_PATH] = L"";
 
-                    ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, sizeof(szCommandInReg) / sizeof(TCHAR));
+                    ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
 
                     if (bShiftDown ||
-                        lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".exe")) == 0 ||
-                        lstrlen(szCommandInReg) > 0
+                        lstrcmpiW(PathFindExtensionW(m_pFiles[0].szPath), L".exe") == 0 ||
+                        lstrlenW(szCommandInReg) > 0
                         )
                     {
-                        TCHAR szMenuText[MAX_PATH + 1000] = TEXT("添加快捷短语");
+                        WCHAR szMenuText[MAX_PATH + 1000] = L"添加快捷短语";
 
-                        if (lstrlen(szCommandInReg) > 0)
+                        if (lstrlenW(szCommandInReg) > 0)
                         {
-                            wnsprintf(
+                            wnsprintfW(
                                 szMenuText,
-                                sizeof(szMenuText) / sizeof(TCHAR),
-                                TEXT("修改快捷短语“%s”"),
+                                sizeof(szMenuText) / sizeof(WCHAR),
+                                L"修改快捷短语“%s”",
                                 szCommandInReg
                                 );
                         }
 
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_APPPATH, szMenuText);
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_APPPATH, szMenuText);
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_APPPATH, MF_BYCOMMAND, g_hAppPathBmp, g_hAppPathBmp);
                     }
 
                     //Driver
                     if (bShiftDown &&
-                        lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".dll")) == 0 ||
-                        lstrcmpi(PathFindExtension(m_pFiles[0].szPath), TEXT(".sys")) == 0
+                        lstrcmpiW(PathFindExtensionW(m_pFiles[0].szPath), L".dll") == 0 ||
+                        lstrcmpiW(PathFindExtensionW(m_pFiles[0].szPath), L".sys") == 0
                         )
                     {
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_INSTALL, TEXT("驱动程序-安装"));
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_INSTALL, L"驱动程序-安装");
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_INSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
 
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_START, TEXT("驱动程序-启动"));
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_START, L"驱动程序-启动");
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_START, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
 
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_STOP, TEXT("驱动程序-停止"));
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_STOP, L"驱动程序-停止");
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_STOP, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
 
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_UNINSTALL, TEXT("驱动程序-卸载"));
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_DRV_UNINSTALL, L"驱动程序-卸载");
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_DRV_UNINSTALL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
                     }
                 }
@@ -527,13 +527,13 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                 if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
                 {
                     //RunCmdHere
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, TEXT("在此处运行命令行"));
+                    InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, L"在此处运行命令行");
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNCMDHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
 
                     if (g_bHasWin10Bash)
                     {
                         // Win10BashHere
-                        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNBASHHERE, TEXT("在此处运行Bash"));
+                        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNBASHHERE, L"在此处运行Bash");
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNBASHHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
                     }
                 }
@@ -542,7 +542,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     (dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0 && (bShiftDown || IsFileDenyed(m_pFiles[0].szPath)))
                 {
                     //UnlockFile
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, TEXT("查看锁定情况"));
+                    InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNLOCKFILE, L"查看锁定情况");
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNLOCKFILE, MF_BYCOMMAND, g_hUnlockFileBmp, g_hUnlockFileBmp);
                 }
             }
@@ -557,7 +557,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         {
             if (IsPathDirectoryW(m_strInputFile.c_str()))
             {
-                InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CREATE_SOFT_LINK, TEXT("在此处创建软链接"));
+                InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CREATE_SOFT_LINK, L"在此处创建软链接");
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CREATE_SOFT_LINK, MF_BYCOMMAND, g_hCreateLinkBmp, g_hCreateLinkBmp);
             }
 
@@ -568,7 +568,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
                 if (chDriverLetter1 == chDriverLetter2)
                 {
-                    InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CREATE_HARD_LINK, TEXT("在此处创建硬链接"));
+                    InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CREATE_HARD_LINK, L"在此处创建硬链接");
                     SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CREATE_HARD_LINK, MF_BYCOMMAND, g_hCreateLinkBmp, g_hCreateLinkBmp);
                 }
             }
@@ -578,7 +578,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     if(bShiftDown)
     {
         //结束Explorer
-        InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_KILLEXPLORER, TEXT("结束Explorer进程"));
+        InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_KILLEXPLORER, L"结束Explorer进程");
         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_KILLEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
     }
 
@@ -590,7 +590,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         // 加载dll
         if (lstrcmpiW(PathFindExtensionW(m_strInputFile.c_str()), L".dll") == 0)
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOAD_DLL, hModule ? TEXT("卸载此dll") : TEXT("加载此dll"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOAD_DLL, hModule ? L"卸载此dll" : L"加载此dll");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_LOAD_DLL, MF_BYCOMMAND, g_hDriverBmp, g_hDriverBmp);
         }
     }
@@ -600,7 +600,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     {
         if (PathFileExistsW((m_strInputFile + L":edf").c_str()))
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOCATE_EXPAND_SOURCE_FILE, TEXT("打开展开前文件位置"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_LOCATE_EXPAND_SOURCE_FILE, L"打开展开前文件位置");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_LOCATE_EXPAND_SOURCE_FILE, MF_BYCOMMAND, g_hLocateBmp, g_hLocateBmp);
         }
     }
@@ -610,12 +610,12 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     {
         if (EdfCanBeUnexpanded(m_strInputFolder.c_str()))
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNEXPAND_DIR_FILES, TEXT("取消展开这里的所有目录"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_UNEXPAND_DIR_FILES, L"取消展开这里的所有目录");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_UNEXPAND_DIR_FILES, MF_BYCOMMAND, g_hEdfBmp, g_hEdfBmp);
         }
         else if (bShiftDown && EdfCanBeExpanded(m_strInputFolder.c_str()))
         {
-            InsertMenu(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_EXPAND_DIR_FILES, TEXT("展开这里的所有目录"));
+            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_EXPAND_DIR_FILES, L"展开这里的所有目录");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_EXPAND_DIR_FILES, MF_BYCOMMAND, g_hEdfBmp, g_hEdfBmp);
         }
     }
@@ -739,45 +739,45 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         // 始终采用多文件处理方式
 //         if (m_uFileCount == 1)
 //         {
-//             TCHAR szArguments[MAX_PATH * 2];
+//             WCHAR szArguments[MAX_PATH * 2];
 // 
-//             wnsprintf(
+//             wnsprintfW(
 //                 szArguments,
 //                 RTL_NUMBER_OF(szArguments),
-//                 TEXT("%s \"%s\""),
-//                 LOWORD(pici->lpVerb) == ID_REGISTER ? TEXT("") : TEXT("/u"),
+//                 L"%s \"%s\"",
+//                 LOWORD(pici->lpVerb) == ID_REGISTER ? L"" : L"/u",
 //                 m_pFiles[0].szPath);
 // 
-//             ElevateAndRun(TEXT("regsvr32.exe"), szArguments, NULL, SW_SHOW);
+//             ElevateAndRunW(L"regsvr32.exe", szArguments, NULL, SW_SHOW);
 //         }
 //         else
         {
-            tstringstream ssArguments;
+            wstringstream ssArguments;
 
-            TCHAR szDllpath[MAX_PATH];
+            WCHAR szDllpath[MAX_PATH];
 
-            GetModuleFileName(g_hinstDll, szDllpath, RTL_NUMBER_OF(szDllpath));
-            PathQuoteSpaces(szDllpath);
+            GetModuleFileNameW(g_hinstDll, szDllpath, RTL_NUMBER_OF(szDllpath));
+            PathQuoteSpacesW(szDllpath);
 
             ssArguments<<szDllpath;
 
             if (LOWORD(pici->lpVerb) == ID_REGISTER)
             {
-                ssArguments<<TEXT(" BatchRegisterDlls");
+                ssArguments<<L" BatchRegisterDlls";
             }
             else
             {
-                ssArguments<<TEXT(" BatchUnregisterDlls");
+                ssArguments<<L" BatchUnregisterDlls";
             }
 
             for (DWORD dwIndex = 0; dwIndex < m_uFileCount; ++dwIndex)
             {
-                ssArguments<<TEXT(" \"");
+                ssArguments<<L" \"";
                 ssArguments<<m_pFiles[dwIndex].szPath;
-                ssArguments<<TEXT("\"");
+                ssArguments<<L"\"";
             }
 
-            ElevateAndRun(TEXT("rundll32.exe"), ssArguments.str().c_str(), NULL, SW_SHOW);
+            ElevateAndRunW(L"rundll32.exe", ssArguments.str().c_str(), NULL, SW_SHOW);
         }
 
         break;
@@ -786,7 +786,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_COMBINE:
     {
         BOOL bSucceed = FALSE;
-        TCHAR szResultPath[MAX_PATH];
+        WCHAR szResultPath[MAX_PATH];
 
         if(m_uFileCount == 1)
         {
@@ -806,7 +806,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
         if(!bSucceed)
         {
-            MessageBox(pici->hwnd, TEXT("合成文件出错"), NULL, MB_ICONERROR | MB_TOPMOST);
+            MessageBoxW(pici->hwnd, L"合成文件出错", NULL, MB_ICONERROR | MB_TOPMOST);
         }
 
         break;
@@ -818,21 +818,21 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_UNLOCKFILE:
     {
-        TCHAR szDllPath[MAX_PATH];
-        TCHAR szCommand[MAX_PATH * 2];
-        STARTUPINFO si = {sizeof(si)};
+        WCHAR szDllPath[MAX_PATH];
+        WCHAR szCommand[MAX_PATH * 2];
+        STARTUPINFOW si = {sizeof(si)};
         PROCESS_INFORMATION pi;
 
-        GetModuleFileName(g_hinstDll, szDllPath, sizeof(szDllPath) / sizeof(TCHAR));
-        wnsprintf(
+        GetModuleFileNameW(g_hinstDll, szDllPath, sizeof(szDllPath) / sizeof(WCHAR));
+        wnsprintfW(
             szCommand,
-            sizeof(szCommand) / sizeof(TCHAR),
-            TEXT("rundll32.exe \"%s\" UnlockFileFromPath %s"),
+            sizeof(szCommand) / sizeof(WCHAR),
+            L"rundll32.exe \"%s\" UnlockFileFromPath %s",
             szDllPath,
             m_pFiles[0].szPath
             );
 
-        if (CreateProcess(
+        if (CreateProcessW(
             NULL,
             szCommand,
             NULL,
@@ -854,7 +854,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 pici->hwnd,
                 NULL,
                 MB_ICONERROR,
-                TEXT("启动外部程序失败，命令行：\r\n\r\n%s"),
+                L"启动外部程序失败，命令行：\r\n\r\n%s",
                 szCommand
                 );
         }
@@ -870,18 +870,18 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         }
         else if(m_uFileCount > 1)
         {
-            TCHAR *szText = new TCHAR[MAX_PATH * m_uFileCount];
+            WCHAR *szText = new WCHAR[MAX_PATH * m_uFileCount];
 
             if(szText != NULL)
             {
                 UINT uFileIndex = 0;
 
-                szText[0] = TEXT('\0');
+                szText[0] = L'\0';
 
                 for(; uFileIndex < m_uFileCount; uFileIndex += 1)
                 {
-                    lstrcat(szText, m_pFiles[uFileIndex].szPath);
-                    lstrcat(szText, TEXT("\r\n"));
+                    lstrcatW(szText, m_pFiles[uFileIndex].szPath);
+                    lstrcatW(szText, L"\r\n");
                 }
 
                 SetClipboardText(szText);
@@ -895,20 +895,20 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_TRYRUN:
     {
-        TCHAR szCommandLine[MAX_PATH + 100];
+        WCHAR szCommandLine[MAX_PATH + 100];
 
-        wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("\"%s\""), m_pFiles[0].szPath);
+        wnsprintfW(szCommandLine, sizeof(szCommandLine) / sizeof(WCHAR), L"\"%s\"", m_pFiles[0].szPath);
 
-        if(IDYES == MessageBox(pici->hwnd, TEXT("确定要尝试将此文件作为可执行文件运行吗？"), TEXT("请确认"), MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
+        if(IDYES == MessageBoxW(pici->hwnd, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
         {
             if(!RunCommand(szCommandLine))
             {
-                TCHAR szErrorMessage[MAX_PATH + 300];
+                WCHAR szErrorMessage[MAX_PATH + 300];
 
-                wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
+                wnsprintfW(szErrorMessage, sizeof(szErrorMessage) / sizeof(WCHAR), L"无法启动进程，错误码%lu\r\n\r\n%s",
                     GetLastError(), szCommandLine);
 
-                MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+                MessageBoxW(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
             }
         }
 
@@ -924,11 +924,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_RUNCMDHERE:
     {
-        TCHAR szApplication[MAX_PATH * 2] = TEXT("");
-        TCHAR szArgument[MAX_PATH * 2] = TEXT("/k pushd ");
+        WCHAR szApplication[MAX_PATH * 2] = L"";
+        WCHAR szArgument[MAX_PATH * 2] = L"/k pushd ";
 
-        GetEnvironmentVariable(TEXT("ComSpec"), szApplication, MAX_PATH);
-        StrCatBuff(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
+        GetEnvironmentVariableW(L"ComSpec", szApplication, MAX_PATH);
+        StrCatBuffW(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
 
         if (GetKeyState(VK_CONTROL) < 0 && g_bVistaLater && !g_bElevated)
         {
@@ -944,12 +944,12 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_RUNBASHHERE:
     {
-        TCHAR szApplication[MAX_PATH * 2] = TEXT("");
-        TCHAR szArgument[MAX_PATH * 2] = TEXT("/c pushd \"");
+        WCHAR szApplication[MAX_PATH * 2] = L"";
+        WCHAR szArgument[MAX_PATH * 2] = L"/c pushd \"";
 
-        GetEnvironmentVariable(TEXT("ComSpec"), szApplication, MAX_PATH);
-        StrCatBuff(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
-        StrCatBuff(szArgument, TEXT("\" && bash"), RTL_NUMBER_OF(szArgument));
+        GetEnvironmentVariableW(L"ComSpec", szApplication, MAX_PATH);
+        StrCatBuffW(szArgument, m_pFiles[0].szPath, RTL_NUMBER_OF(szArgument));
+        StrCatBuffW(szArgument, L"\" && bash", RTL_NUMBER_OF(szArgument));
 
         if (GetKeyState(VK_CONTROL) < 0 && g_bVistaLater && !g_bElevated)
         {
@@ -965,29 +965,29 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_OPENWITHNOTEPAD:
     {
-        TCHAR szCommandLine[MAX_PATH * 2] = TEXT("");
+        WCHAR szCommandLine[MAX_PATH * 2] = L"";
 
-        GetSystemDirectory(szCommandLine, MAX_PATH);
-        PathAppend(szCommandLine, TEXT("\\notepad.exe"));
+        GetSystemDirectoryW(szCommandLine, MAX_PATH);
+        PathAppendW(szCommandLine, L"\\notepad.exe");
 
-        if(GetFileAttributes(szCommandLine) == INVALID_FILE_ATTRIBUTES)
+        if(GetFileAttributesW(szCommandLine) == INVALID_FILE_ATTRIBUTES)
         {
-            GetWindowsDirectory(szCommandLine, MAX_PATH);
-            PathAppend(szCommandLine, TEXT("\\notepad.exe"));
+            GetWindowsDirectoryW(szCommandLine, MAX_PATH);
+            PathAppendW(szCommandLine, L"\\notepad.exe");
         }
 
-        lstrcat(szCommandLine, TEXT(" \""));
-        lstrcat(szCommandLine, m_pFiles[0].szPath);
-        lstrcat(szCommandLine, TEXT("\""));
+        lstrcatW(szCommandLine, L" \"");
+        lstrcatW(szCommandLine, m_pFiles[0].szPath);
+        lstrcatW(szCommandLine, L"\"");
 
         if(!RunCommand(szCommandLine))
         {
-            TCHAR szErrorMessage[MAX_PATH + 300];
+            WCHAR szErrorMessage[MAX_PATH + 300];
 
-            wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu\r\n\r\n%s"),
+            wnsprintfW(szErrorMessage, sizeof(szErrorMessage) / sizeof(WCHAR), L"无法启动进程，错误码%lu\r\n\r\n%s",
                 GetLastError(), szCommandLine);
 
-            MessageBox(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
+            MessageBoxW(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
         }
 
         break;
@@ -996,58 +996,58 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
     case ID_KILLEXPLORER:
     {
         DWORD dwTimeMark = GetTickCount();
-        TCHAR szPath[MAX_PATH];
+        WCHAR szPath[MAX_PATH];
 
-        lstrcpyn(szPath, m_pFiles[0].szPath, RTL_NUMBER_OF(szPath));
+        lstrcpynW(szPath, m_pFiles[0].szPath, RTL_NUMBER_OF(szPath));
 
         if (m_bIsBackground)
         {
-            PathAppend(szPath, TEXT("\\*"));
+            PathAppendW(szPath, L"\\*");
 
             BOOL bFound = FALSE;
-            WIN32_FIND_DATA wfd;
-            HANDLE hFind = FindFirstFile(szPath, &wfd);
+            WIN32_FIND_DATAW wfd;
+            HANDLE hFind = FindFirstFileW(szPath, &wfd);
 
             if (hFind != NULL && hFind != INVALID_HANDLE_VALUE)
             {
                 do 
                 {
-                    if (lstrcmpi(wfd.cFileName, TEXT(".")) != 0 &&
-                        lstrcmpi(wfd.cFileName, TEXT("..")) != 0
+                    if (lstrcmpiW(wfd.cFileName, L".") != 0 &&
+                        lstrcmpiW(wfd.cFileName, L"..") != 0
                         )
                     {
-                        PathRemoveFileSpec(szPath);
-                        StrCatBuff(szPath, TEXT("\\"), RTL_NUMBER_OF(szPath));
-                        StrCatBuff(szPath, wfd.cFileName, RTL_NUMBER_OF(szPath));
+                        PathRemoveFileSpecW(szPath);
+                        StrCatBuffW(szPath, L"\\", RTL_NUMBER_OF(szPath));
+                        StrCatBuffW(szPath, wfd.cFileName, RTL_NUMBER_OF(szPath));
                         bFound = TRUE;
 
                         break;
                     }
 
-                } while (FindNextFile(hFind, &wfd));
+                } while (FindNextFileW(hFind, &wfd));
 
                 FindClose(hFind);
             }
 
             if (!bFound)
             {
-                PathRemoveFileSpec(szPath);
+                PathRemoveFileSpecW(szPath);
             }
         }
 
         SHSetTempValue(
             HKEY_CURRENT_USER,
-            TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
-            TEXT("SlxLastPath"),
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+            L"SlxLastPath",
             REG_SZ,
             szPath,
-            (lstrlen(szPath) + 1) * sizeof(TCHAR)
+            (lstrlenW(szPath) + 1) * sizeof(WCHAR)
             );
 
         SHSetTempValue(
             HKEY_CURRENT_USER,
-            TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
-            TEXT("SlxLastPathTime"),
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+            L"SlxLastPathTime",
             REG_DWORD,
             &dwTimeMark,
             sizeof(dwTimeMark)
@@ -1074,14 +1074,14 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
         if(m_hManualCheckSignatureThread == NULL)
         {
-            MessageBox(pici->hwnd, TEXT("启动数字签名校验组件失败。"), NULL, MB_ICONERROR);
+            MessageBoxW(pici->hwnd, L"启动数字签名校验组件失败。", NULL, MB_ICONERROR);
         }
         else
         {
 #if _MSC_VER > 1200
-            map<tstring, HWND> *pMapPaths = new (std::nothrow) map<tstring, HWND>;
+            map<wstring, HWND> *pMapPaths = new (std::nothrow) map<wstring, HWND>;
 #else
-            map<tstring, HWND> *pMapPaths = new map<tstring, HWND>;
+            map<wstring, HWND> *pMapPaths = new map<wstring, HWND>;
 #endif
             if(pMapPaths != NULL)
             {
@@ -1089,7 +1089,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 {
                     if(m_pFiles[dwIndex].bIsFile)
                     {
-                        pMapPaths->insert(make_pair(tstring(m_pFiles[dwIndex].szPath), HWND(NULL)));
+                        pMapPaths->insert(make_pair(wstring(m_pFiles[dwIndex].szPath), HWND(NULL)));
                     }
                 }
 
@@ -1097,13 +1097,13 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 {
                     delete pMapPaths;
 
-                    MessageBox(pici->hwnd, TEXT("选中的项目不直接包含任何文件。"), NULL, MB_ICONERROR);
+                    MessageBoxW(pici->hwnd, L"选中的项目不直接包含任何文件。", NULL, MB_ICONERROR);
                 }
                 else
                 {
-                    DialogBoxParam(
+                    DialogBoxParamW(
                         g_hinstDll,
-                        MAKEINTRESOURCE(IDD_MANUALCHECKSIGNATURE_DIALOG),
+                        MAKEINTRESOURCEW(IDD_MANUALCHECKSIGNATURE_DIALOG),
                         pici->hwnd,
                         ManualCheckSignatureDialogProc,
                         (LPARAM)pMapPaths
@@ -1117,30 +1117,30 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_UNESCAPE:
     {
-        TCHAR szUnescapedFileName[MAX_PATH];
-        TCHAR szMsgText[MAX_PATH + 1000];
+        WCHAR szUnescapedFileName[MAX_PATH];
+        WCHAR szMsgText[MAX_PATH + 1000];
 
-        if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(TCHAR)))
+        if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR)))
         {
-            if(PathFileExists(szUnescapedFileName))
+            if(PathFileExistsW(szUnescapedFileName))
             {
-                wnsprintf(
+                wnsprintfW(
                     szMsgText,
-                    sizeof(szMsgText) / sizeof(TCHAR),
-                    TEXT("“%s”已存在，是否要先删除？"),
+                    sizeof(szMsgText) / sizeof(WCHAR),
+                    L"“%s”已存在，是否要先删除？",
                     szUnescapedFileName
                     );
 
-                if(IDYES == MessageBox(
+                if(IDYES == MessageBoxW(
                     pici->hwnd,
                     szMsgText,
-                    TEXT("请确认"),
+                    L"请确认",
                     MB_ICONQUESTION | MB_YESNOCANCEL
                     ))
                 {
-                    if(!DeleteFile(szUnescapedFileName))
+                    if(!DeleteFileW(szUnescapedFileName))
                     {
-                        MessageBox(pici->hwnd, TEXT("删除失败。"), NULL, MB_ICONERROR);
+                        MessageBoxW(pici->hwnd, L"删除失败。", NULL, MB_ICONERROR);
 
                         break;
                     }
@@ -1151,16 +1151,16 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 }
             }
 
-            if(!MoveFile(m_pFiles[0].szPath, szUnescapedFileName))
+            if(!MoveFileW(m_pFiles[0].szPath, szUnescapedFileName))
             {
-                wnsprintf(
+                wnsprintfW(
                     szMsgText,
-                    sizeof(szMsgText) / sizeof(TCHAR),
-                    TEXT("操作失败。\r\n\r\n错误码：%lu"),
+                    sizeof(szMsgText) / sizeof(WCHAR),
+                    L"操作失败。\r\n\r\n错误码：%lu",
                     GetLastError()
                     );
 
-                MessageBox(pici->hwnd, szMsgText, NULL, MB_ICONERROR);
+                MessageBoxW(pici->hwnd, szMsgText, NULL, MB_ICONERROR);
             }
         }
 
@@ -1185,23 +1185,23 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_COPY_PICTURE_HTML:
     {
-        TCHAR *lpBuffer = (TCHAR *)malloc(m_uFileCount * MAX_PATH * sizeof(TCHAR));
+        WCHAR *lpBuffer = (WCHAR *)malloc(m_uFileCount * MAX_PATH * sizeof(WCHAR));
 
         if (lpBuffer != NULL)
         {
             UINT uFileIndex = 0;
-            TCHAR *lpPaths = lpBuffer;
+            WCHAR *lpPaths = lpBuffer;
 
             for (; uFileIndex < m_uFileCount; uFileIndex += 1)
             {
                 if (m_pFiles[uFileIndex].bIsPicture)
                 {
-                    lstrcpyn(lpPaths, m_pFiles[uFileIndex].szPath, MAX_PATH);
-                    lpPaths += (lstrlen(lpPaths) + 1);
+                    lstrcpynW(lpPaths, m_pFiles[uFileIndex].szPath, MAX_PATH);
+                    lpPaths += (lstrlenW(lpPaths) + 1);
                 }
             }
 
-            lpPaths[0] = TEXT('\0');
+            lpPaths[0] = L'\0';
 
             SetClipboardPicturePathsByHtml(lpBuffer);
 
@@ -1240,7 +1240,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 }
                 else
                 {
-                    MessageBoxFormat(NULL, TEXT("info"), MB_ICONINFORMATION | MB_TOPMOST, L"成功加载dll到0x%p位置", hModule);
+                    MessageBoxFormat(NULL, L"info", MB_ICONINFORMATION | MB_TOPMOST, L"成功加载dll到0x%p位置", hModule);
                 }
             }
         }
@@ -1288,9 +1288,9 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
 //////////////////////////////////////////////////////////////////////////
 #define DEFAULT_MAP_SIZE    (4 * 1024 * 1024)
-#define STATUS_COMPUTING    TEXT("计算中...")
-#define STATUS_HALTED       TEXT("计算过程已被中止。")
-#define STATUS_ERROR        TEXT("计算中遇到错误。")
+#define STATUS_COMPUTING    L"计算中..."
+#define STATUS_HALTED       L"计算过程已被中止。"
+#define STATUS_ERROR        L"计算中遇到错误。"
 
 enum
 {
@@ -1300,8 +1300,8 @@ enum
 
 struct HashPropSheetDlgParam
 {
-    TCHAR szFilePath[MAX_PATH];
-    TCHAR szFilePath_2[MAX_PATH];
+    WCHAR szFilePath[MAX_PATH];
+    WCHAR szFilePath_2[MAX_PATH];
 
     HashPropSheetDlgParam()
     {
@@ -1311,7 +1311,7 @@ struct HashPropSheetDlgParam
 
 struct HashCalcProcParam
 {
-    TCHAR szFile[MAX_PATH];
+    WCHAR szFile[MAX_PATH];
     HWND hwndDlg;
     HWND hwndFileSize;
     HWND hwndMd5;
@@ -1322,7 +1322,7 @@ struct HashCalcProcParam
 
 DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 {
-    TCHAR szFilePath_Debug[MAX_PATH] = TEXT("");
+    WCHAR szFilePath_Debug[MAX_PATH] = L"";
     HashCalcProcParam *pCalcParam = (HashCalcProcParam *)lpParam;
 
     if (pCalcParam != NULL &&
@@ -1331,30 +1331,30 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         )
     {
         //
-        lstrcpyn(szFilePath_Debug, pCalcParam->szFile, RTL_NUMBER_OF(szFilePath_Debug));
+        lstrcpynW(szFilePath_Debug, pCalcParam->szFile, RTL_NUMBER_OF(szFilePath_Debug));
 
         //提取文件大小
         WIN32_FILE_ATTRIBUTE_DATA wfad = {0};
         ULARGE_INTEGER uliFileSize;
-        TCHAR szSizeStringWithBytes[128];
+        WCHAR szSizeStringWithBytes[128];
 
-        GetFileAttributesEx(pCalcParam->szFile, GetFileExInfoStandard, &wfad);
+        GetFileAttributesExW(pCalcParam->szFile, GetFileExInfoStandard, &wfad);
         uliFileSize.HighPart = wfad.nFileSizeHigh;
         uliFileSize.LowPart = wfad.nFileSizeLow;
 
         if (uliFileSize.QuadPart == 0)
         {
-            SetWindowText(pCalcParam->hwndFileSize, TEXT("0 字节"));
+            SetWindowTextW(pCalcParam->hwndFileSize, L"0 字节");
         }
         else
         {
-            lstrcpyn(szSizeStringWithBytes + 64, TEXT(" 字节"), 64);
-            TCHAR *pChar = szSizeStringWithBytes + 64 - 1;
+            lstrcpynW(szSizeStringWithBytes + 64, L" 字节", 64);
+            WCHAR *pChar = szSizeStringWithBytes + 64 - 1;
             int index = 0;
 
             while (TRUE)
             {
-                *pChar-- = TEXT('0') + uliFileSize.QuadPart % 10;
+                *pChar-- = L'0' + uliFileSize.QuadPart % 10;
                 uliFileSize.QuadPart /= 10;
                 index += 1;
 
@@ -1365,31 +1365,31 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 
                 if (index % 3 == 0)
                 {
-                    *pChar-- = TEXT(',');
+                    *pChar-- = L',';
                 }
             }
 
-            SetWindowText(pCalcParam->hwndFileSize, pChar + 1);
+            SetWindowTextW(pCalcParam->hwndFileSize, pChar + 1);
         }
 
         uliFileSize.HighPart = wfad.nFileSizeHigh;
         uliFileSize.LowPart = wfad.nFileSizeLow;
 
         //设定初始显示文本
-        TCHAR szMd5[100] = STATUS_COMPUTING;
-        TCHAR szSha1[100] = STATUS_COMPUTING;
-        TCHAR szCrc32[100] = STATUS_COMPUTING;
+        WCHAR szMd5[100] = STATUS_COMPUTING;
+        WCHAR szSha1[100] = STATUS_COMPUTING;
+        WCHAR szCrc32[100] = STATUS_COMPUTING;
 
-        SetWindowText(pCalcParam->hwndMd5, szMd5);
-        SetWindowText(pCalcParam->hwndSha1, szSha1);
-        SetWindowText(pCalcParam->hwndCrc32, szCrc32);
+        SetWindowTextW(pCalcParam->hwndMd5, szMd5);
+        SetWindowTextW(pCalcParam->hwndSha1, szSha1);
+        SetWindowTextW(pCalcParam->hwndCrc32, szCrc32);
 
         //设置停止按钮文本，超过一定时间未计算完毕则显示按钮
         BOOL bShowStop = FALSE;
         DWORD dwTickCountMark = GetTickCount();
         const DWORD dwTimeToShowStop = 987;
 
-        SetWindowText(pCalcParam->hwndStop, TEXT("停止计算(已完成0%)"));
+        SetWindowTextW(pCalcParam->hwndStop, L"停止计算(已完成0%)");
 
         //密码库Init
         md5_ctx md5;
@@ -1404,7 +1404,7 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         BOOL bError = FALSE;
         if (uliFileSize.QuadPart > 0)
         {
-            HANDLE hFile = CreateFile(pCalcParam->szFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE hFile = CreateFileW(pCalcParam->szFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
             if (hFile != INVALID_HANDLE_VALUE)
             {
@@ -1455,10 +1455,10 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
                             GetWindowLongPtr(pCalcParam->hwndStop, GWLP_USERDATA) == GetCurrentThreadId()
                             )
                         {
-                            TCHAR szCtrlText[100] = TEXT("");
+                            WCHAR szCtrlText[100] = L"";
 
-                            wnsprintf(szCtrlText, RTL_NUMBER_OF(szCtrlText), TEXT("停止计算(已完成%u%%)"), uliOffset.QuadPart * 100 / uliFileSize.QuadPart);
-                            SetWindowText(pCalcParam->hwndStop, szCtrlText);
+                            wnsprintfW(szCtrlText, RTL_NUMBER_OF(szCtrlText), L"停止计算(已完成%u%%)", uliOffset.QuadPart * 100 / uliFileSize.QuadPart);
+                            SetWindowTextW(pCalcParam->hwndStop, szCtrlText);
 
                             if (!bShowStop && GetTickCount() - dwTickCountMark > dwTimeToShowStop)
                             {
@@ -1502,21 +1502,21 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
 
             for (index = 0; index < RTL_NUMBER_OF(uMd5); index += 1)
             {
-                wnsprintf(szMd5 + index * 2, 3, TEXT("%02x"), uMd5[index]);
+                wnsprintfW(szMd5 + index * 2, 3, L"%02x", uMd5[index]);
             }
 
             for (index = 0; index < RTL_NUMBER_OF(uSha1); index += 1)
             {
-                wnsprintf(szSha1 + index * 2, 3, TEXT("%02x"), uSha1[index]);
+                wnsprintfW(szSha1 + index * 2, 3, L"%02x", uSha1[index]);
             }
 
-            wnsprintf(szCrc32, RTL_NUMBER_OF(szCrc32), TEXT("%08x"), uCrc32);
+            wnsprintfW(szCrc32, RTL_NUMBER_OF(szCrc32), L"%08x", uCrc32);
         }
         else
         {
-            lstrcpyn(szMd5, STATUS_ERROR, RTL_NUMBER_OF(szMd5));
-            lstrcpyn(szSha1, STATUS_ERROR, RTL_NUMBER_OF(szSha1));
-            lstrcpyn(szCrc32, STATUS_ERROR, RTL_NUMBER_OF(szCrc32));
+            lstrcpynW(szMd5, STATUS_ERROR, RTL_NUMBER_OF(szMd5));
+            lstrcpynW(szSha1, STATUS_ERROR, RTL_NUMBER_OF(szSha1));
+            lstrcpynW(szCrc32, STATUS_ERROR, RTL_NUMBER_OF(szCrc32));
         }
 
         if (IsWindow(pCalcParam->hwndStop) &&
@@ -1525,21 +1525,21 @@ DWORD CALLBACK CSlxComContextMenu::HashCalcProc(LPVOID lpParam)
         {
             if (!!GetWindowLongPtr(pCalcParam->hwndDlg, GWLP_USERDATA))
             {
-                CharUpperBuff(szMd5, RTL_NUMBER_OF(szMd5));
-                CharUpperBuff(szSha1, RTL_NUMBER_OF(szSha1));
-                CharUpperBuff(szCrc32, RTL_NUMBER_OF(szCrc32));
+                CharUpperBuffW(szMd5, RTL_NUMBER_OF(szMd5));
+                CharUpperBuffW(szSha1, RTL_NUMBER_OF(szSha1));
+                CharUpperBuffW(szCrc32, RTL_NUMBER_OF(szCrc32));
             }
 
-            SetWindowText(pCalcParam->hwndMd5, szMd5);
-            SetWindowText(pCalcParam->hwndSha1, szSha1);
-            SetWindowText(pCalcParam->hwndCrc32, szCrc32);
+            SetWindowTextW(pCalcParam->hwndMd5, szMd5);
+            SetWindowTextW(pCalcParam->hwndSha1, szSha1);
+            SetWindowTextW(pCalcParam->hwndCrc32, szCrc32);
             ShowWindow(pCalcParam->hwndStop, SW_HIDE);
         }
 
         free(pCalcParam);
     }
 
-    SafeDebugMessage(TEXT("HashCalcProc线程%lu结束，文件“%s”\n"), GetCurrentThreadId(), szFilePath_Debug);
+    SafeDebugMessage(L"HashCalcProc线程%lu结束，文件“%s”\n", GetCurrentThreadId(), szFilePath_Debug);
     return 0;
 }
 
@@ -1550,7 +1550,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
     case WM_INITDIALOG:
     {
         RECT rect;
-        LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
+        LPPROPSHEETPAGEW pPsp = (LPPROPSHEETPAGEW)lParam;
         HashPropSheetDlgParam *pPropSheetDlgParam = (HashPropSheetDlgParam *)pPsp->lParam;
 
         //
@@ -1558,21 +1558,21 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
 
         if (IsWindow(hParent))
         {
-            HFONT hFont = (HFONT)SendMessage(hParent, WM_GETFONT, 0, 0);
+            HFONT hFont = (HFONT)SendMessageW(hParent, WM_GETFONT, 0, 0);
 
             EnumChildWindows(hwndDlg, EnumChildSetFontProc, (LPARAM)hFont);
         }
 
         //
-        SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->szFilePath);
+        SetDlgItemTextW(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->szFilePath);
 
-        if (lstrlen(pPropSheetDlgParam->szFilePath) > 0)
+        if (lstrlenW(pPropSheetDlgParam->szFilePath) > 0)
         {
             HashCalcProcParam *pCalcParam = (HashCalcProcParam *)malloc(sizeof(HashCalcProcParam));
 
             if (pCalcParam != NULL)
             {
-                lstrcpyn(pCalcParam->szFile, pPropSheetDlgParam->szFilePath, RTL_NUMBER_OF(pCalcParam->szFile));
+                lstrcpynW(pCalcParam->szFile, pPropSheetDlgParam->szFilePath, RTL_NUMBER_OF(pCalcParam->szFile));
                 pCalcParam->hwndDlg = hwndDlg;
                 pCalcParam->hwndFileSize = GetDlgItem(hwndDlg, IDC_FILESIZE);
                 pCalcParam->hwndMd5 = GetDlgItem(hwndDlg, IDC_MD5);
@@ -1580,13 +1580,13 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
                 pCalcParam->hwndCrc32 = GetDlgItem(hwndDlg, IDC_CRC32);
                 pCalcParam->hwndStop = GetDlgItem(hwndDlg, IDC_STOP);
 
-                PostMessage(hwndDlg, WM_STARTCALC, 0, (LPARAM)pCalcParam);
+                PostMessageW(hwndDlg, WM_STARTCALC, 0, (LPARAM)pCalcParam);
             }
         }
 
-        if (lstrlen(pPropSheetDlgParam->szFilePath_2) > 0)
+        if (lstrlenW(pPropSheetDlgParam->szFilePath_2) > 0)
         {
-            SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)pPropSheetDlgParam->szFilePath_2, 0);
+            SendMessageW(hwndDlg, WM_ADDCOMPARE, (WPARAM)pPropSheetDlgParam->szFilePath_2, 0);
         }
 
         //IDC_ABOUT的用户数据用来标识对话框的本来宽度
@@ -1673,14 +1673,14 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
 
     case WM_ADDCOMPARE:
     {
-        LPCTSTR lpCompareFile = (LPCTSTR)wParam;
+        LPCWSTR lpCompareFile = (LPCWSTR)wParam;
         HashCalcProcParam *pCalcParam = (HashCalcProcParam *)malloc(sizeof(HashCalcProcParam));
 
-        SetDlgItemText(hwndDlg, IDC_FILEPATH_2, lpCompareFile);
+        SetDlgItemTextW(hwndDlg, IDC_FILEPATH_2, lpCompareFile);
 
         if (pCalcParam != NULL)
         {
-            lstrcpyn(pCalcParam->szFile, lpCompareFile, RTL_NUMBER_OF(pCalcParam->szFile));
+            lstrcpynW(pCalcParam->szFile, lpCompareFile, RTL_NUMBER_OF(pCalcParam->szFile));
             pCalcParam->hwndDlg = hwndDlg;
             pCalcParam->hwndFileSize = GetDlgItem(hwndDlg, IDC_FILESIZE_2);
             pCalcParam->hwndMd5 = GetDlgItem(hwndDlg, IDC_MD5_2);
@@ -1688,7 +1688,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
             pCalcParam->hwndCrc32 = GetDlgItem(hwndDlg, IDC_CRC32_2);
             pCalcParam->hwndStop = GetDlgItem(hwndDlg, IDC_STOP_2);
 
-            PostMessage(hwndDlg, WM_STARTCALC, 0, (LPARAM)pCalcParam);
+            PostMessageW(hwndDlg, WM_STARTCALC, 0, (LPARAM)pCalcParam);
         }
 
         //更新到双文件界面
@@ -1701,7 +1701,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
             hBegin = GetWindow(hBegin, GW_HWNDNEXT);
         }
 
-        SetDlgItemText(hwndDlg, IDC_COMPARE, TEXT("更换文件对比(&C)..."));
+        SetDlgItemTextW(hwndDlg, IDC_COMPARE, L"更换文件对比(&C)...");
 
         break;
     }
@@ -1712,7 +1712,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
 
         if (phdr->code == PSN_APPLY)
         {
-            OutputDebugString(TEXT("PSN_APPLY"));
+            OutputDebugStringW(L"PSN_APPLY");
         }
 
         break;
@@ -1728,29 +1728,29 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
         {
         case IDC_COMPARE:
         {
-            OPENFILENAME ofn = {OPENFILENAME_SIZE_VERSION_400};
-            TCHAR szFilter[128];
-            TCHAR szFilePath[MAX_PATH] = TEXT("");
+            OPENFILENAMEW ofn = {OPENFILENAME_SIZE_VERSION_400W};
+            WCHAR szFilter[128];
+            WCHAR szFilePath[MAX_PATH] = L"";
 
-            wnsprintf(
+            wnsprintfW(
                 szFilter,
                 RTL_NUMBER_OF(szFilter),
-                TEXT("All files (*.*)%c*.*%c"),
-                TEXT('\0'),
-                TEXT('\0')
+                L"All files (*.*)%c*.*%c",
+                L'\0',
+                L'\0'
                 );
 
             ofn.hwndOwner = hwndDlg;
             ofn.Flags = OFN_HIDEREADONLY;
             ofn.hInstance = g_hinstDll;
             ofn.lpstrFilter = szFilter;
-            ofn.lpstrTitle = TEXT("打开要对比的文件");
+            ofn.lpstrTitle = L"打开要对比的文件";
             ofn.lpstrFile = szFilePath;
             ofn.nMaxFile = RTL_NUMBER_OF(szFilePath);
 
-            if (GetOpenFileName(&ofn))
+            if (GetOpenFileNameW(&ofn))
             {
-                SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)szFilePath, 0);
+                SendMessageW(hwndDlg, WM_ADDCOMPARE, (WPARAM)szFilePath, 0);
             }
             break;
         }
@@ -1758,17 +1758,17 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
         case IDC_STOP:
             SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_STOP), GWLP_USERDATA, 0);
             ShowWindow(GetDlgItem(hwndDlg, IDC_STOP), SW_HIDE);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_MD5), STATUS_HALTED);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_SHA1), STATUS_HALTED);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_CRC32), STATUS_HALTED);
+            SetWindowTextW(GetDlgItem(hwndDlg, IDC_MD5), STATUS_HALTED);
+            SetWindowTextW(GetDlgItem(hwndDlg, IDC_SHA1), STATUS_HALTED);
+            SetWindowTextW(GetDlgItem(hwndDlg, IDC_CRC32), STATUS_HALTED);
             break;
 
         case IDC_STOP_2:
             SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_STOP_2), GWLP_USERDATA, 0);
             ShowWindow(GetDlgItem(hwndDlg, IDC_STOP_2), SW_HIDE);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_MD5_2), STATUS_HALTED);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_SHA1_2), STATUS_HALTED);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_CRC32_2), STATUS_HALTED);
+            SetWindowTextW(GetDlgItem(hwndDlg, IDC_MD5_2), STATUS_HALTED);
+            SetWindowTextW(GetDlgItem(hwndDlg, IDC_SHA1_2), STATUS_HALTED);
+            SetWindowTextW(GetDlgItem(hwndDlg, IDC_CRC32_2), STATUS_HALTED);
             break;
 
         case IDC_ABOUT:
@@ -1784,31 +1784,31 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
         if (wParam != 0)
         {
             HDROP hDrop = (HDROP)wParam;
-            int nFileCount = DragQueryFile(hDrop, -1, NULL, 0);
+            int nFileCount = DragQueryFileW(hDrop, -1, NULL, 0);
 
             if (nFileCount != 1)
             {
-                MessageBox(hwndDlg, TEXT("仅支持同单个文件进行比较。"), NULL, MB_ICONERROR);
+                MessageBoxW(hwndDlg, L"仅支持同单个文件进行比较。", NULL, MB_ICONERROR);
             }
             else
             {
-                TCHAR szFilePath[MAX_PATH] = TEXT("");
+                WCHAR szFilePath[MAX_PATH] = L"";
                 DWORD dwAttributes;
 
-                DragQueryFile(hDrop, 0, szFilePath, RTL_NUMBER_OF(szFilePath));
-                dwAttributes = GetFileAttributes(szFilePath);
+                DragQueryFileW(hDrop, 0, szFilePath, RTL_NUMBER_OF(szFilePath));
+                dwAttributes = GetFileAttributesW(szFilePath);
 
                 if (dwAttributes == INVALID_FILE_ATTRIBUTES)
                 {
-                    MessageBox(hwndDlg, TEXT("待比较的文件不存在。"), NULL, MB_ICONERROR);
+                    MessageBoxW(hwndDlg, L"待比较的文件不存在。", NULL, MB_ICONERROR);
                 }
                 else if (dwAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 {
-                    MessageBox(hwndDlg, TEXT("仅支持同文件进行对比，而不是文件夹。"), NULL, MB_ICONERROR);
+                    MessageBoxW(hwndDlg, L"仅支持同文件进行对比，而不是文件夹。", NULL, MB_ICONERROR);
                 }
                 else
                 {
-                    SendMessage(hwndDlg, WM_ADDCOMPARE, (WPARAM)szFilePath, 0);
+                    SendMessageW(hwndDlg, WM_ADDCOMPARE, (WPARAM)szFilePath, 0);
                 }
             }
 
@@ -1826,16 +1826,16 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
             IDC_SHA1_2,
             IDC_CRC32_2,
         };
-        DWORD (WINAPI *CharChangeBuff[])(LPTSTR lpsz, DWORD cchLength) = {CharUpperBuff, CharLowerBuff};
+        DWORD (WINAPI *CharChangeBuff[])(LPWSTR lpsz, DWORD cchLength) = {CharUpperBuffW, CharLowerBuffW};
         BOOL bCaseStatus = !!GetWindowLongPtr(hwndDlg, GWLP_USERDATA);
-        TCHAR szBuffer[128];
+        WCHAR szBuffer[128];
         int index = 0;
 
         for (; index < RTL_NUMBER_OF(nIds); index += 1)
         {
-            GetDlgItemText(hwndDlg, nIds[index], szBuffer, RTL_NUMBER_OF(szBuffer));
+            GetDlgItemTextW(hwndDlg, nIds[index], szBuffer, RTL_NUMBER_OF(szBuffer));
             CharChangeBuff[bCaseStatus](szBuffer, RTL_NUMBER_OF(szBuffer));
-            SetDlgItemText(hwndDlg, nIds[index], szBuffer);
+            SetDlgItemTextW(hwndDlg, nIds[index], szBuffer);
         }
 
         SetWindowLongPtr(hwndDlg, GWLP_USERDATA, !bCaseStatus);
@@ -1854,7 +1854,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
             IDC_CRC32,
             IDC_CRC32_2,
         };
-        TCHAR szText[256], szText2[256];
+        WCHAR szText[256], szText2[256];
         HDC hDc = (HDC)wParam;
         int index = 0, index2;
 
@@ -1865,10 +1865,10 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
                 index = index / 2 * 2;
                 index2 = index + 1;
 
-                GetDlgItemText(hwndDlg, nIds[index], szText, RTL_NUMBER_OF(szText));
-                GetDlgItemText(hwndDlg, nIds[index2], szText2, RTL_NUMBER_OF(szText2));
+                GetDlgItemTextW(hwndDlg, nIds[index], szText, RTL_NUMBER_OF(szText));
+                GetDlgItemTextW(hwndDlg, nIds[index2], szText2, RTL_NUMBER_OF(szText2));
 
-                if (IsWindowVisible(GetDlgItem(hwndDlg, nIds[index2])) && 0 != lstrcmpi(szText, szText2))
+                if (IsWindowVisible(GetDlgItem(hwndDlg, nIds[index2])) && 0 != lstrcmpiW(szText, szText2))
                 {
                     SetTextColor(hDc, RGB(0, 0, 99));
                     SetBkMode(hDc, TRANSPARENT);
@@ -1891,7 +1891,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
     return FALSE;
 }
 
-UINT CALLBACK CSlxComContextMenu::HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+UINT CALLBACK CSlxComContextMenu::HashPropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGEW pPsp)
 {
     switch (uMsg)
     {
@@ -1947,13 +1947,13 @@ struct FileTimePropSheetDlgParam
 };
 
 void FileTimeSetToFileObject(
-    LPCTSTR lpPath,
+    LPCWSTR lpPath,
     BOOL bIsFile,
     BOOL bSubDirIncluded,
     const FILETIME *pftCreated,
     const FILETIME *pftModified,
     const FILETIME *pftAccessed,
-    tstringstream &ssError
+    wstringstream &ssError
     )
 {
     if (pftCreated == NULL || pftModified == NULL || pftAccessed == NULL)
@@ -1961,37 +1961,37 @@ void FileTimeSetToFileObject(
         return;
     }
 
-    list<tstring> listDirs;
-    list<tstring> listFiles;
-    list<tstring>::const_iterator it;
+    list<wstring> listDirs;
+    list<wstring> listFiles;
+    list<wstring>::const_iterator it;
 
     listFiles.push_back(lpPath);
 
     if (!bIsFile && bSubDirIncluded)
     {
-        tstring strPath = lpPath;
-        WIN32_FIND_DATA wfd;
-        HANDLE hFind = FindFirstFile((strPath + TEXT("\\*")).c_str(), &wfd);
+        wstring strPath = lpPath;
+        WIN32_FIND_DATAW wfd;
+        HANDLE hFind = FindFirstFileW((strPath + L"\\*").c_str(), &wfd);
 
         if (hFind != NULL && hFind != INVALID_HANDLE_VALUE)
         {
             do 
             {
-                if (lstrcmpi(wfd.cFileName, TEXT("..")) != 0 &&
-                    lstrcmpi(wfd.cFileName, TEXT(".")) != 0
+                if (lstrcmpiW(wfd.cFileName, L"..") != 0 &&
+                    lstrcmpiW(wfd.cFileName, L".") != 0
                     )
                 {
                     if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                     {
-                        listDirs.push_back(strPath + TEXT("\\") + wfd.cFileName);
+                        listDirs.push_back(strPath + L"\\" + wfd.cFileName);
                     }
                     else
                     {
-                        listFiles.push_back(strPath + TEXT("\\") + wfd.cFileName);
+                        listFiles.push_back(strPath + L"\\" + wfd.cFileName);
                     }
                 }
 
-            } while (FindNextFile(hFind, &wfd));
+            } while (FindNextFileW(hFind, &wfd));
 
             FindClose(hFind);
         }
@@ -2019,16 +2019,16 @@ void FileTimeSetToFileObject(
 
         if (!bIsFile && it == listFiles.begin())
         {
-            hFileObject = CreateFile(it->c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+            hFileObject = CreateFileW(it->c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
         }
         else
         {
-            hFileObject = CreateFile(it->c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+            hFileObject = CreateFileW(it->c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
         }
 
         if (hFileObject == INVALID_HANDLE_VALUE)
         {
-            ssError<<TEXT("“")<<it->c_str()<<TEXT("”打开文件失败，错误码")<<GetLastError()<<TEXT("\r\n");
+            ssError<<L"“"<<it->c_str()<<L"”打开文件失败，错误码"<<GetLastError()<<L"\r\n";
         }
         else
         {
@@ -2038,7 +2038,7 @@ void FileTimeSetToFileObject(
                 {
                     if (!GetFileTime(hFileObject, &ftCreated, &ftModified, &ftAccessed))
                     {
-                        ssError<<TEXT("“")<<it->c_str()<<TEXT("”获取文件原时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
+                        ssError<<L"“"<<it->c_str()<<L"”获取文件原时间失败，错误码"<<GetLastError()<<L"\r\n";
                         break;
                     }
                 }
@@ -2060,7 +2060,7 @@ void FileTimeSetToFileObject(
 
                 if (!SetFileTime(hFileObject, pftCreated, pftModified, pftAccessed))
                 {
-                    ssError<<TEXT("“")<<it->c_str()<<TEXT("”设置文件新时间失败，错误码")<<GetLastError()<<TEXT("\r\n");
+                    ssError<<L"“"<<it->c_str()<<L"”设置文件新时间失败，错误码"<<GetLastError()<<L"\r\n";
                 }
 
             } while (FALSE);
@@ -2079,31 +2079,31 @@ BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles,
     FILETIME *pftModified = NULL;
     FILETIME *pftAccessed = NULL;
     UINT uFileIndex = 0;
-    tstringstream ssError;
+    wstringstream ssError;
 
     GetSystemTime(&stNow);
     SystemTimeToFileTime(&stNow, &ftNow);
 
-#define INIT_FILETIME_POINTER(str1, str2) do                                                                        \
-    {                                                                                                               \
-        if (IsDlgButtonChecked(hwndDlg, IDC_NOW_##str1))                                                            \
-        {                                                                                                           \
-            pft##str2 = &ftNow;                                                                                     \
-        }                                                                                                           \
-        else if (GDT_VALID == SendDlgItemMessage(hwndDlg, IDC_DATE_##str1, DTM_GETSYSTEMTIME, 0, (LPARAM)&st##str2))\
-        {                                                                                                           \
-            SendDlgItemMessage(hwndDlg, IDC_TIME_##str1, DTM_GETSYSTEMTIME, 0, (LPARAM)&stForTime);                 \
-                                                                                                                    \
-            st##str2.wHour = stForTime.wHour;                                                                       \
-            st##str2.wMinute = stForTime.wMinute;                                                                   \
-            st##str2.wSecond = stForTime.wSecond;                                                                   \
-            st##str2.wMilliseconds = stForTime.wMilliseconds;                                                       \
-                                                                                                                    \
-            SystemTimeToFileTime(&st##str2, &ft##str2);                                                             \
-            LocalFileTimeToFileTime(&ft##str2, &ft##str2);                                                          \
-                                                                                                                    \
-            pft##str2 = &ft##str2;                                                                                  \
-        }                                                                                                           \
+#define INIT_FILETIME_POINTER(str1, str2) do                                                                         \
+    {                                                                                                                \
+        if (IsDlgButtonChecked(hwndDlg, IDC_NOW_##str1))                                                             \
+        {                                                                                                            \
+            pft##str2 = &ftNow;                                                                                      \
+        }                                                                                                            \
+        else if (GDT_VALID == SendDlgItemMessageW(hwndDlg, IDC_DATE_##str1, DTM_GETSYSTEMTIME, 0, (LPARAM)&st##str2))\
+        {                                                                                                            \
+            SendDlgItemMessageW(hwndDlg, IDC_TIME_##str1, DTM_GETSYSTEMTIME, 0, (LPARAM)&stForTime);                 \
+                                                                                                                     \
+            st##str2.wHour = stForTime.wHour;                                                                        \
+            st##str2.wMinute = stForTime.wMinute;                                                                    \
+            st##str2.wSecond = stForTime.wSecond;                                                                    \
+            st##str2.wMilliseconds = stForTime.wMilliseconds;                                                        \
+                                                                                                                     \
+            SystemTimeToFileTime(&st##str2, &ft##str2);                                                              \
+            LocalFileTimeToFileTime(&ft##str2, &ft##str2);                                                           \
+                                                                                                                     \
+            pft##str2 = &ft##str2;                                                                                   \
+        }                                                                                                            \
     } while (FALSE)
 
     INIT_FILETIME_POINTER(CREATED, Created);
@@ -2125,35 +2125,35 @@ BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles,
 
     if (!ssError.str().empty())
     {
-        if (IDYES == MessageBox(
+        if (IDYES == MessageBoxW(
             hwndDlg,
-            TEXT("任务执行完毕，一部分文件时间没有修改成功。\r\n\r\n")
-            TEXT("选择“是”查看错误列表。"),
+            L"任务执行完毕，一部分文件时间没有修改成功。\r\n\r\n"
+            L"选择“是”查看错误列表。",
             NULL,
             MB_ICONERROR | MB_YESNO
             ))
         {
-            tstring strError = ssError.str();
+            wstring strError = ssError.str();
 
             if (strError.size() < 1000)
             {
-                MessageBox(hwndDlg, strError.c_str(), TEXT("错误信息"), MB_ICONINFORMATION);
+                MessageBoxW(hwndDlg, strError.c_str(), L"错误信息", MB_ICONINFORMATION);
             }
             else
             {
-                TCHAR szTempPath[MAX_PATH] = TEXT("");
-                TCHAR szTempFilePath[MAX_PATH] = TEXT("");
+                WCHAR szTempPath[MAX_PATH] = L"";
+                WCHAR szTempFilePath[MAX_PATH] = L"";
 
-                GetTempPath(RTL_NUMBER_OF(szTempPath), szTempPath);
-                GetTempFileName(szTempPath, TEXT("SlxCom"), 0, szTempFilePath);
+                GetTempPathW(RTL_NUMBER_OF(szTempPath), szTempPath);
+                GetTempFileNameW(szTempPath, L"SlxCom", 0, szTempFilePath);
 
                 BOOL bWriteSucceed = FALSE;
-                HANDLE hFile = CreateFile(szTempFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                HANDLE hFile = CreateFileW(szTempFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
                 if (hFile != INVALID_HANDLE_VALUE)
                 {
                     unsigned char bom[] = {0xef, 0xbb, 0xbf};
-                    strutf8 strErrorUtf8 = TtoU(strError);
+                    strutf8 strErrorUtf8 = WtoU(strError);
 
                     bWriteSucceed = WriteFileHelper(hFile, bom, sizeof(bom)) && WriteFileHelper(hFile, strErrorUtf8.c_str(), (DWORD)strErrorUtf8.size());
                     CloseHandle(hFile);
@@ -2161,18 +2161,18 @@ BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles,
 
                 if (!bWriteSucceed)
                 {
-                    MessageBox(hwndDlg, TEXT("错误信息保存到文件失败"), NULL, MB_ICONERROR);
+                    MessageBoxW(hwndDlg, L"错误信息保存到文件失败", NULL, MB_ICONERROR);
                 }
                 else
                 {
-                    TCHAR szCommand[MAX_PATH + 1024];
-                    STARTUPINFO si = {sizeof(si)};
+                    WCHAR szCommand[MAX_PATH + 1024];
+                    STARTUPINFOW si = {sizeof(si)};
                     PROCESS_INFORMATION pi;
 
-                    PathQuoteSpaces(szTempFilePath);
-                    wnsprintf(szCommand, RTL_NUMBER_OF(szCommand), TEXT("notepad %s"), szTempFilePath);
+                    PathQuoteSpacesW(szTempFilePath);
+                    wnsprintfW(szCommand, RTL_NUMBER_OF(szCommand), L"notepad %s", szTempFilePath);
 
-                    if (CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+                    if (CreateProcessW(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
                     {
                         WaitForInputIdle(pi.hProcess, 10 * 1000);
 
@@ -2181,11 +2181,11 @@ BOOL CSlxComContextMenu::FileTimePropSheetDoSave(HWND hwndDlg, FileInfo *pFiles,
                     }
                     else
                     {
-                        MessageBox(hwndDlg, TEXT("启动记事本查看错误信息失败"), NULL, MB_ICONERROR);
+                        MessageBoxW(hwndDlg, L"启动记事本查看错误信息失败", NULL, MB_ICONERROR);
                     }
                 }
 
-                DeleteFile(szTempFilePath);
+                DeleteFileW(szTempFilePath);
             }
         }
     }
@@ -2204,7 +2204,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
         DTN_DATETIMECHANGE == ((LPNMHDR)lParam)->code
         )
     {
-        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+        SendMessageW(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
     }
 
@@ -2212,7 +2212,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
     {
     case WM_INITDIALOG:
     {
-        LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
+        LPPROPSHEETPAGEW pPsp = (LPPROPSHEETPAGEW)lParam;
         FileTimePropSheetDlgParam *pPropSheetDlgParam = (FileTimePropSheetDlgParam *)pPsp->lParam;
 
         //
@@ -2220,7 +2220,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
 
         if (IsWindow(hParent))
         {
-            HFONT hFont = (HFONT)SendMessage(hParent, WM_GETFONT, 0, 0);
+            HFONT hFont = (HFONT)SendMessageW(hParent, WM_GETFONT, 0, 0);
             EnumChildWindows(hwndDlg, EnumChildSetFontProc, (LPARAM)hFont);
         }
 
@@ -2230,7 +2230,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
 
         if (pPropSheetDlgParam->uFileCount == 1)
         {
-            SetDlgItemText(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->pFiles[0].szPath);
+            SetDlgItemTextW(hwndDlg, IDC_FILEPATH, pPropSheetDlgParam->pFiles[0].szPath);
 
             if (pPropSheetDlgParam->pFiles[0].bIsFile)
             {
@@ -2244,7 +2244,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
         else
         {
             UINT uIndex = 0;
-            TCHAR szText[MAX_PATH];
+            WCHAR szText[MAX_PATH];
 
             for (; uIndex < pPropSheetDlgParam->uFileCount; uIndex += 1)
             {
@@ -2258,8 +2258,8 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
                 }
             }
 
-            wnsprintf(szText, RTL_NUMBER_OF(szText), TEXT("%lu个文件，%lu个文件夹"), dwFileCount, dwDirectoryCount);
-            SetDlgItemText(hwndDlg, IDC_FILEPATH, szText);
+            wnsprintfW(szText, RTL_NUMBER_OF(szText), L"%lu个文件，%lu个文件夹", dwFileCount, dwDirectoryCount);
+            SetDlgItemTextW(hwndDlg, IDC_FILEPATH, szText);
         }
 
         if (dwDirectoryCount == 0)
@@ -2268,7 +2268,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
         }
         else if (dwFileCount == 0)
         {
-            SendDlgItemMessage(hwndDlg, IDC_SUBDIR, BM_SETCHECK, BST_CHECKED, 0);
+            SendDlgItemMessageW(hwndDlg, IDC_SUBDIR, BM_SETCHECK, BST_CHECKED, 0);
         }
 
         // hwndDlg的用户数据为pPropSheetDlgParam
@@ -2280,12 +2280,12 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
     }
 
 //     case WM_LBUTTONDOWN:
-//         SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+//         SendMessageW(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
 //         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
 //         break;
 // 
 //     case WM_RBUTTONDOWN:
-//         SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+//         SendMessageW(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
 //         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
 //         break;
 
@@ -2302,18 +2302,18 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
 
                     if (FileTimePropSheetDoSave(hwndDlg, pPropSheetDlgParam->pFiles, pPropSheetDlgParam->uFileCount))
                     {
-                        SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+                        SendMessageW(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
                         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, FALSE);
                     }
                     else
                     {
-                        SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
+                        SendMessageW(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, NULL);
                         SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_ABOUT), GWLP_USERDATA, TRUE);
                     }
                 }
                 else
                 {
-                    SendMessage(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
+                    SendMessageW(GetParent(hwndDlg), PSM_UNCHANGED, (WPARAM)hwndDlg, NULL);
                 }
             }
             else if (phdr->code == DTN_DATETIMECHANGE)
@@ -2330,7 +2330,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
                     else
                     {
                         EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_CREATED), TRUE);
-                        SendDlgItemMessage(hwndDlg, IDC_NOW_CREATED, BM_SETCHECK, BST_UNCHECKED, 0);
+                        SendDlgItemMessageW(hwndDlg, IDC_NOW_CREATED, BM_SETCHECK, BST_UNCHECKED, 0);
                     }
                     break;
 
@@ -2342,7 +2342,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
                     else
                     {
                         EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_MODIFIED), TRUE);
-                        SendDlgItemMessage(hwndDlg, IDC_NOW_MODIFIED, BM_SETCHECK, BST_UNCHECKED, 0);
+                        SendDlgItemMessageW(hwndDlg, IDC_NOW_MODIFIED, BM_SETCHECK, BST_UNCHECKED, 0);
                     }
                     break;
 
@@ -2354,7 +2354,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
                     else
                     {
                         EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_ACCESSED), TRUE);
-                        SendDlgItemMessage(hwndDlg, IDC_NOW_ACCESSED, BM_SETCHECK, BST_UNCHECKED, 0);
+                        SendDlgItemMessageW(hwndDlg, IDC_NOW_ACCESSED, BM_SETCHECK, BST_UNCHECKED, 0);
                     }
                     break;
 
@@ -2373,17 +2373,17 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
             break;
 
         case IDC_NOW_CREATED:
-            SendDlgItemMessage(hwndDlg, IDC_DATE_CREATED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
+            SendDlgItemMessageW(hwndDlg, IDC_DATE_CREATED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
             EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_CREATED), FALSE);
             break;
 
         case IDC_NOW_MODIFIED:
-            SendDlgItemMessage(hwndDlg, IDC_DATE_MODIFIED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
+            SendDlgItemMessageW(hwndDlg, IDC_DATE_MODIFIED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
             EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_MODIFIED), FALSE);
             break;
 
         case IDC_NOW_ACCESSED:
-            SendDlgItemMessage(hwndDlg, IDC_DATE_ACCESSED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
+            SendDlgItemMessageW(hwndDlg, IDC_DATE_ACCESSED, DTM_SETSYSTEMTIME, GDT_NONE, 0);
             EnableWindow(GetDlgItem(hwndDlg, IDC_TIME_ACCESSED), FALSE);
             break;
 
@@ -2402,7 +2402,7 @@ INT_PTR CALLBACK CSlxComContextMenu::FileTimePropSheetDlgProc(HWND hwndDlg, UINT
     return FALSE;
 }
 
-UINT CALLBACK CSlxComContextMenu::FileTimePropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+UINT CALLBACK CSlxComContextMenu::FileTimePropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGEW pPsp)
 {
     switch (uMsg)
     {
@@ -2444,17 +2444,17 @@ public:
 public:
     static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        const LPCTSTR lpWndPropName = TEXT("__CPeInformationPage_PropName");
+        const LPCWSTR lpWndPropName = L"__CPeInformationPage_PropName";
 
         if (uMsg == WM_INITDIALOG)
         {
-            LPPROPSHEETPAGE pPsp = (LPPROPSHEETPAGE)lParam;
+            LPPROPSHEETPAGEW pPsp = (LPPROPSHEETPAGEW)lParam;
             CPeInformationPage *pPeInformationPage = (CPeInformationPage *)pPsp->lParam;
 
-            SetProp(hwndDlg, lpWndPropName, (HANDLE)pPeInformationPage);
+            SetPropW(hwndDlg, lpWndPropName, (HANDLE)pPeInformationPage);
         }
 
-        CPeInformationPage *pCPeInformationPage = (CPeInformationPage *)GetProp(hwndDlg, lpWndPropName);
+        CPeInformationPage *pCPeInformationPage = (CPeInformationPage *)GetPropW(hwndDlg, lpWndPropName);
 
         if (pCPeInformationPage != NULL)
         {
@@ -2463,13 +2463,13 @@ public:
 
         if (uMsg == WM_DESTROY)
         {
-            RemoveProp(hwndDlg, lpWndPropName);
+            RemovePropW(hwndDlg, lpWndPropName);
         }
 
         return FALSE;
     }
 
-    static UINT CALLBACK PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGE pPsp)
+    static UINT CALLBACK PropSheetCallback(HWND hwnd, UINT uMsg, LPPROPSHEETPAGEW pPsp)
     {
         switch (uMsg)
         {
@@ -2513,16 +2513,16 @@ private:
         delete pParam;
 
         // 
-        WNDCLASSEX wcex = {sizeof(wcex)};
-        LPCTSTR lpClassName = TEXT("__PeInformationPageMiddleWnd");
+        WNDCLASSEXW wcex = {sizeof(wcex)};
+        LPCWSTR lpClassName = L"__PeInformationPageMiddleWnd";
 
         wcex.hInstance = g_hinstDll;
         wcex.lpszClassName = lpClassName;
         wcex.lpfnWndProc = DefWindowProc;
 
-        RegisterClassEx(&wcex);
+        RegisterClassExW(&wcex);
 
-        HWND hMiddleWindow = CreateWindow(lpClassName, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 1555, 100, NULL, NULL, g_hinstDll, NULL);
+        HWND hMiddleWindow = CreateWindowW(lpClassName, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 1555, 100, NULL, NULL, g_hinstDll, NULL);
 
         if (!IsWindow(hMiddleWindow))
         {
@@ -2530,16 +2530,16 @@ private:
         }
 
         // 
-        STARTUPINFO si = {sizeof(si)};
+        STARTUPINFOW si = {sizeof(si)};
         PROCESS_INFORMATION pi;
-        TCHAR szCmd[MAX_PATH * 2 + 1024];
+        WCHAR szCmd[MAX_PATH * 2 + 1024];
         HANDLE hWorkProcess = NULL;
-        TCHAR szDllPath[MAX_PATH] = TEXT("");
+        WCHAR szDllPath[MAX_PATH] = L"";
 
-        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
-        wnsprintf(szCmd, RTL_NUMBER_OF(szCmd), TEXT("rundll32.exe \"%s\" GetPeInformationAndReport %I64u \"%ls\""), szDllPath, (unsigned __int64)hMiddleWindow, param.strFilePath.c_str());
+        GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        wnsprintfW(szCmd, RTL_NUMBER_OF(szCmd), L"rundll32.exe \"%s\" GetPeInformationAndReport %I64u \"%ls\"", szDllPath, (unsigned __int64)hMiddleWindow, param.strFilePath.c_str());
 
-        if (CreateProcess(NULL, szCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcessW(NULL, szCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
         {
             while (IsWindow(hMiddleWindow))
             {
@@ -2556,7 +2556,7 @@ private:
                     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
                     {
                         TranslateMessage(&msg);
-                        DispatchMessage(&msg);
+                        DispatchMessageW(&msg);
                     }
                 }
                 else
@@ -2580,7 +2580,7 @@ private:
                 {
                     WCHAR *szText = new WCHAR[dwWindowTextLength + 10];
 
-                    if (GetWindowText(hMiddleWindow, szText, dwWindowTextLength + 10) > 0)
+                    if (GetWindowTextW(hMiddleWindow, szText, dwWindowTextLength + 10) > 0)
                     {
                         if (IsWindow(param.hwndDlg))
                         {
@@ -2588,7 +2588,7 @@ private:
 
                             if (IsWindow(hTreeControl))
                             {
-                                SendDlgItemMessage(param.hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
+                                SendDlgItemMessageW(param.hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
                                 AttachToTreeCtrlW(szText, hTreeControl);
                                 ExpandTreeControlForLevel(hTreeControl, NULL, 2);
                             }
@@ -2646,19 +2646,19 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
 
     if (ShouldAddFileTimePropSheet())
     {
-        PROPSHEETPAGE psp = {sizeof(psp)};
+        PROPSHEETPAGEW psp = {sizeof(psp)};
         HPROPSHEETPAGE hPage;
         FileTimePropSheetDlgParam *pPropSheetDlgParam = new FileTimePropSheetDlgParam(m_pFiles, m_uFileCount);
 
         psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
         psp.hInstance   = g_hinstDll;
-        psp.pszTemplate = MAKEINTRESOURCE(IDD_FILETIMEPAGE);
-        psp.pszTitle    = TEXT("文件时间");
+        psp.pszTemplate = MAKEINTRESOURCEW(IDD_FILETIMEPAGE);
+        psp.pszTitle    = L"文件时间";
         psp.pfnDlgProc  = FileTimePropSheetDlgProc;
         psp.lParam      = (LPARAM)pPropSheetDlgParam;
         psp.pfnCallback = FileTimePropSheetCallback;
 
-        hPage = CreatePropertySheetPage(&psp);
+        hPage = CreatePropertySheetPageW(&psp);
 
         if (NULL != hPage)
         {
@@ -2673,26 +2673,26 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
 
     if (ShouldAddHashPropSheet())
     {
-        PROPSHEETPAGE psp = {sizeof(psp)};
+        PROPSHEETPAGEW psp = {sizeof(psp)};
         HPROPSHEETPAGE hPage;
         HashPropSheetDlgParam *pPropSheetDlgParam = new HashPropSheetDlgParam;
 
-        lstrcpyn(pPropSheetDlgParam->szFilePath, m_pFiles[0].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath));
+        lstrcpynW(pPropSheetDlgParam->szFilePath, m_pFiles[0].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath));
 
         if (m_uFileCount > 1)
         {
-            lstrcpyn(pPropSheetDlgParam->szFilePath_2, m_pFiles[1].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath_2));
+            lstrcpynW(pPropSheetDlgParam->szFilePath_2, m_pFiles[1].szPath, RTL_NUMBER_OF(pPropSheetDlgParam->szFilePath_2));
         }
 
         psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
         psp.hInstance   = g_hinstDll;
-        psp.pszTemplate = MAKEINTRESOURCE(IDD_HASHPAGE);
-        psp.pszTitle    = TEXT("校验");
+        psp.pszTemplate = MAKEINTRESOURCEW(IDD_HASHPAGE);
+        psp.pszTitle    = L"校验";
         psp.pfnDlgProc  = HashPropSheetDlgProc;
         psp.lParam      = (LPARAM)pPropSheetDlgParam;
         psp.pfnCallback = HashPropSheetCallback;
 
-        hPage = CreatePropertySheetPage(&psp);
+        hPage = CreatePropertySheetPageW(&psp);
 
         if (NULL != hPage)
         {
@@ -2707,19 +2707,19 @@ STDMETHODIMP CSlxComContextMenu::AddPages(LPFNADDPROPSHEETPAGE pfnAddPage, LPARA
 
     if (ShouldAddPeInformationSheet())
     {
-        PROPSHEETPAGE psp = {sizeof(psp)};
+        PROPSHEETPAGEW psp = {sizeof(psp)};
         HPROPSHEETPAGE hPage;
-        CPeInformationPage *pPropSheetPage = new CPeInformationPage(TtoW(m_pFiles[0].szPath).c_str());
+        CPeInformationPage *pPropSheetPage = new CPeInformationPage(WtoW(m_pFiles[0].szPath).c_str());
 
         psp.dwFlags     = PSP_USETITLE | PSP_DEFAULT | PSP_USECALLBACK;
         psp.hInstance   = g_hinstDll;
-        psp.pszTemplate = MAKEINTRESOURCE(IDD_PEINFORMATIONPAGE);
-        psp.pszTitle    = TEXT("PE信息");
+        psp.pszTemplate = MAKEINTRESOURCEW(IDD_PEINFORMATIONPAGE);
+        psp.pszTitle    = L"PE信息";
         psp.pfnDlgProc  = CPeInformationPage::DlgProc;
         psp.lParam      = (LPARAM)pPropSheetPage;
         psp.pfnCallback = CPeInformationPage::PropSheetCallback;
 
-        hPage = CreatePropertySheetPage(&psp);
+        hPage = CreatePropertySheetPageW(&psp);
 
         if (NULL != hPage)
         {
@@ -2742,18 +2742,18 @@ STDMETHODIMP CSlxComContextMenu::ReplacePage(UINT uPageID, LPFNADDPROPSHEETPAGE 
 
 BOOL CALLBACK CSlxComContextMenu::EnumChildSetFontProc(HWND hwnd, LPARAM lParam)
 {
-    SendMessage(hwnd, WM_SETFONT, lParam, 0);
+    SendMessageW(hwnd, WM_SETFONT, lParam, 0);
     return TRUE;
 }
 
 BOOL CSlxComContextMenu::ConvertToShortPaths()
 {
-    TCHAR szFilePathTemp[MAX_PATH];
+    WCHAR szFilePathTemp[MAX_PATH];
 
     for(UINT uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
     {
-        GetShortPathName(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
-        lstrcpyn(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(TCHAR));
+        GetShortPathNameW(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(WCHAR));
+        lstrcpynW(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(WCHAR));
     }
 
     return TRUE;
@@ -2781,7 +2781,7 @@ BOOL CSlxComContextMenu::ShouldAddFileTimePropSheet()
 
 BOOL CSlxComContextMenu::ShouldAddPeInformationSheet()
 {
-    return m_uFileCount == 1 && m_pFiles[0].bIsFile && IsFileLikePeFile(TtoW(m_pFiles[0].szPath).c_str());
+    return m_uFileCount == 1 && m_pFiles[0].bIsFile && IsFileLikePeFile(WtoW(m_pFiles[0].szPath).c_str());
 }
 
 void CSlxComContextMenu::CallDriverAction(LPCWSTR lpAction, LPCWSTR lpFilePath)
@@ -2815,9 +2815,9 @@ void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
 
     vector<wstring> vectorFiles(lpArgs, lpArgs + nArgCount);
 
-    TCHAR szCmd[MAX_PATH + 1024];
+    WCHAR szCmd[MAX_PATH + 1024];
     WCHAR szPath[MAX_PATH];
-    STARTUPINFO si = {sizeof(si)};
+    STARTUPINFOW si = {sizeof(si)};
     PROCESS_INFORMATION pi;
     vector<HANDLE> vectorProcesses;
     vector<DWORD> vectorExitCodes;
@@ -2825,17 +2825,17 @@ void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
     for (vector<wstring>::const_iterator it = vectorFiles.begin(); it != vectorFiles.end(); ++it)
     {
         lstrcpynW(szPath, it->c_str(), RTL_NUMBER_OF(szPath));
-        PathQuoteSpaces(szPath);
-        wnsprintf(szCmd, RTL_NUMBER_OF(szCmd), TEXT("regsvr32 %ls %ls"), lpMarkArgument,szPath);
+        PathQuoteSpacesW(szPath);
+        wnsprintfW(szCmd, RTL_NUMBER_OF(szCmd), L"regsvr32 %ls %ls", lpMarkArgument,szPath);
 
-        if (CreateProcess(NULL, szCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcessW(NULL, szCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
         {
             CloseHandle(pi.hThread);
             vectorProcesses.push_back(pi.hProcess);
         }
         else
         {
-            MessageBoxFormat(NULL, NULL, MB_ICONERROR | MB_TOPMOST, TEXT("启动regsvr32失败，错误码%lu"), GetLastError());
+            MessageBoxFormat(NULL, NULL, MB_ICONERROR | MB_TOPMOST, L"启动regsvr32失败，错误码%lu", GetLastError());
             return;
         }
     }
@@ -2871,15 +2871,15 @@ void BatchRegisterOrUnregisterDllsW(LPCWSTR lpMarkArgument, LPCWSTR lpArguments)
         ssResults<<vectorFiles.at(i);
     }
 
-    MessageBoxW(NULL, ssResults.str().c_str(), TEXT("执行结果"), MB_ICONINFORMATION | MB_TOPMOST);
+    MessageBoxW(NULL, ssResults.str().c_str(), L"执行结果", MB_ICONINFORMATION | MB_TOPMOST);
 }
 
 void WINAPI BatchRegisterDllsW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
 {
-    BatchRegisterOrUnregisterDllsW(TEXT("/s"), lpszCmdLine);
+    BatchRegisterOrUnregisterDllsW(L"/s", lpszCmdLine);
 }
 
 void WINAPI BatchUnregisterDllsW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
 {
-    BatchRegisterOrUnregisterDllsW(TEXT("/s /u"), lpszCmdLine);
+    BatchRegisterOrUnregisterDllsW(L"/s /u", lpszCmdLine);
 }

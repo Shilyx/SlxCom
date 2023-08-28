@@ -28,14 +28,14 @@ extern BOOL g_bVistaLater;      // SlxCom.cpp
 extern BOOL g_bXPLater;         // SlxCom.cpp
 extern BOOL g_bElevated;        // SlxCom.cpp
 
-DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData)
+DWORD SHSetTempValue(HKEY hRootKey, LPCWSTR pszSubKey, LPCWSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData)
 {
     HKEY hKey = NULL;
-    DWORD dwRet = RegCreateKeyEx(hRootKey, pszSubKey, 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
+    DWORD dwRet = RegCreateKeyExW(hRootKey, pszSubKey, 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
 
     if(ERROR_SUCCESS == dwRet)
     {
-        dwRet = RegSetValueEx(hKey, pszValue, 0, dwType, (const unsigned char *)pvData, cbData);
+        dwRet = RegSetValueExW(hKey, pszValue, 0, dwType, (const unsigned char *)pvData, cbData);
 
         RegCloseKey(hKey);
     }
@@ -43,7 +43,7 @@ DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD d
     return dwRet;
 }
 
-BOOL IsFileSignedBySelf(LPCTSTR lpFilePath)
+BOOL IsFileSignedBySelf(LPCWSTR lpFilePath)
 {
     GUID guidAction = WINTRUST_ACTION_GENERIC_VERIFY_V2;
     WINTRUST_FILE_INFO sWintrustFileInfo;
@@ -66,10 +66,10 @@ BOOL IsFileSignedBySelf(LPCTSTR lpFilePath)
     return S_OK == WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &guidAction, &sWintrustData);
 }
 
-BOOL GetFileHash(LPCTSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
+BOOL GetFileHash(LPCWSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
 {
     BOOL bResult = FALSE;
-    HANDLE hFile = CreateFile(
+    HANDLE hFile = CreateFileW(
         lpFilePath,
         GENERIC_READ,
         FILE_SHARE_READ,
@@ -98,7 +98,7 @@ BOOL GetFileHash(LPCTSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
     return bResult;
 }
 
-BOOL IsFileSignedByCatlog(LPCTSTR lpFilePath)
+BOOL IsFileSignedByCatlog(LPCWSTR lpFilePath)
 {
     BOOL bResult = FALSE;
     BYTE btHash[100];
@@ -134,21 +134,21 @@ BOOL IsFileSignedByCatlog(LPCTSTR lpFilePath)
     return bResult;
 }
 
-BOOL IsFileSigned(LPCTSTR lpFilePath)
+BOOL IsFileSigned(LPCWSTR lpFilePath)
 {
     return IsFileSignedBySelf(lpFilePath) || IsFileSignedByCatlog(lpFilePath);
 }
 
-BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath)
+BOOL SaveResourceToFile(LPCWSTR lpResType, LPCWSTR lpResName, LPCWSTR lpFilePath)
 {
     BOOL bSucceed = FALSE;
     DWORD dwResSize = 0;
 
-    HANDLE hFile = CreateFile(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
     if(hFile != INVALID_HANDLE_VALUE)
     {
-        HRSRC hRsrc = FindResource(g_hinstDll, lpResName, lpResType);
+        HRSRC hRsrc = FindResourceW(g_hinstDll, lpResName, lpResType);
 
         if(hRsrc != NULL)
         {
@@ -172,14 +172,14 @@ BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath
     return bSucceed;
 }
 
-BOOL GetResultPath(LPCTSTR lpRarPath, LPTSTR lpResultPath, int nLength)
+BOOL GetResultPath(LPCWSTR lpRarPath, LPWSTR lpResultPath, int nLength)
 {
     if(nLength >= MAX_PATH)
     {
-        TCHAR szJpgPath[MAX_PATH];
+        WCHAR szJpgPath[MAX_PATH];
 
-        lstrcpyn(szJpgPath, lpRarPath, MAX_PATH);
-        PathRenameExtension(szJpgPath, TEXT(".jpg"));
+        lstrcpynW(szJpgPath, lpRarPath, MAX_PATH);
+        PathRenameExtensionW(szJpgPath, L".jpg");
 
         return PathYetAnotherMakeUniqueName(lpResultPath, szJpgPath, NULL, NULL);
     }
@@ -187,17 +187,17 @@ BOOL GetResultPath(LPCTSTR lpRarPath, LPTSTR lpResultPath, int nLength)
     return FALSE;
 }
 
-BOOL DoCombine(LPCTSTR lpFile1, LPCTSTR lpFile2, LPCTSTR lpFileNew)
+BOOL DoCombine(LPCWSTR lpFile1, LPCWSTR lpFile2, LPCWSTR lpFileNew)
 {
     IStream *pStream1 = NULL;
     IStream *pStream2 = NULL;
     IStream *pStreamNew = NULL;
 
-    if(S_OK == SHCreateStreamOnFile(lpFile1, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream1))
+    if(S_OK == SHCreateStreamOnFileW(lpFile1, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream1))
     {
-        if(S_OK == SHCreateStreamOnFile(lpFile2, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream2))
+        if(S_OK == SHCreateStreamOnFileW(lpFile2, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream2))
         {
-            if(S_OK == SHCreateStreamOnFile(lpFileNew, STGM_WRITE | STGM_SHARE_DENY_NONE | STGM_CREATE, &pStreamNew))
+            if(S_OK == SHCreateStreamOnFileW(lpFileNew, STGM_WRITE | STGM_SHARE_DENY_NONE | STGM_CREATE, &pStreamNew))
             {
                 ULARGE_INTEGER uliSize1, uliSize2;
                 STATSTG stat;
@@ -223,27 +223,27 @@ BOOL DoCombine(LPCTSTR lpFile1, LPCTSTR lpFile2, LPCTSTR lpFileNew)
     return TRUE;
 }
 
-BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int nLength)
+BOOL CombineFile(LPCWSTR lpRarPath, LPCWSTR lpJpgPath, LPWSTR lpResultPath, int nLength)
 {
     //Get jpg file path
-    TCHAR szJpgPath[MAX_PATH];
+    WCHAR szJpgPath[MAX_PATH];
 
-    if(GetFileAttributes(lpJpgPath) == INVALID_FILE_ATTRIBUTES)
+    if(GetFileAttributesW(lpJpgPath) == INVALID_FILE_ATTRIBUTES)
     {
-        GetModuleFileName(g_hinstDll, szJpgPath, MAX_PATH);
-        PathAppend(szJpgPath, TEXT("\\..\\Default.jpg"));
+        GetModuleFileNameW(g_hinstDll, szJpgPath, MAX_PATH);
+        PathAppendW(szJpgPath, L"\\..\\Default.jpg");
 
-        if(GetFileAttributes(szJpgPath) == INVALID_FILE_ATTRIBUTES)
+        if(GetFileAttributesW(szJpgPath) == INVALID_FILE_ATTRIBUTES)
         {
-            SaveResourceToFile(TEXT("RT_FILE"), MAKEINTRESOURCE(IDR_DEFAULTJPG), szJpgPath);
+            SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_DEFAULTJPG), szJpgPath);
         }
     }
     else
     {
-        lstrcpyn(szJpgPath, lpJpgPath, MAX_PATH);
+        lstrcpynW(szJpgPath, lpJpgPath, MAX_PATH);
     }
 
-    if(GetFileAttributes(szJpgPath) != INVALID_FILE_ATTRIBUTES)
+    if(GetFileAttributesW(szJpgPath) != INVALID_FILE_ATTRIBUTES)
     {
         if(GetResultPath(lpRarPath, lpResultPath, nLength))
         {
@@ -254,18 +254,18 @@ BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int 
     return FALSE;
 }
 
-BOOL SetClipboardText(LPCTSTR lpText)
+BOOL SetClipboardText(LPCWSTR lpText)
 {
     BOOL bResult = FALSE;
-    HGLOBAL hGlobal = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, (lstrlen(lpText) + 1) * sizeof(TCHAR));
+    HGLOBAL hGlobal = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, (lstrlenW(lpText) + 1) * sizeof(WCHAR));
 
     if(hGlobal != NULL)
     {
-        LPTSTR lpBuffer = (LPTSTR)GlobalLock(hGlobal);
+        LPWSTR lpBuffer = (LPWSTR)GlobalLock(hGlobal);
 
         if(lpBuffer != NULL)
         {
-            lstrcpy(lpBuffer, lpText);
+            lstrcpyW(lpBuffer, lpText);
 
             GlobalUnlock(hGlobal);
 
@@ -292,14 +292,14 @@ BOOL SetClipboardText(LPCTSTR lpText)
     return bResult;
 }
 
-BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory)
+BOOL RunCommand(LPWSTR lpCommandLine, LPCWSTR lpCurrentDirectory)
 {
-    STARTUPINFO si = {sizeof(si)};
+    STARTUPINFOW si = {sizeof(si)};
     PROCESS_INFORMATION pi;
 
     si.wShowWindow = SW_SHOW;   //no use
 
-    if(CreateProcess(NULL, lpCommandLine, NULL, NULL, FALSE, 0, NULL, lpCurrentDirectory, &si, &pi))
+    if(CreateProcessW(NULL, lpCommandLine, NULL, NULL, FALSE, 0, NULL, lpCurrentDirectory, &si, &pi))
     {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
@@ -319,16 +319,16 @@ INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     case WM_INITDIALOG:
         if(hIcon == NULL)
         {
-            hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+            hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
         if(hIcon != NULL)
         {
-            SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-            SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
 
-        SetDlgItemText(hwndDlg, IDC_FILE, (LPCTSTR)lParam);
+        SetDlgItemTextW(hwndDlg, IDC_FILE, (LPCWSTR)lParam);
         return FALSE;
 
     case WM_SYSCOMMAND:
@@ -341,29 +341,29 @@ INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     case WM_COMMAND:
         if(LOWORD(wParam) == IDC_RUN)
         {
-            if(IDYES == MessageBox(hwndDlg, TEXT("确定要尝试将此文件作为可执行文件运行吗？"), TEXT("请确认"), MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
+            if(IDYES == MessageBoxW(hwndDlg, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
             {
                 BOOL bSucceed = FALSE;
                 INT_PTR nLength = 0;
                 INT_PTR nOffset = 0;
 
-                nLength += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXTLENGTH, 0, 0);
-                nLength += SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXTLENGTH, 0, 0);
+                nLength += SendDlgItemMessageW(hwndDlg, IDC_FILE, WM_GETTEXTLENGTH, 0, 0);
+                nLength += SendDlgItemMessageW(hwndDlg, IDC_ARGUMENTS, WM_GETTEXTLENGTH, 0, 0);
                 nLength += 200;
 
-                TCHAR *szCommand = new TCHAR[nLength];
+                WCHAR *szCommand = new WCHAR[nLength];
 
                 if(szCommand != NULL)
                 {
-                    lstrcpy(szCommand, TEXT("\""));
+                    lstrcpyW(szCommand, L"\"");
                     nOffset += 1;
 
-                    nOffset += SendDlgItemMessage(hwndDlg, IDC_FILE, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+                    nOffset += SendDlgItemMessageW(hwndDlg, IDC_FILE, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
 
-                    lstrcat(szCommand, TEXT("\" "));
+                    lstrcatW(szCommand, L"\" ");
                     nOffset += 2;
 
-                    SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
+                    SendDlgItemMessageW(hwndDlg, IDC_ARGUMENTS, WM_GETTEXT, nLength - nOffset, (LPARAM)(szCommand + nOffset));
 
                     bSucceed = RunCommand(szCommand);
 
@@ -376,20 +376,20 @@ INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                 }
                 else
                 {
-                    TCHAR szErrorMessage[200];
+                    WCHAR szErrorMessage[200];
 
-                    wnsprintf(szErrorMessage, sizeof(szErrorMessage) / sizeof(TCHAR), TEXT("无法启动进程，错误码%lu"), GetLastError());
+                    wnsprintfW(szErrorMessage, sizeof(szErrorMessage) / sizeof(WCHAR), L"无法启动进程，错误码%lu", GetLastError());
 
-                    MessageBox(hwndDlg, szErrorMessage, NULL, MB_ICONERROR);
+                    MessageBoxW(hwndDlg, szErrorMessage, NULL, MB_ICONERROR);
 
-                    SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETSEL, 0, -1);
-                    SendDlgItemMessage(hwndDlg, IDC_FILE, EM_SETREADONLY, FALSE, 0);
+                    SendDlgItemMessageW(hwndDlg, IDC_FILE, EM_SETSEL, 0, -1);
+                    SendDlgItemMessageW(hwndDlg, IDC_FILE, EM_SETREADONLY, FALSE, 0);
                     SetFocus(GetDlgItem(hwndDlg, IDC_FILE));
                 }
             }
             else
             {
-                SendDlgItemMessage(hwndDlg, IDC_ARGUMENTS, EM_SETSEL, 0, -1);
+                SendDlgItemMessageW(hwndDlg, IDC_ARGUMENTS, EM_SETSEL, 0, -1);
                 SetFocus(GetDlgItem(hwndDlg, IDC_ARGUMENTS));
             }
         }
@@ -411,16 +411,16 @@ INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     return FALSE;
 }
 
-BOOL RunCommandWithArguments(LPCTSTR lpFile)
+BOOL RunCommandWithArguments(LPCWSTR lpFile)
 {
-    return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
+    return 0 != DialogBoxParamW(g_hinstDll, MAKEINTRESOURCEW(IDD_RUNWITHARGUMENTS), NULL, RunCommandWithArgumentsProc, (LPARAM)lpFile);
 }
 
-BOOL RunCommandEx(LPCTSTR lpApplication, LPCTSTR lpArguments, LPCTSTR lpCurrentDirectory, BOOL bElevate)
+BOOL RunCommandEx(LPCWSTR lpApplication, LPCWSTR lpArguments, LPCWSTR lpCurrentDirectory, BOOL bElevate)
 {
-    return (int)ShellExecute(
+    return (int)ShellExecuteW(
         NULL,
-        bElevate ? TEXT("runas") : TEXT("open"),
+        bElevate ? L"runas" : L"open",
         lpApplication,
         lpArguments,
         lpCurrentDirectory,
@@ -432,35 +432,35 @@ struct BrowserForRegPathParam
     HANDLE hProcess;
     HWND hRegEdit;
     HWND hTreeCtrl;
-    LPCTSTR lpRegPath;
+    LPCWSTR lpRegPath;
 };
 
 DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
 {
     BrowserForRegPathParam *pParam = (BrowserForRegPathParam *)lpParam;
 
-    SendMessage(pParam->hRegEdit, WM_COMMAND, 0x10288, 0);
+    SendMessageW(pParam->hRegEdit, WM_COMMAND, 0x10288, 0);
     WaitForInputIdle(pParam->hProcess, INFINITE);
 
     for (int i = 0; i < 40; i += 1)
     {
-        SendMessage(pParam->hTreeCtrl, WM_KEYDOWN, VK_LEFT, 0);
+        SendMessageW(pParam->hTreeCtrl, WM_KEYDOWN, VK_LEFT, 0);
         WaitForInputIdle(pParam->hProcess, INFINITE);
     }
 
-    SendMessage(pParam->hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
+    SendMessageW(pParam->hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
     WaitForInputIdle(pParam->hProcess, INFINITE);
 
-    LPCTSTR lpChar = pParam->lpRegPath;
-    while (*lpChar != TEXT('\0'))
+    LPCWSTR lpChar = pParam->lpRegPath;
+    while (*lpChar != L'\0')
     {
-        if (*lpChar == TEXT('\\'))
+        if (*lpChar == L'\\')
         {
-            SendMessage(pParam->hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
+            SendMessageW(pParam->hTreeCtrl, WM_KEYDOWN, VK_RIGHT, 0);
         }
         else
         {
-            SendMessage(pParam->hTreeCtrl, WM_CHAR, *lpChar, 0);
+            SendMessageW(pParam->hTreeCtrl, WM_CHAR, *lpChar, 0);
         }
 
         WaitForInputIdle(pParam->hProcess, INFINITE);
@@ -470,9 +470,9 @@ DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
     return 0;
 }
 
-BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
+BOOL BrowseForRegPathInProcess(LPCWSTR lpRegPath)
 {
-    if (lpRegPath == NULL || *lpRegPath == TEXT('\0'))
+    if (lpRegPath == NULL || *lpRegPath == L'\0')
     {
         return FALSE;
     }
@@ -483,22 +483,22 @@ BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
 
     if (hSnapshot != NULL && hSnapshot != INVALID_HANDLE_VALUE)
     {
-        PROCESSENTRY32 pe32 = {sizeof(pe32)};
+        PROCESSENTRY32W pe32 = {sizeof(pe32)};
 
-        if (Process32First(hSnapshot, &pe32))
+        if (Process32FirstW(hSnapshot, &pe32))
         {
             do 
             {
                 if (pe32.th32ParentProcessID == GetCurrentProcessId())
                 {
-                    if (0 == lstrcmpi(pe32.szExeFile, TEXT("regedit.exe")))
+                    if (0 == lstrcmpiW(pe32.szExeFile, L"regedit.exe"))
                     {
                         dwRegEditProcessId = pe32.th32ProcessID;
                         break;
                     }
                 }
 
-            } while (Process32Next(hSnapshot, &pe32));
+            } while (Process32NextW(hSnapshot, &pe32));
         }
 
         CloseHandle(hSnapshot);
@@ -506,11 +506,11 @@ BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
 
     if (dwRegEditProcessId == 0)
     {
-        TCHAR szCommand[] = TEXT("regedit -m");
+        WCHAR szCommand[] = L"regedit -m";
         PROCESS_INFORMATION pi;
-        STARTUPINFO si = {sizeof(si)};
+        STARTUPINFOW si = {sizeof(si)};
 
-        if (CreateProcess(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcessW(NULL, szCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
         {
             WaitForInputIdle(pi.hProcess, 2212);
 
@@ -523,8 +523,8 @@ BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
 
     if (dwRegEditProcessId != 0)
     {
-        LPCTSTR lpClassName = TEXT("RegEdit_RegEdit");
-        HWND hWindow = FindWindowEx(NULL, NULL, lpClassName, NULL);
+        LPCWSTR lpClassName = L"RegEdit_RegEdit";
+        HWND hWindow = FindWindowExW(NULL, NULL, lpClassName, NULL);
 
         while (IsWindow(hWindow))
         {
@@ -538,13 +538,13 @@ BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
                 break;
             }
 
-            hWindow = FindWindowEx(NULL, hWindow, lpClassName, NULL);
+            hWindow = FindWindowExW(NULL, hWindow, lpClassName, NULL);
         }
     }
 
     if (IsWindow(hRegEdit))
     {
-        HWND hTreeCtrl = FindWindowEx(hRegEdit, NULL, TEXT("SysTreeView32"), NULL);
+        HWND hTreeCtrl = FindWindowExW(hRegEdit, NULL, L"SysTreeView32", NULL);
 
         if (IsWindow(hTreeCtrl))
         {
@@ -582,26 +582,26 @@ BOOL BrowseForRegPathInProcess(LPCTSTR lpRegPath)
 
 void WINAPI SlxBrowseForRegPathW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
 {
-    BrowseForRegPathInProcess(WtoT(lpszCmdLine).c_str());
+    BrowseForRegPathInProcess(WtoW(lpszCmdLine).c_str());
 }
 
-BOOL BrowseForRegPath(LPCTSTR lpRegPath)
+BOOL BrowseForRegPath(LPCWSTR lpRegPath)
 {
     if (g_bVistaLater && !g_bElevated)
     {
-        TCHAR szRundll32[MAX_PATH] = TEXT("");
-        TCHAR szDllPath[MAX_PATH] = TEXT("");
-        TCHAR szArguments[MAX_PATH + 20] = TEXT("");
+        WCHAR szRundll32[MAX_PATH] = L"";
+        WCHAR szDllPath[MAX_PATH] = L"";
+        WCHAR szArguments[MAX_PATH + 20] = L"";
 
-        GetSystemDirectory(szRundll32, RTL_NUMBER_OF(szRundll32));
-        PathAppend(szRundll32, TEXT("\\rundll32.exe"));
+        GetSystemDirectoryW(szRundll32, RTL_NUMBER_OF(szRundll32));
+        PathAppendW(szRundll32, L"\\rundll32.exe");
 
-        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
-        PathQuoteSpaces(szDllPath);
+        GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        PathQuoteSpacesW(szDllPath);
 
-        wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s SlxBrowseForRegPath %s"), szDllPath, lpRegPath);
+        wnsprintfW(szArguments, RTL_NUMBER_OF(szArguments), L"%s SlxBrowseForRegPath %s", szDllPath, lpRegPath);
 
-        return ElevateAndRun(szRundll32, szArguments, NULL, SW_SHOW);
+        return ElevateAndRunW(szRundll32, szArguments, NULL, SW_SHOW);
     }
     else
     {
@@ -609,18 +609,18 @@ BOOL BrowseForRegPath(LPCTSTR lpRegPath)
     }
 }
 
-BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
+BOOL SHOpenFolderAndSelectItems(LPCWSTR lpFile)
 {
     typedef HRESULT (__stdcall *PSHOpenFolderAndSelectItems)(LPCITEMIDLIST, UINT, LPCITEMIDLIST *, DWORD);
 
     BOOL bResult = FALSE;
-    LPCTSTR lpDllName = TEXT("Shell32.dll");
-    HMODULE hShell32 = GetModuleHandle(lpDllName);
+    LPCWSTR lpDllName = L"Shell32.dll";
+    HMODULE hShell32 = GetModuleHandleW(lpDllName);
     PSHOpenFolderAndSelectItems pSHOpenFolderAndSelectItems;
 
     if (hShell32 == NULL)
     {
-        hShell32 = LoadLibrary(lpDllName);
+        hShell32 = LoadLibraryW(lpDllName);
     }
 
     if (hShell32 == NULL)
@@ -640,7 +640,7 @@ BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
             LPITEMIDLIST pidl = NULL;
             WCHAR szFile[MAX_PATH] = {0};
 
-            lstrcpynW(szFile, TtoW(lpFile).c_str(), RTL_NUMBER_OF(szFile));
+            lstrcpynW(szFile, WtoW(lpFile).c_str(), RTL_NUMBER_OF(szFile));
 
             if (SUCCEEDED(pDesktopFolder->ParseDisplayName(NULL, NULL, szFile, NULL, &pidl, NULL)))
             {
@@ -674,7 +674,7 @@ BOOL SHOpenFolderAndSelectItems(LPCTSTR lpFile)
     return bResult;
 }
 
-BOOL BrowseForFile(LPCTSTR lpFile)
+BOOL BrowseForFile(LPCWSTR lpFile)
 {
     if (SHOpenFolderAndSelectItems(lpFile))
     {
@@ -682,14 +682,14 @@ BOOL BrowseForFile(LPCTSTR lpFile)
     }
     else
     {
-        TCHAR szExplorerPath[MAX_PATH];
-        TCHAR szCommandLine[MAX_PATH * 2 + 100];
+        WCHAR szExplorerPath[MAX_PATH];
+        WCHAR szCommandLine[MAX_PATH * 2 + 100];
 
-        GetWindowsDirectory(szExplorerPath, MAX_PATH);
-        PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
-        wnsprintf(szCommandLine, sizeof(szCommandLine) / sizeof(TCHAR), TEXT("%s /n,/select,\"%s\""), szExplorerPath, lpFile);
+        GetWindowsDirectoryW(szExplorerPath, MAX_PATH);
+        PathAppendW(szExplorerPath, L"\\Explorer.exe");
+        wnsprintfW(szCommandLine, sizeof(szCommandLine) / sizeof(WCHAR), L"%s /n,/select,\"%s\"", szExplorerPath, lpFile);
 
-        OutputDebugString(TEXT("BrowseForFile by starting new explorer.exe\r\n"));
+        OutputDebugStringW(L"BrowseForFile by starting new explorer.exe\r\n");
 
         return RunCommand(szCommandLine, NULL);
     }
@@ -705,7 +705,7 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 // 
 //         if(szBuffer != NULL)
 //         {
-//             if(wnsprintf(szBuffer, (nCmdLineLength + 100), L"%S", lpszCmdLine) > 0)
+//             if(wnsprintfW(szBuffer, (nCmdLineLength + 100), L"%S", lpszCmdLine) > 0)
 //             {
 //                 int nArgc = 0;
 //                 LPWSTR *ppArgv = CommandLineToArgvW(szBuffer, &nArgc);
@@ -714,7 +714,7 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 //                 {
 //                     if(nArgc >= 1)
 //                     {
-//                         DWORD dwProcessId = StrToInt(ppArgv[0]);
+//                         DWORD dwProcessId = StrToIntW(ppArgv[0]);
 // 
 //                         if(dwProcessId != 0)
 //                         {
@@ -724,7 +724,7 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 // 
 //                                 if(hProcess == NULL)
 //                                 {
-//                                     MessageBox(hwndStub, TEXT("打开进程失败！"), NULL, MB_ICONERROR | MB_TOPMOST);
+//                                     MessageBoxW(hwndStub, L"打开进程失败！", NULL, MB_ICONERROR | MB_TOPMOST);
 // 
 //                                     break;
 //                                 }
@@ -738,67 +738,67 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 // 
 //                                 if(dwExitCode == STILL_ACTIVE)
 //                                 {
-//                                     MessageBox(hwndStub, TEXT("无法终止进程！"), NULL, MB_ICONERROR | MB_TOPMOST);
+//                                     MessageBoxW(hwndStub, L"无法终止进程！", NULL, MB_ICONERROR | MB_TOPMOST);
 // 
 //                                     break;
 //                                 }
 // 
 //                                 CloseHandle(hProcess);
 // 
-//                                 STARTUPINFO si = {sizeof(si)};
+//                                 STARTUPINFOW si = {sizeof(si)};
 //                                 PROCESS_INFORMATION pi;
-//                                 TCHAR szExplorerPath[MAX_PATH];
+//                                 WCHAR szExplorerPath[MAX_PATH];
 // 
-//                                 GetWindowsDirectory(szExplorerPath, MAX_PATH);
-//                                 PathAppend(szExplorerPath, TEXT("\\Explorer.exe"));
+//                                 GetWindowsDirectoryW(szExplorerPath, MAX_PATH);
+//                                 PathAppendW(szExplorerPath, L"\\Explorer.exe");
 // 
-//                                 if(CreateProcess(NULL, szExplorerPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+//                                 if(CreateProcessW(NULL, szExplorerPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 //                                 {
 //                                     if(nArgc >= 2 && lstrlenW(ppArgv[1]) < MAX_PATH)
 //                                     {
 //                                         WaitForInputIdle(pi.hProcess, 10 * 1000);
 // 
-//                                         TCHAR szFilePath[MAX_PATH];
+//                                         WCHAR szFilePath[MAX_PATH];
 //                                         DWORD dwFileAttributes = INVALID_FILE_ATTRIBUTES;
 // 
-//                                         wnsprintf(szFilePath, sizeof(szFilePath) / sizeof(TCHAR), TEXT("%ls"), ppArgv[1]);
+//                                         wnsprintfW(szFilePath, sizeof(szFilePath) / sizeof(WCHAR), L"%ls", ppArgv[1]);
 // 
-//                                         dwFileAttributes = GetFileAttributes(szFilePath);
+//                                         dwFileAttributes = GetFileAttributesW(szFilePath);
 // 
 //                                         if(dwFileAttributes != INVALID_FILE_ATTRIBUTES)
 //                                         {
 //                                             if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 //                                             {
-//                                                 TCHAR szFindMark[MAX_PATH];
-//                                                 WIN32_FIND_DATA wfd;
+//                                                 WCHAR szFindMark[MAX_PATH];
+//                                                 WIN32_FIND_DATAW wfd;
 // 
-//                                                 lstrcpyn(szFindMark, szFilePath, MAX_PATH);
-//                                                 PathAppend(szFindMark, TEXT("\\*"));
+//                                                 lstrcpynW(szFindMark, szFilePath, MAX_PATH);
+//                                                 PathAppendW(szFindMark, L"\\*");
 // 
-//                                                 HANDLE hFind = FindFirstFile(szFindMark, &wfd);
+//                                                 HANDLE hFind = FindFirstFileW(szFindMark, &wfd);
 // 
 //                                                 if(hFind != INVALID_HANDLE_VALUE)
 //                                                 {
 //                                                     do 
 //                                                     {
-//                                                         if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
+//                                                         if(lstrcmpW(wfd.cFileName, L".") != 0 && lstrcmpW(wfd.cFileName, L"..") != 0)
 //                                                         {
 //                                                             break;
 //                                                         }
 // 
-//                                                     } while (FindNextFile(hFind, &wfd));
+//                                                     } while (FindNextFileW(hFind, &wfd));
 // 
-//                                                     if(lstrcmp(wfd.cFileName, TEXT(".")) != 0 && lstrcmp(wfd.cFileName, TEXT("..")) != 0)
+//                                                     if(lstrcmpW(wfd.cFileName, L".") != 0 && lstrcmpW(wfd.cFileName, L"..") != 0)
 //                                                     {
 //                                                         PathAddBackslash(szFilePath);
-//                                                         lstrcat(szFilePath, wfd.cFileName);
+//                                                         lstrcatW(szFilePath, wfd.cFileName);
 //                                                     }
 // 
 //                                                     FindClose(hFind);
 //                                                 }
 //                                             }
 // 
-//                                             if(PathFileExists(szFilePath))
+//                                             if(PathFileExistsW(szFilePath))
 //                                             {
 //                                                 BrowseForFile(szFilePath);
 //                                             }
@@ -810,7 +810,7 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 //                                 }
 //                                 else
 //                                 {
-//                                     MessageBox(hwndStub, TEXT("无法启动Explorer！"), NULL, MB_ICONERROR | MB_TOPMOST);
+//                                     MessageBoxW(hwndStub, L"无法启动Explorer！", NULL, MB_ICONERROR | MB_TOPMOST);
 // 
 //                                     break;
 //                                 }
@@ -830,23 +830,23 @@ BOOL BrowseForFile(LPCTSTR lpFile)
 
 BOOL IsExplorer()
 {
-    TCHAR szExePath[MAX_PATH] = TEXT("");
+    WCHAR szExePath[MAX_PATH] = L"";
 
-    GetModuleFileName(GetModuleHandle(NULL), szExePath, MAX_PATH);
+    GetModuleFileNameW(GetModuleHandleW(NULL), szExePath, MAX_PATH);
 
-    return lstrcmpi(PathFindFileName(szExePath), TEXT("explorer.exe")) == 0;
+    return lstrcmpiW(PathFindFileNameW(szExePath), L"explorer.exe") == 0;
 }
 
-BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize)
+BOOL TryUnescapeFileName(LPCWSTR lpFilePath, WCHAR szUnescapedFilePath[], int nSize)
 {
     BOOL bChanged = FALSE;
 
-    if(lstrlen(lpFilePath) + 1 > nSize)
+    if(lstrlenW(lpFilePath) + 1 > nSize)
     {
         return bChanged;
     }
 
-    lstrcpyn(szUnescapedFilePath, lpFilePath, nSize);
+    lstrcpynW(szUnescapedFilePath, lpFilePath, nSize);
 
     // win7
     // (.+?\\)++.+?(?<kill>( \- 副本(( \(([1-9][0-9]{2}|[1-9][0-9]|[1-9])\))|))+)\..+
@@ -854,15 +854,15 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
     // (.+?\\)++(?<kill>复件( \(([1-9][0-9]|[1-9])\))? )[^\.\\\n]+\.[^\.\\\n]+
     // 点前加(数字)或[数字]
     // (.+?\\)++.+?((?<kill> *\(([1-9][0-9]|[1-9])\))|(?<kill> *\[([1-9][0-9]|[1-9])\]))\..+
-    static CRegexpT<TCHAR> regWin7    (TEXT("(.+?\\\\)++.+?(?<kill>( \\- 副本(( \\(([1-9][0-9]{2}|[1-9][0-9]|[1-9])\\))|))+)\\..+"));
-    static CRegexpT<TCHAR> regXp      (TEXT("(.+?\\\\)++(?<kill>复件( \\(([1-9][0-9]|[1-9])\\))? )[^\\.\\\\\\n]+\\.[^\\.\\\\\\n]+"));
-    static CRegexpT<TCHAR> regDownload(TEXT("(.+?\\\\)++.+?((?<kill> *\\(([1-9][0-9]|[1-9])\\))|(?<kill> *\\[([1-9][0-9]|[1-9])\\]))\\..+"));
+    static CRegexpT<WCHAR> regWin7    (L"(.+?\\\\)++.+?(?<kill>( \\- 副本(( \\(([1-9][0-9]{2}|[1-9][0-9]|[1-9])\\))|))+)\\..+");
+    static CRegexpT<WCHAR> regXp      (L"(.+?\\\\)++(?<kill>复件( \\(([1-9][0-9]|[1-9])\\))? )[^\\.\\\\\\n]+\\.[^\\.\\\\\\n]+");
+    static CRegexpT<WCHAR> regDownload(L"(.+?\\\\)++.+?((?<kill> *\\(([1-9][0-9]|[1-9])\\))|(?<kill> *\\[([1-9][0-9]|[1-9])\\]))\\..+");
 
-    static int nGroupKillWin7     = regWin7.    GetNamedGroupNumber(TEXT("kill"));
-    static int nGroupKillXp       = regXp.      GetNamedGroupNumber(TEXT("kill"));
-    static int nGroupKillDownload = regDownload.GetNamedGroupNumber(TEXT("kill"));
+    static int nGroupKillWin7     = regWin7.    GetNamedGroupNumber(L"kill");
+    static int nGroupKillXp       = regXp.      GetNamedGroupNumber(L"kill");
+    static int nGroupKillDownload = regDownload.GetNamedGroupNumber(L"kill");
 
-    static CRegexpT<TCHAR>* pRegs[] = {
+    static CRegexpT<WCHAR>* pRegs[] = {
         &regWin7,
         &regXp,
         &regDownload,
@@ -889,7 +889,7 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
                     MoveMemory(
                         szUnescapedFilePath + nGroupBegin,
                         szUnescapedFilePath + nGroupEnd,
-                        (lstrlen(szUnescapedFilePath + nGroupEnd) + 1) * sizeof(TCHAR)
+                        (lstrlenW(szUnescapedFilePath + nGroupEnd) + 1) * sizeof(WCHAR)
                         );
 
                     bChanged = TRUE;
@@ -902,15 +902,15 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
         }
     }
 
-    TCHAR szTailMark[] = TEXT(".重命名");
-    int nResultLength = lstrlen(szUnescapedFilePath);
-    int nMarkLength = lstrlen(szTailMark);
+    WCHAR szTailMark[] = L".重命名";
+    int nResultLength = lstrlenW(szUnescapedFilePath);
+    int nMarkLength = lstrlenW(szTailMark);
 
     if(nResultLength > nMarkLength)
     {
-        if(lstrcmp(szUnescapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
+        if(lstrcmpW(szUnescapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
         {
-            *(szUnescapedFilePath + nResultLength - nMarkLength) = TEXT('\0');
+            *(szUnescapedFilePath + nResultLength - nMarkLength) = L'\0';
 
             bChanged = TRUE;
         }
@@ -919,15 +919,15 @@ BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nS
     return bChanged;
 }
 
-BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize)
+BOOL ResolveShortcut(LPCWSTR lpLinkFilePath, WCHAR szResolvedPath[], UINT nSize)
 {
     WCHAR szLinkFilePath[MAX_PATH];
-    IShellLink *pShellLink = NULL;
+    IShellLinkW *pShellLink = NULL;
     IPersistFile *pPersistFile = NULL;
-    WIN32_FIND_DATA wfd;
+    WIN32_FIND_DATAW wfd;
     BOOL bResult = FALSE;
 
-    if(PathFileExists(lpLinkFilePath))
+    if(PathFileExistsW(lpLinkFilePath))
     {
 #ifdef UNICODE
         wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%s", lpLinkFilePath);
@@ -935,7 +935,7 @@ BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize)
         wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%S", lpLinkFilePath);
 #endif
 
-        if(SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&pShellLink)))
+        if(SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&pShellLink)))
         {
             if(SUCCEEDED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile)))
             {
@@ -956,26 +956,26 @@ BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize)
 
 VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode)
 {
-    LPTSTR lpMessage = NULL;
-    TCHAR szMessage[2000];
+    LPWSTR lpMessage = NULL;
+    WCHAR szMessage[2000];
     UINT uType = MB_ICONERROR;
 
-    FormatMessage(  
+    FormatMessageW(  
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         dwErrorCode,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR)&lpMessage,
+        (LPWSTR)&lpMessage,
         0,
         NULL
         );
 
     if (lpMessage != NULL)
     {
-        wnsprintf(
+        wnsprintfW(
             szMessage,
-            sizeof(szMessage) / sizeof(TCHAR),
-            TEXT("错误码：%lu\r\n\r\n参考意义：%s"),
+            sizeof(szMessage) / sizeof(WCHAR),
+            L"错误码：%lu\r\n\r\n参考意义：%s",
             dwErrorCode,
             lpMessage
             );
@@ -988,7 +988,7 @@ VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode)
         uType = MB_ICONINFORMATION;
     }
 
-    MessageBox(hWindow, szMessage, TEXT("信息"), uType);
+    MessageBoxW(hWindow, szMessage, L"信息", uType);
 }
 
 struct AutoCloseMessageBoxParam
@@ -1085,7 +1085,7 @@ void AutoCloseMessageBoxForThreadInSeconds(DWORD dwThreadId, int nSeconds)
     CloseHandle(CreateThread(NULL, 0, AutoCloseMessageBoxProc, (LPVOID)param, 0, NULL));
 }
 
-VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
+VOID DrvAction(HWND hWindow, LPCWSTR lpFilePath, DRIVER_ACTION daValue)
 {
     if (daValue != DA_INSTALL   &&
         daValue != DA_UNINSTALL &&
@@ -1104,14 +1104,14 @@ VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
         return;
     }
 
-    TCHAR szServiceName[MAX_PATH] = TEXT("");
+    WCHAR szServiceName[MAX_PATH] = L"";
 
-    lstrcpyn(szServiceName, PathFindFileName(lpFilePath), sizeof(szServiceName) / sizeof(TCHAR));
-    PathRemoveExtension(szServiceName);
+    lstrcpynW(szServiceName, PathFindFileNameW(lpFilePath), sizeof(szServiceName) / sizeof(WCHAR));
+    PathRemoveExtensionW(szServiceName);
 
     if (daValue == DA_INSTALL)
     {
-        hService = CreateService(
+        hService = CreateServiceW(
             hScManager,
             szServiceName,
             szServiceName,
@@ -1129,7 +1129,7 @@ VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue)
     }
     else
     {
-        hService = OpenService(hScManager, szServiceName, SERVICE_ALL_ACCESS);
+        hService = OpenServiceW(hScManager, szServiceName, SERVICE_ALL_ACCESS);
 
         if (hService != NULL)
         {
@@ -1193,29 +1193,29 @@ void WINAPI DriverActionW(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdL
     }
 }
 
-int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...)
+int MessageBoxFormat(HWND hWindow, LPCWSTR lpCaption, UINT uType, LPCWSTR lpFormat, ...)
 {
-    TCHAR szText[2000];
+    WCHAR szText[2000];
     va_list val;
 
     va_start(val, lpFormat);
-    wvnsprintf(szText, sizeof(szText) / sizeof(TCHAR), lpFormat, val);
+    wvnsprintfW(szText, sizeof(szText) / sizeof(WCHAR), lpFormat, val);
     va_end(val);
 
-    return MessageBox(hWindow, szText, lpCaption, uType);
+    return MessageBoxW(hWindow, szText, lpCaption, uType);
 }
 
 void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    TCHAR szLinkFilePath[MAX_PATH];
-    TCHAR szTargetFilePath[MAX_PATH];
+    WCHAR szLinkFilePath[MAX_PATH];
+    WCHAR szTargetFilePath[MAX_PATH];
 
     CoInitialize(NULL);
 
-    wnsprintf(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(TCHAR), TEXT("%hs"), lpszCmdLine);
-    PathUnquoteSpaces(szLinkFilePath);
+    wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%hs", lpszCmdLine);
+    PathUnquoteSpacesW(szLinkFilePath);
 
-    if(ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(TCHAR)))
+    if(ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(WCHAR)))
     {
         BrowseForFile(szTargetFilePath);
     }
@@ -1243,9 +1243,9 @@ BOOL EnableDebugPrivilege(BOOL bEnable)
     return bResult;
 }
 
-BOOL IsFileDenyed(LPCTSTR lpFilePath)
+BOOL IsFileDenyed(LPCWSTR lpFilePath)
 {
-    HANDLE hFile = CreateFile(lpFilePath, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
     DWORD dwLastError = GetLastError();
 
     if (hFile != INVALID_HANDLE_VALUE)
@@ -1284,34 +1284,34 @@ BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle)
     return bResult;
 }
 
-BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2)
+BOOL IsSameFilePath(LPCWSTR lpFilePath1, LPCWSTR lpFilePath2)
 {
-    TCHAR szFilePath1[MAX_PATH];
-    TCHAR szFilePath2[MAX_PATH];
-    TCHAR szLongFilePath1[MAX_PATH];
-    TCHAR szLongFilePath2[MAX_PATH];
+    WCHAR szFilePath1[MAX_PATH];
+    WCHAR szFilePath2[MAX_PATH];
+    WCHAR szLongFilePath1[MAX_PATH];
+    WCHAR szLongFilePath2[MAX_PATH];
 
-    lstrcpyn(szFilePath1, lpFilePath1, sizeof(szFilePath1) / sizeof(TCHAR));
-    lstrcpyn(szFilePath2, lpFilePath2, sizeof(szFilePath2) / sizeof(TCHAR));
+    lstrcpynW(szFilePath1, lpFilePath1, sizeof(szFilePath1) / sizeof(WCHAR));
+    lstrcpynW(szFilePath2, lpFilePath2, sizeof(szFilePath2) / sizeof(WCHAR));
 
-    if (0 == GetLongPathName(szFilePath1, szLongFilePath1, sizeof(szLongFilePath1) / sizeof(TCHAR)))
+    if (0 == GetLongPathNameW(szFilePath1, szLongFilePath1, sizeof(szLongFilePath1) / sizeof(WCHAR)))
     {
-        lstrcpyn(szLongFilePath1, lpFilePath1, sizeof(szLongFilePath1) / sizeof(TCHAR));
+        lstrcpynW(szLongFilePath1, lpFilePath1, sizeof(szLongFilePath1) / sizeof(WCHAR));
     }
 
-    if (0 == GetLongPathName(szFilePath2, szLongFilePath2, sizeof(szLongFilePath2) / sizeof(TCHAR)))
+    if (0 == GetLongPathNameW(szFilePath2, szLongFilePath2, sizeof(szLongFilePath2) / sizeof(WCHAR)))
     {
-        lstrcpyn(szLongFilePath2, lpFilePath2, sizeof(szLongFilePath2) / sizeof(TCHAR));
+        lstrcpynW(szLongFilePath2, lpFilePath2, sizeof(szLongFilePath2) / sizeof(WCHAR));
     }
 
-    return lstrcmpi(szLongFilePath1, szLongFilePath2) == 0;
+    return lstrcmpiW(szLongFilePath1, szLongFilePath2) == 0;
 }
 
-BOOL IsPathDesktop(LPCTSTR lpPath)
+BOOL IsPathDesktop(LPCWSTR lpPath)
 {
-    TCHAR szDesktopPath[MAX_PATH];
+    WCHAR szDesktopPath[MAX_PATH];
 
-    if (SHGetSpecialFolderPath(NULL, szDesktopPath, CSIDL_DESKTOP, FALSE))
+    if (SHGetSpecialFolderPathW(NULL, szDesktopPath, CSIDL_DESKTOP, FALSE))
     {
         return IsSameFilePath(lpPath, szDesktopPath);
     }
@@ -1325,7 +1325,7 @@ BOOL IsWow64ProcessHelper(HANDLE hProcess)
     BOOL (WINAPI *pIsWow64Process)(HANDLE, PBOOL) = NULL;
 
     (PROC &)pIsWow64Process = GetProcAddress(
-        GetModuleHandle(TEXT("kernel32")),
+        GetModuleHandleW(L"kernel32"),
         "IsWow64Process"
         );
 
@@ -1343,7 +1343,7 @@ BOOL DisableWow64FsRedirection()
     BOOL (WINAPI *pWow64DisableWow64FsRedirection)(PVOID *) = NULL;
 
     (PROC &)pWow64DisableWow64FsRedirection = GetProcAddress(
-        GetModuleHandle(TEXT("kernel32")),
+        GetModuleHandleW(L"kernel32"),
         "Wow64DisableWow64FsRedirection"
         );
 
@@ -1362,20 +1362,20 @@ void InvokeDesktopRefresh()
 
     for (std::list<HWND>::iterator it = listDesktopWindows.begin(); it != listDesktopWindows.end(); ++it)
     {
-        HWND hSHELLDLL_DefView = FindWindowEx(*it, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
+        HWND hSHELLDLL_DefView = FindWindowExW(*it, NULL, L"SHELLDLL_DefView", L"");
 
         if (IsWindow(hSHELLDLL_DefView))
         {
-            HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
+            HWND hSysListView32 = FindWindowExW(hSHELLDLL_DefView, NULL, L"SysListView32", L"FolderView");
 
             if (!IsWindow(hSysListView32))
             {
-                hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
+                hSysListView32 = FindWindowExW(hSHELLDLL_DefView, NULL, L"SysListView32", NULL);
             }
 
             if (IsWindow(hSysListView32))
             {
-                ::PostMessage(hSysListView32, WM_KEYDOWN, VK_F5, 0);
+                ::PostMessageW(hSysListView32, WM_KEYDOWN, VK_F5, 0);
                 Sleep(888);
             }
         }
@@ -1390,13 +1390,13 @@ BOOL KillAllExplorers()
 
     if (hSnapshot != INVALID_HANDLE_VALUE && hSnapshot != NULL)
     {
-        PROCESSENTRY32 pe32 = {sizeof(pe32)};
+        PROCESSENTRY32W pe32 = {sizeof(pe32)};
 
-        if (Process32First(hSnapshot, &pe32))
+        if (Process32FirstW(hSnapshot, &pe32))
         {
             do 
             {
-                if (lstrcmpi(pe32.szExeFile, TEXT("explorer.exe")) == 0)
+                if (lstrcmpiW(pe32.szExeFile, L"explorer.exe") == 0)
                 {
                     if (pe32.th32ProcessID == GetCurrentProcessId())
                     {
@@ -1407,13 +1407,13 @@ BOOL KillAllExplorers()
                         setExplorers.insert(pe32.th32ProcessID);
                     }
                 }
-                else if (lstrcmpi(pe32.szExeFile, TEXT("clover.exe")) == 0 &&
-                    (GetModuleHandle(TEXT("TabHelper32.dll")) != NULL || GetModuleHandle(TEXT("TabHelper64.dll")) != NULL))
+                else if (lstrcmpiW(pe32.szExeFile, L"clover.exe") == 0 &&
+                    (GetModuleHandleW(L"TabHelper32.dll") != NULL || GetModuleHandleW(L"TabHelper64.dll") != NULL))
                 {
                     setExplorers.insert(pe32.th32ProcessID);
                 }
 
-            } while (Process32Next(hSnapshot, &pe32));
+            } while (Process32NextW(hSnapshot, &pe32));
         }
 
         CloseHandle(hSnapshot);
@@ -1562,29 +1562,29 @@ BOOL SetClipboardHtml(const char *html)
     return bResult;
 }
 
-BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths)
+BOOL SetClipboardPicturePathsByHtml(LPCWSTR lpPaths)
 {
     if (lpPaths == NULL)
     {
         return FALSE;
     }
 
-    int nLength = lstrlen(lpPaths);
+    int nLength = lstrlenW(lpPaths);
 
     stringstream ss;
-    TCHAR szShortPath[MAX_PATH];
+    WCHAR szShortPath[MAX_PATH];
 
     ss<<"<DIV>"<<endl;
 
     while (nLength > 0)
     {
-        if (GetShortPathName(lpPaths, szShortPath, RTL_NUMBER_OF(szShortPath)) > 0)
+        if (GetShortPathNameW(lpPaths, szShortPath, RTL_NUMBER_OF(szShortPath)) > 0)
         {
-            ss<<"<IMG src=\"file"<<":///"<<TtoU(szShortPath)<<"\" >"<<endl;
+            ss<<"<IMG src=\"file"<<":///"<<WtoU(szShortPath)<<"\" >"<<endl;
         }
 
         lpPaths += (nLength + 1);
-        nLength = lstrlen(lpPaths);
+        nLength = lstrlenW(lpPaths);
     }
 
     ss<<"</DIV>";
@@ -1592,63 +1592,63 @@ BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths)
     return SetClipboardHtml(ss.str().c_str());
 }
 
-void SafeDebugMessage(LPCTSTR pFormat, ...)
+void SafeDebugMessage(LPCWSTR pFormat, ...)
 {
-    TCHAR szBuffer[2000];
+    WCHAR szBuffer[2000];
     va_list pArg;
 
     va_start(pArg, pFormat);
-    wvnsprintf(szBuffer, sizeof(szBuffer) / sizeof(TCHAR), pFormat, pArg);
+    wvnsprintfW(szBuffer, sizeof(szBuffer) / sizeof(WCHAR), pFormat, pArg);
     va_end(pArg);
 
-    OutputDebugString(szBuffer);
+    OutputDebugStringW(szBuffer);
 }
 
-HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath)
+HKEY ParseRegPath(LPCWSTR lpWholePath, LPCWSTR *lppRegPath)
 {
     HKEY hResult = NULL;
-    TCHAR szRootKey[100] = TEXT("");
+    WCHAR szRootKey[100] = L"";
 
-    lstrcpyn(szRootKey, lpWholePath, RTL_NUMBER_OF(szRootKey));
-    LPTSTR lpBackSlash = StrStr(szRootKey, TEXT("\\"));
+    lstrcpynW(szRootKey, lpWholePath, RTL_NUMBER_OF(szRootKey));
+    LPWSTR lpBackSlash = StrStrW(szRootKey, L"\\");
 
     if (lpBackSlash != NULL)
     {
-        *lpBackSlash = TEXT('\0');
+        *lpBackSlash = L'\0';
 
-        if (lstrcmpi(szRootKey, TEXT("HKEY_CLASSES_ROOT")) == 0 || lstrcmpi(szRootKey, TEXT("HKCR")) == 0)
+        if (lstrcmpiW(szRootKey, L"HKEY_CLASSES_ROOT") == 0 || lstrcmpiW(szRootKey, L"HKCR") == 0)
         {
             hResult = HKEY_CLASSES_ROOT;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_CURRENT_USER")) == 0 || lstrcmpi(szRootKey, TEXT("HKCU")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_CURRENT_USER") == 0 || lstrcmpiW(szRootKey, L"HKCU") == 0)
         {
             hResult = HKEY_CURRENT_USER;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_LOCAL_MACHINE")) == 0 || lstrcmpi(szRootKey, TEXT("HKLM")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_LOCAL_MACHINE") == 0 || lstrcmpiW(szRootKey, L"HKLM") == 0)
         {
             hResult = HKEY_LOCAL_MACHINE;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_USERS")) == 0 || lstrcmpi(szRootKey, TEXT("HKU")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_USERS") == 0 || lstrcmpiW(szRootKey, L"HKU") == 0)
         {
             hResult = HKEY_USERS;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_CURRENT_CONFIG")) == 0 || lstrcmpi(szRootKey, TEXT("HKCC")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_CURRENT_CONFIG") == 0 || lstrcmpiW(szRootKey, L"HKCC") == 0)
         {
             hResult = HKEY_CURRENT_CONFIG;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_PERFORMANCE_DATA")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_PERFORMANCE_DATA") == 0)
         {
             hResult = HKEY_PERFORMANCE_DATA;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_PERFORMANCE_TEXT")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_PERFORMANCE_TEXT") == 0)
         {
             hResult = HKEY_PERFORMANCE_TEXT;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_PERFORMANCE_NLSTEXT")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_PERFORMANCE_NLSTEXT") == 0)
         {
             hResult = HKEY_PERFORMANCE_NLSTEXT;
         }
-        else if (lstrcmpi(szRootKey, TEXT("HKEY_DYN_DATA")) == 0)
+        else if (lstrcmpiW(szRootKey, L"HKEY_DYN_DATA") == 0)
         {
             hResult = HKEY_DYN_DATA;
         }
@@ -1656,11 +1656,11 @@ HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath)
 
     if (hResult != NULL)
     {
-        lpBackSlash = StrStr(lpWholePath, TEXT("\\"));
+        lpBackSlash = StrStrW(lpWholePath, L"\\");
 
         if (lpBackSlash != NULL)
         {
-            while (*lpBackSlash == TEXT('\\'))
+            while (*lpBackSlash == L'\\')
             {
                 lpBackSlash += 1;
             }
@@ -1675,11 +1675,11 @@ HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath)
     return hResult;
 }
 
-BOOL IsRegPathExists(HKEY hRootKey, LPCTSTR lpRegPath)
+BOOL IsRegPathExists(HKEY hRootKey, LPCWSTR lpRegPath)
 {
     HKEY hKey = NULL;
 
-    RegOpenKeyEx(hRootKey, lpRegPath, 0, READ_CONTROL, &hKey);
+    RegOpenKeyExW(hRootKey, lpRegPath, 0, READ_CONTROL, &hKey);
 
     if (hKey != NULL)
     {
@@ -1689,11 +1689,11 @@ BOOL IsRegPathExists(HKEY hRootKey, LPCTSTR lpRegPath)
     return hKey != NULL;
 }
 
-BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath)
+BOOL TouchRegPath(HKEY hRootKey, LPCWSTR lpRegPath)
 {
     HKEY hKey = NULL;
 
-    RegCreateKeyEx(hRootKey, lpRegPath, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &hKey, NULL);
+    RegCreateKeyExW(hRootKey, lpRegPath, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &hKey, NULL);
 
     if (hKey != NULL)
     {
@@ -1706,21 +1706,21 @@ BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath)
 HFONT GetMenuDefaultFont()
 {
     HFONT hFont = NULL;
-    NONCLIENTMETRICS ncm = {sizeof(ncm)};
+    NONCLIENTMETRICSW ncm = {sizeof(ncm)};
 
-    if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0))
+    if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0))
     {
-        hFont = CreateFontIndirect(&ncm.lfMenuFont);
+        hFont = CreateFontIndirectW(&ncm.lfMenuFont);
     }
 
     return hFont;
 }
 
-UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight)
+UINT GetDrawTextSizeInDc(HDC hdc, LPCWSTR lpText, UINT *puHeight)
 {
     SIZE size = {0};
 
-    GetTextExtentPoint32(hdc, lpText, lstrlen(lpText), &size);
+    GetTextExtentPoint32W(hdc, lpText, lstrlenW(lpText), &size);
 
     if (puHeight != NULL)
     {
@@ -1730,9 +1730,9 @@ UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight)
     return (UINT)size.cx;
 }
 
-BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
+BOOL PathCompactPathHelper(HDC hdc, LPWSTR lpText, UINT dx)
 {
-    if (lpText == NULL || *lpText == TEXT('\0'))
+    if (lpText == NULL || *lpText == L'\0')
     {
         return FALSE;
     }
@@ -1742,14 +1742,14 @@ BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
     }
     else if (dx == 0)
     {
-        *lpText = TEXT('\0');
+        *lpText = L'\0';
         return TRUE;
     }
     else
     {
-        int nLength = lstrlen(lpText);
-        BOOL bBackSlashExist = StrStr(lpText, TEXT("\\")) != NULL;
-        BOOL bRet = PathCompactPath(hdc, lpText, dx);
+        int nLength = lstrlenW(lpText);
+        BOOL bBackSlashExist = StrStrW(lpText, L"\\") != NULL;
+        BOOL bRet = PathCompactPathW(hdc, lpText, dx);
 
         if (!bRet)
         {
@@ -1761,14 +1761,14 @@ BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
         }
         else
         {
-            LPTSTR lpEnd = NULL;
+            LPWSTR lpEnd = NULL;
 
-            lstrcpyn(lpText, TEXT(".........................."), nLength + 1);
-            lpEnd = lpText + lstrlen(lpText);
+            lstrcpynW(lpText, L"..........................", nLength + 1);
+            lpEnd = lpText + lstrlenW(lpText);
 
-            if (bBackSlashExist && GetDrawTextSizeInDc(hdc, TEXT("...\\..."), NULL) < dx)
+            if (bBackSlashExist && GetDrawTextSizeInDc(hdc, L"...\\...", NULL) < dx)
             {
-                lpText[3] = TEXT('\\');
+                lpText[3] = L'\\';
             }
 
             while (lpEnd >= lpText)
@@ -1779,7 +1779,7 @@ BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
                 }
 
                 lpEnd -= 1;
-                *lpEnd = TEXT('\0');
+                *lpEnd = L'\0';
             }
 
             return FALSE;
@@ -1790,7 +1790,7 @@ BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx)
 HWND GetTrayNotifyWndInProcess()
 {
     DWORD dwPid = GetCurrentProcessId();
-    HWND hShell_TrayWnd = FindWindowEx(NULL, NULL, TEXT("Shell_TrayWnd"), NULL);
+    HWND hShell_TrayWnd = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
 
     while (IsWindow(hShell_TrayWnd))
     {
@@ -1800,7 +1800,7 @@ HWND GetTrayNotifyWndInProcess()
 
         if (dwWindowPid == dwPid)
         {
-            HWND hTrayNotifyWnd = FindWindowEx(hShell_TrayWnd, NULL, TEXT("TrayNotifyWnd"), NULL);
+            HWND hTrayNotifyWnd = FindWindowExW(hShell_TrayWnd, NULL, L"TrayNotifyWnd", NULL);
 
             if (IsWindow(hTrayNotifyWnd))
             {
@@ -1808,29 +1808,29 @@ HWND GetTrayNotifyWndInProcess()
             }
         }
 
-        hShell_TrayWnd = FindWindowEx(NULL, hShell_TrayWnd, TEXT("Shell_TrayWnd"), NULL);
+        hShell_TrayWnd = FindWindowExW(NULL, hShell_TrayWnd, L"Shell_TrayWnd", NULL);
     }
 
     return NULL;
 }
 
-BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize)
+BOOL GetVersionString(HINSTANCE hModule, WCHAR szVersionString[], int nSize)
 {
-    TCHAR szPath[MAX_PATH];
+    WCHAR szPath[MAX_PATH];
     char verBuffer[1000];
     VS_FIXEDFILEINFO *pVerFixedInfo = {0};
     UINT uLength;
 
-    GetModuleFileName(hModule, szPath, RTL_NUMBER_OF(szPath));
+    GetModuleFileNameW(hModule, szPath, RTL_NUMBER_OF(szPath));
 
-    if (GetFileVersionInfo(szPath, 0, sizeof(verBuffer), verBuffer))
+    if (GetFileVersionInfoW(szPath, 0, sizeof(verBuffer), verBuffer))
     {
-        if (VerQueryValue(verBuffer, TEXT("\\"), (LPVOID *)&pVerFixedInfo, &uLength))
+        if (VerQueryValueW(verBuffer, L"\\", (LPVOID *)&pVerFixedInfo, &uLength))
         {
-            wnsprintf(
+            wnsprintfW(
                 szVersionString,
                 nSize,
-                TEXT("%d.%d.%d.%d"),
+                L"%d.%d.%d.%d",
                 pVerFixedInfo->dwFileVersionMS >> 16,
                 pVerFixedInfo->dwFileVersionMS & 0xffff,
                 pVerFixedInfo->dwFileVersionLS >> 16,
@@ -1917,11 +1917,11 @@ HICON GetWindowIconSmall(HWND hWindow)
     return hIcon;
 }
 
-DWORD RegGetDWORD(HKEY hRootKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, DWORD dwDefault)
+DWORD RegGetDWORD(HKEY hRootKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, DWORD dwDefault)
 {
     DWORD dwSize = sizeof(dwDefault);
 
-    SHGetValue(hRootKey, lpRegPath, lpRegValue, NULL, &dwDefault, &dwSize);
+    SHGetValueW(hRootKey, lpRegPath, lpRegValue, NULL, &dwDefault, &dwSize);
 
     return dwDefault;
 }
@@ -1945,7 +1945,7 @@ BOOL IsWindowTopMost(HWND hWindow)
     return (GetWindowLongPtr(hWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
 }
 
-unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault)
+unsigned __int64 StrToInt64Def(LPCWSTR lpString, unsigned __int64 nDefault)
 {
     if (lpString == NULL || *lpString == 0)
     {
@@ -1956,17 +1956,17 @@ unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault)
 
     for (int i = 0; i < 20; i += 1)
     {
-        TCHAR ch = *lpString++;
+        WCHAR ch = *lpString++;
 
-        if (ch == TEXT('\0'))
+        if (ch == L'\0')
         {
             break;
         }
 
-        if (ch >= TEXT('0') && ch <= TEXT('9'))
+        if (ch >= L'0' && ch <= L'9')
         {
             nResult *= 10;
-            nResult += (ch - TEXT('0'));
+            nResult += (ch - L'0');
         }
         else
         {
@@ -2017,7 +2017,7 @@ BOOL AdvancedSetForegroundWindow(HWND hWindow)
     return bSucceed;
 }
 
-BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize)
+BOOL GetWindowImageFileName(HWND hWindow, LPWSTR lpBuffer, UINT uBufferSize)
 {
     DWORD dwProcessId = 0;
 
@@ -2033,7 +2033,7 @@ BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize)
 
     if (hProcess != NULL)
     {
-        bRet = GetModuleFileNameEx(hProcess, NULL, lpBuffer, uBufferSize) > 0;
+        bRet = GetModuleFileNameExW(hProcess, NULL, lpBuffer, uBufferSize) > 0;
 
         CloseHandle(hProcess);
     }
@@ -2074,19 +2074,19 @@ BOOL KillProcess(DWORD dwProcessId)
 
     if (!bRet && g_bVistaLater && !g_bElevated)
     {
-        TCHAR szRundll32[MAX_PATH] = TEXT("");
-        TCHAR szDllPath[MAX_PATH] = TEXT("");
-        TCHAR szArguments[MAX_PATH + 20] = TEXT("");
+        WCHAR szRundll32[MAX_PATH] = L"";
+        WCHAR szDllPath[MAX_PATH] = L"";
+        WCHAR szArguments[MAX_PATH + 20] = L"";
 
-        GetSystemDirectory(szRundll32, RTL_NUMBER_OF(szRundll32));
-        PathAppend(szRundll32, TEXT("\\rundll32.exe"));
+        GetSystemDirectoryW(szRundll32, RTL_NUMBER_OF(szRundll32));
+        PathAppendW(szRundll32, L"\\rundll32.exe");
 
-        GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
-        PathQuoteSpaces(szDllPath);
+        GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+        PathQuoteSpacesW(szDllPath);
 
-        wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s K_Process %lu"), szDllPath, dwProcessId);
+        wnsprintfW(szArguments, RTL_NUMBER_OF(szArguments), L"%s K_Process %lu", szDllPath, dwProcessId);
 
-        bRet = (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW) > 32;
+        bRet = (int)ShellExecuteW(NULL, L"runas", szRundll32, szArguments, NULL, SW_SHOW) > 32;
     }
 
     return bRet;
@@ -2107,27 +2107,27 @@ void WINAPI KillProcessByRundll32(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR
     }
 }
 
-BOOL GetProcessNameById(DWORD dwProcessId, TCHAR szProcessName[], DWORD dwBufferSize)
+BOOL GetProcessNameById(DWORD dwProcessId, WCHAR szProcessName[], DWORD dwBufferSize)
 {
     BOOL bRet = FALSE;
     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
     if (hSnapshot != NULL && hSnapshot != INVALID_HANDLE_VALUE)
     {
-        PROCESSENTRY32 pe32 = {sizeof(pe32)};
+        PROCESSENTRY32W pe32 = {sizeof(pe32)};
 
-        if (Process32First(hSnapshot, &pe32))
+        if (Process32FirstW(hSnapshot, &pe32))
         {
             do 
             {
                 if (pe32.th32ProcessID == dwProcessId)
                 {
-                    lstrcpyn(szProcessName, pe32.szExeFile, dwBufferSize);
+                    lstrcpynW(szProcessName, pe32.szExeFile, dwBufferSize);
                     bRet = TRUE;
                     break;
                 }
 
-            } while (Process32Next(hSnapshot, &pe32));
+            } while (Process32NextW(hSnapshot, &pe32));
         }
 
         CloseHandle(hSnapshot);
@@ -2192,16 +2192,16 @@ std::wstring GetStringFromFileMost4kBytes(LPCWSTR lpFilePath)
     return strResult;
 }
 
-tstring GetCurrentTimeString()
+wstring GetCurrentTimeString()
 {
-    TCHAR szTime[32] = TEXT("");
+    WCHAR szTime[32] = L"";
     SYSTEMTIME st;
 
     GetLocalTime(&st);
-    wnsprintf(
+    wnsprintfW(
         szTime,
         RTL_NUMBER_OF(szTime),
-        TEXT("%04u-%02u-%02u %02u:%02u:%02u.%03u"),
+        L"%04u-%02u-%02u %02u:%02u:%02u.%03u",
         st.wYear,
         st.wMonth,
         st.wDay,
@@ -2214,7 +2214,7 @@ tstring GetCurrentTimeString()
     return szTime;
 }
 
-tstring &AssignString(tstring &str, LPCTSTR lpText)
+wstring &AssignString(wstring &str, LPCWSTR lpText)
 {
     if (lpText != NULL)
     {
@@ -2228,9 +2228,9 @@ tstring &AssignString(tstring &str, LPCTSTR lpText)
     return str;
 }
 
-tstring GetDesktopName(HDESK hDesktop)
+wstring GetDesktopName(HDESK hDesktop)
 {
-    TCHAR szDesktopName[4096];
+    WCHAR szDesktopName[4096];
 
     GetUserObjectInformation(hDesktop, UOI_NAME, szDesktopName, sizeof(szDesktopName), NULL);
 
@@ -2240,9 +2240,9 @@ tstring GetDesktopName(HDESK hDesktop)
 std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess()
 {
     LOCAL_BEGIN;
-    static void GetDesktopWindows(LPCTSTR lpClassName, LPCTSTR lpWindowText, list<HWND> &listWindows)
+    static void GetDesktopWindows(LPCWSTR lpClassName, LPCWSTR lpWindowText, list<HWND> &listWindows)
     {
-        HWND hWindow = FindWindowEx(NULL, NULL, lpClassName, lpWindowText);
+        HWND hWindow = FindWindowExW(NULL, NULL, lpClassName, lpWindowText);
 
         while (IsWindow(hWindow))
         {
@@ -2255,32 +2255,32 @@ std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess()
                 listWindows.push_back(hWindow);
             }
 
-            hWindow = FindWindowEx(NULL, hWindow, lpClassName, lpWindowText);
+            hWindow = FindWindowExW(NULL, hWindow, lpClassName, lpWindowText);
         }
     }
     LOCAL_END;
 
     list<HWND> listWindows;
 
-    LOCAL GetDesktopWindows(TEXT("Progman"), TEXT("Program Manager"), listWindows);
-    LOCAL GetDesktopWindows(TEXT("WorkerW"), TEXT(""), listWindows);
+    LOCAL GetDesktopWindows(L"Progman", L"Program Manager", listWindows);
+    LOCAL GetDesktopWindows(L"WorkerW", L"", listWindows);
 
     return listWindows;
 }
 
-std::tstring RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, LPCTSTR lpDefaultData /*= TEXT("")*/)
+std::wstring RegGetString(HKEY hKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, LPCWSTR lpDefaultData /*= L""*/)
 {
     if (lpDefaultData == NULL)
     {
-        lpDefaultData = TEXT("");
+        lpDefaultData = L"";
     }
 
-    tstring strResult = lpDefaultData;
-    TCHAR szBuffer[4096] = TEXT("");
+    wstring strResult = lpDefaultData;
+    WCHAR szBuffer[4096] = L"";
     DWORD dwSize = sizeof(szBuffer);
     DWORD dwRegType = REG_NONE;
 
-    LSTATUS nResult = SHGetValue(hKey, lpRegPath, lpRegValue, &dwRegType, szBuffer, &dwSize);
+    LSTATUS nResult = SHGetValueW(hKey, lpRegPath, lpRegValue, &dwRegType, szBuffer, &dwSize);
 
     if (dwRegType != REG_SZ && dwRegType != REG_EXPAND_SZ)
     {
@@ -2291,12 +2291,12 @@ std::tstring RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, LPCT
     }
     else if (nResult == ERROR_MORE_DATA)
     {
-        TCHAR *lpBuffer = (TCHAR *)malloc(dwSize);
+        WCHAR *lpBuffer = (WCHAR *)malloc(dwSize);
 
         if (lpBuffer != NULL)
         {
             ZeroMemory(lpBuffer, dwSize);
-            SHGetValue(hKey, lpRegPath, lpRegValue, NULL, lpBuffer, &dwSize);
+            SHGetValueW(hKey, lpRegPath, lpRegValue, NULL, lpBuffer, &dwSize);
             strResult = lpBuffer;
             free(lpBuffer);
         }
@@ -2305,9 +2305,9 @@ std::tstring RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, LPCT
     return strResult;
 }
 
-LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResName, LPDWORD lpResSize /*= NULL*/)
+LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCWSTR lpResType, LPCWSTR lpResName, LPDWORD lpResSize /*= NULL*/)
 {
-    HRSRC hRes = FindResource(hInstance, lpResName, lpResType);
+    HRSRC hRes = FindResourceW(hInstance, lpResName, lpResType);
 
     if (hRes == NULL)
     {
@@ -2346,19 +2346,19 @@ void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel)
 
     if (htiBegin == NULL)
     {
-        htiBegin = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_ROOT, NULL);
+        htiBegin = (HTREEITEM)SendMessageW(hControl, TVM_GETNEXTITEM, TVGN_ROOT, NULL);
     }
 
-    SendMessage(hControl, TVM_EXPAND, TVE_EXPAND, (LPARAM)htiBegin);
+    SendMessageW(hControl, TVM_EXPAND, TVE_EXPAND, (LPARAM)htiBegin);
 
     if (nLevel > 1)
     {
-        HTREEITEM hChild = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)htiBegin);
+        HTREEITEM hChild = (HTREEITEM)SendMessageW(hControl, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)htiBegin);
 
         while (hChild != NULL)
         {
             ExpandTreeControlForLevel(hControl, hChild, nLevel - 1);
-            hChild = (HTREEITEM)SendMessage(hControl, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hChild);
+            hChild = (HTREEITEM)SendMessageW(hControl, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hChild);
         }
     }
 }
@@ -2524,7 +2524,7 @@ LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt)
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    BrowseForFile(TEXT("C:\\Windows\\system32\\cmd.exe"));
+    BrowseForFile(L"C:\\Windows\\system32\\cmd.exe");
 
     return ;
 }

@@ -4,6 +4,6 @@
 #include <Windows.h>
 
 int ShowDirShotcutMgr(HWND hwndParent);
-void AskForAddDirShotcut(HWND hwndParent, LPCTSTR lpDirPath, LPCTSTR lpNickName);
+void AskForAddDirShotcut(HWND hwndParent, LPCWSTR lpDirPath, LPCWSTR lpNickName);
 
 #endif /* _SLXCOMDIRSHORTCUT_H */

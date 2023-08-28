@@ -7,13 +7,13 @@
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 extern OSVERSIONINFO g_osi;     //SlxCom.cpp
-TCHAR CSlxComOverlay::m_szIconFilePath[] = TEXT("");
+WCHAR CSlxComOverlay::m_szIconFilePath[] = L"";
 DWORD CSlxComOverlay::m_dwIcoFileSize = 0;
 
 volatile
 HANDLE CSlxComOverlay::m_hTaskEvent = NULL;
-TCHAR  CSlxComOverlay::m_szTaskRegPath[1000] = TEXT("");
-SlxStringStatusCache CSlxComOverlay::m_cache(TEXT("Software\\Slx\\StringStatusCache"), IsExplorer());
+WCHAR  CSlxComOverlay::m_szTaskRegPath[1000] = L"";
+SlxStringStatusCache CSlxComOverlay::m_cache(L"Software\\Slx\\StringStatusCache", IsExplorer());
 
 CSlxComOverlay::CSlxComOverlay()
 {
@@ -29,7 +29,7 @@ STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
         }
         else
         {
-            HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+            HANDLE hEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
 
 #ifdef _WIN64
             if (InterlockedCompareExchange64((volatile LONGLONG *)&m_hTaskEvent, (LONGLONG)hEvent, NULL) == NULL)
@@ -37,7 +37,7 @@ STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
             if (InterlockedCompareExchange((volatile LONG *)&m_hTaskEvent, (LONG)hEvent, NULL) == NULL)
 #endif
             {
-                wnsprintf(m_szTaskRegPath, sizeof(m_szTaskRegPath) / sizeof(TCHAR), TEXT("Software\\Slx\\Tasks\\%lu"), GetCurrentProcessId());
+                wnsprintfW(m_szTaskRegPath, sizeof(m_szTaskRegPath) / sizeof(WCHAR), L"Software\\Slx\\Tasks\\%lu", GetCurrentProcessId());
 
                 HANDLE hThread = CreateThread(NULL, 0, CheckTaskProc, NULL, 0, NULL);
                 CloseHandle(hThread);
@@ -85,10 +85,10 @@ STDMETHODIMP_(ULONG) CSlxComOverlay::Release()
 //IShellIconOverlayIdentifier Method
 STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
-    TCHAR szString[MAX_PATH + 100];
+    WCHAR szString[MAX_PATH + 100];
     ULARGE_INTEGER uliFileSize = {0};
 
-    if(BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(TCHAR), &uliFileSize))
+    if(BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(WCHAR), &uliFileSize))
     {
         StringStatus ssValue = SS_0;
 
@@ -127,7 +127,7 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
                 }
                 else
                 {
-                    SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlen(pwszPath) + 1) * sizeof(TCHAR));
+                    SHSetTempValue(HKEY_CURRENT_USER, m_szTaskRegPath, szString, REG_SZ, pwszPath, (lstrlenW(pwszPath) + 1) * sizeof(WCHAR));
 
                     if (m_hTaskEvent != NULL)
                     {
@@ -147,12 +147,12 @@ STDMETHODIMP CSlxComOverlay::GetOverlayInfo(LPWSTR pwszIconFile, int cchMax, int
 {
     WIN32_FILE_ATTRIBUTE_DATA wfad;
 
-    if (!GetFileAttributesEx(m_szIconFilePath, GetFileExInfoStandard, &wfad) || wfad.nFileSizeLow != m_dwIcoFileSize)
+    if (!GetFileAttributesExW(m_szIconFilePath, GetFileExInfoStandard, &wfad) || wfad.nFileSizeLow != m_dwIcoFileSize)
     {
         GenericIconFile();
     }
 
-    lstrcpyn(pwszIconFile, m_szIconFilePath, cchMax);
+    lstrcpynW(pwszIconFile, m_szIconFilePath, cchMax);
 
     *pdwFlags = ISIOI_ICONFILE;
 
@@ -171,19 +171,19 @@ STDMETHODIMP CSlxComOverlay::GetPriority(int *pPriority)
 
 BOOL CSlxComOverlay::GenericIconFile()
 {
-    TCHAR szPath[MAX_PATH];
+    WCHAR szPath[MAX_PATH];
     WIN32_FILE_ATTRIBUTE_DATA wfaa;
 
-    GetTempPath(MAX_PATH, szPath);
-    PathAppend(szPath, TEXT("\\__SignMark_20120202.ico"));
+    GetTempPathW(MAX_PATH, szPath);
+    PathAppendW(szPath, L"\\__SignMark_20120202.ico");
 
-    if(SaveResourceToFile(TEXT("RT_FILE"), MAKEINTRESOURCE(IDR_ICON), szPath))
+    if(SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_ICON), szPath))
     {
-        if(GetFileAttributesEx(szPath, GetFileExInfoStandard, &wfaa))
+        if(GetFileAttributesExW(szPath, GetFileExInfoStandard, &wfaa))
         {
             if(wfaa.nFileSizeHigh == 0)
             {
-                lstrcpyn(m_szIconFilePath, szPath, MAX_PATH);
+                lstrcpynW(m_szIconFilePath, szPath, MAX_PATH);
                 m_dwIcoFileSize = wfaa.nFileSizeLow;
 
                 return TRUE;
@@ -194,11 +194,11 @@ BOOL CSlxComOverlay::GenericIconFile()
     return FALSE;
 }
 
-BOOL CSlxComOverlay::BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize)
+BOOL CSlxComOverlay::BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize)
 {
     WIN32_FILE_ATTRIBUTE_DATA wfad;
 
-    if(GetFileAttributesEx(lpFilePath, GetFileExInfoStandard, &wfad))
+    if(GetFileAttributesExW(lpFilePath, GetFileExInfoStandard, &wfad))
     {
         if((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
         {
@@ -207,7 +207,7 @@ BOOL CSlxComOverlay::BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int 
             uliSize.HighPart = wfad.nFileSizeHigh;
             uliSize.LowPart = wfad.nFileSizeLow;
 
-            wnsprintf(lpMark, nSize, TEXT("%s[%I64u]%I64u,%I64u"),
+            wnsprintfW(lpMark, nSize, L"%s[%I64u]%I64u,%I64u",
                 lpFilePath,
                 uliSize.QuadPart,
                 *(unsigned __int64 *)&wfad.ftCreationTime,
@@ -235,21 +235,21 @@ DWORD __stdcall CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
         {
             HKEY hKey = NULL;
 
-            if(ERROR_SUCCESS == RegOpenKeyEx(HKEY_CURRENT_USER, m_szTaskRegPath, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey))
+            if(ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, m_szTaskRegPath, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey))
             {
                 while(TRUE)
                 {
-                    TCHAR szFilePath[MAX_PATH] = TEXT("");
+                    WCHAR szFilePath[MAX_PATH] = L"";
                     DWORD dwFilePathSize = sizeof(szFilePath);
-                    TCHAR szValueName[MAX_PATH + 100] = TEXT("");
-                    DWORD dwValueNameSize = sizeof(szValueName) / sizeof(TCHAR);
+                    WCHAR szValueName[MAX_PATH + 100] = L"";
+                    DWORD dwValueNameSize = sizeof(szValueName) / sizeof(WCHAR);
                     DWORD dwRegType = REG_NONE;
 
-                    if(ERROR_SUCCESS == RegEnumValue(hKey, 0, szValueName, &dwValueNameSize, NULL, &dwRegType, (LPBYTE)szFilePath, &dwFilePathSize))
+                    if(ERROR_SUCCESS == RegEnumValueW(hKey, 0, szValueName, &dwValueNameSize, NULL, &dwRegType, (LPBYTE)szFilePath, &dwFilePathSize))
                     {
                         if(dwRegType == REG_SZ)
                         {
-                            if(PathFileExists(szFilePath))
+                            if(PathFileExistsW(szFilePath))
                             {
                                 if(IsFileSigned(szFilePath))
                                 {
@@ -262,7 +262,7 @@ DWORD __stdcall CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
                             }
                         }
 
-                        RegDeleteValue(hKey, szValueName);
+                        RegDeleteValueW(hKey, szValueName);
                     }
                     else
                     {

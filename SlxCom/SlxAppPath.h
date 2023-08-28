@@ -4,8 +4,8 @@
 #include <Windows.h>
 #include "lib/charconv.h"
 
-BOOL ModifyAppPath(LPCTSTR lpFilePath);
-BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD dwSize);
-std::tstring GetExistingAppPathCommand(LPCTSTR lpFilePath);
+BOOL ModifyAppPath(LPCWSTR lpFilePath);
+BOOL ModifyAppPath_GetFileCommand(LPCWSTR lpFilePath, WCHAR szCommand[], DWORD dwSize);
+std::wstring GetExistingAppPathCommand(LPCWSTR lpFilePath);
 
 #endif /* _SLXAPPPATH_H */

@@ -24,57 +24,57 @@ struct ListCtrlSortStruct
     int nSubItem;
 };
 
-VOID DrvAction(HWND hWindow, LPCTSTR lpFilePath, DRIVER_ACTION daValue);
-DWORD SHSetTempValue(HKEY hRootKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData);
-BOOL IsFileSigned(LPCTSTR lpFilePath);
-BOOL CombineFile(LPCTSTR lpRarPath, LPCTSTR lpJpgPath, LPTSTR lpResultPath, int nLength);
-BOOL SaveResourceToFile(LPCTSTR lpResType, LPCTSTR lpResName, LPCTSTR lpFilePath);
-LPCTSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
-BOOL SetClipboardText(LPCTSTR lpText);
-BOOL RunCommand(LPTSTR lpCommandLine, LPCTSTR lpCurrentDirectory = NULL);
-BOOL RunCommandWithArguments(LPCTSTR lpFile);
-BOOL RunCommandEx(LPCTSTR lpApplication, LPCTSTR lpArguments, LPCTSTR lpCurrentDirectory, BOOL bElevate);
-BOOL BrowseForRegPath(LPCTSTR lpRegPath);
-BOOL BrowseForFile(LPCTSTR lpFile);
+VOID DrvAction(HWND hWindow, LPCWSTR lpFilePath, DRIVER_ACTION daValue);
+DWORD SHSetTempValue(HKEY hRootKey, LPCWSTR pszSubKey, LPCWSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData);
+BOOL IsFileSigned(LPCWSTR lpFilePath);
+BOOL CombineFile(LPCWSTR lpRarPath, LPCWSTR lpJpgPath, LPWSTR lpResultPath, int nLength);
+BOOL SaveResourceToFile(LPCWSTR lpResType, LPCWSTR lpResName, LPCWSTR lpFilePath);
+LPCWSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
+BOOL SetClipboardText(LPCWSTR lpText);
+BOOL RunCommand(LPWSTR lpCommandLine, LPCWSTR lpCurrentDirectory = NULL);
+BOOL RunCommandWithArguments(LPCWSTR lpFile);
+BOOL RunCommandEx(LPCWSTR lpApplication, LPCWSTR lpArguments, LPCWSTR lpCurrentDirectory, BOOL bElevate);
+BOOL BrowseForRegPath(LPCWSTR lpRegPath);
+BOOL BrowseForFile(LPCWSTR lpFile);
 BOOL IsExplorer();
-BOOL TryUnescapeFileName(LPCTSTR lpFilePath, TCHAR szUnescapedFilePath[], int nSize);
-BOOL ResolveShortcut(LPCTSTR lpLinkFilePath, TCHAR szResolvedPath[], UINT nSize);
-// BOOL RegisterClipboardFile(LPCTSTR lpFileList, BOOL bCopy);
+BOOL TryUnescapeFileName(LPCWSTR lpFilePath, WCHAR szUnescapedFilePath[], int nSize);
+BOOL ResolveShortcut(LPCWSTR lpLinkFilePath, WCHAR szResolvedPath[], UINT nSize);
+// BOOL RegisterClipboardFile(LPCWSTR lpFileList, BOOL bCopy);
 VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode);
-int MessageBoxFormat(HWND hWindow, LPCTSTR lpCaption, UINT uType, LPCTSTR lpFormat, ...);
+int MessageBoxFormat(HWND hWindow, LPCWSTR lpCaption, UINT uType, LPCWSTR lpFormat, ...);
 BOOL EnableDebugPrivilege(BOOL bEnable);
-BOOL IsFileDenyed(LPCTSTR lpFilePath);
+BOOL IsFileDenyed(LPCWSTR lpFilePath);
 BOOL CloseRemoteHandle(DWORD dwProcessId, HANDLE hRemoteHandle);
-BOOL IsSameFilePath(LPCTSTR lpFilePath1, LPCTSTR lpFilePath2);
-BOOL IsPathDesktop(LPCTSTR lpPath);
+BOOL IsSameFilePath(LPCWSTR lpFilePath1, LPCWSTR lpFilePath2);
+BOOL IsPathDesktop(LPCWSTR lpPath);
 BOOL IsWow64ProcessHelper(HANDLE hProcess);
 BOOL DisableWow64FsRedirection();
 BOOL ResetExplorer();
-BOOL SetClipboardPicturePathsByHtml(LPCTSTR lpPaths);
-void SafeDebugMessage(LPCTSTR pFormat, ...);
-HKEY ParseRegPath(LPCTSTR lpWholePath, LPCTSTR *lppRegPath);
-BOOL IsRegPathExists(HKEY hRootKey, LPCTSTR lpRegPath);
-BOOL TouchRegPath(HKEY hRootKey, LPCTSTR lpRegPath);
+BOOL SetClipboardPicturePathsByHtml(LPCWSTR lpPaths);
+void SafeDebugMessage(LPCWSTR pFormat, ...);
+HKEY ParseRegPath(LPCWSTR lpWholePath, LPCWSTR *lppRegPath);
+BOOL IsRegPathExists(HKEY hRootKey, LPCWSTR lpRegPath);
+BOOL TouchRegPath(HKEY hRootKey, LPCWSTR lpRegPath);
 HFONT GetMenuDefaultFont();
-UINT GetDrawTextSizeInDc(HDC hdc, LPCTSTR lpText, UINT *puHeight);
-BOOL PathCompactPathHelper(HDC hdc, LPTSTR lpText, UINT dx);
+UINT GetDrawTextSizeInDc(HDC hdc, LPCWSTR lpText, UINT *puHeight);
+BOOL PathCompactPathHelper(HDC hdc, LPWSTR lpText, UINT dx);
 HWND GetTrayNotifyWndInProcess();
-BOOL GetVersionString(HINSTANCE hModule, TCHAR szVersionString[], int nSize);
+BOOL GetVersionString(HINSTANCE hModule, WCHAR szVersionString[], int nSize);
 BOOL IsAdminMode();
 BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite);
 HICON GetWindowIcon(HWND hWindow);
 HICON GetWindowIconSmall(HWND hWindow);
-DWORD RegGetDWORD(HKEY hRootKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, DWORD dwDefault);
+DWORD RegGetDWORD(HKEY hRootKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, DWORD dwDefault);
 DWORD CheckMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bChecked);
 DWORD EnableMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bEnabled);
 BOOL IsWindowTopMost(HWND hWindow);
-unsigned __int64 StrToInt64Def(LPCTSTR lpString, unsigned __int64 nDefault);
+unsigned __int64 StrToInt64Def(LPCWSTR lpString, unsigned __int64 nDefault);
 BOOL AdvancedSetForegroundWindow(HWND hWindow);
-BOOL GetWindowImageFileName(HWND hWindow, LPTSTR lpBuffer, UINT uBufferSize);
+BOOL GetWindowImageFileName(HWND hWindow, LPWSTR lpBuffer, UINT uBufferSize);
 BOOL IsWindowFullScreen(HWND hWindow);
 BOOL KillProcess(DWORD dwProcessId);
-BOOL GetProcessNameById(DWORD dwProcessId, TCHAR szProcessName[], DWORD dwBufferSize);
-LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCTSTR lpResType, LPCTSTR lpResName, LPDWORD lpResSize = NULL);
+BOOL GetProcessNameById(DWORD dwProcessId, WCHAR szProcessName[], DWORD dwBufferSize);
+LPCVOID GetResourceBuffer(HINSTANCE hInstance, LPCWSTR lpResType, LPCWSTR lpResName, LPDWORD lpResSize = NULL);
 void ExpandTreeControlForLevel(HWND hControl, HTREEITEM htiBegin, int nLevel);
 bool IsPathDirectoryW(LPCWSTR lpPath);
 bool IsPathFileW(LPCWSTR lpPath);
@@ -97,17 +97,17 @@ BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue);
 bool DumpStringToFile(const std::wstring &strText, LPCWSTR lpFilePath);
 std::wstring GetStringFromFileMost4kBytes(LPCWSTR lpFilePath);
 
-std::tstring GetCurrentTimeString();
-std::tstring &AssignString(std::tstring &str, LPCTSTR lpText);
-std::tstring GetDesktopName(HDESK hDesktop);
+std::wstring GetCurrentTimeString();
+std::wstring &AssignString(std::wstring &str, LPCWSTR lpText);
+std::wstring GetDesktopName(HDESK hDesktop);
 std::string GetFriendlyFileSizeA(unsigned __int64 nSize);
 std::wstring fmtW(const wchar_t *fmt, ...);
 LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt);
 
 template <class T>
-std::tstring AnyTypeToString(const T &value)
+std::wstring AnyTypeToString(const T &value)
 {
-    std::tstringstream ss;
+    std::wstringstream ss;
 
     ss<<value;
 
@@ -115,7 +115,7 @@ std::tstring AnyTypeToString(const T &value)
 }
 
 template <>
-inline std::tstring AnyTypeToString(const std::tstring &value)
+inline std::wstring AnyTypeToString(const std::wstring &value)
 {
     return value;
 }
@@ -174,7 +174,7 @@ void Replace(std::basic_string<T> &str, const std::basic_string<T> &old_str, con
 
 std::list<HWND> GetDoubtfulDesktopWindowsInSelfProcess();
 
-std::tstring RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, LPCTSTR lpDefaultData = TEXT(""));
+std::wstring RegGetString(HKEY hKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, LPCWSTR lpDefaultData = L"");
 
 //////////////////////////////////////////////////////////////////////////
 #define LOCAL_BEGIN class __Local           \

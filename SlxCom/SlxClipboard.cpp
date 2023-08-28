@@ -3,7 +3,7 @@
 
 extern HINSTANCE g_hinstDll; // SlxCom.cpp
 
-#define DLG_CAPTION TEXT("Clipboard viewer in SlxCom tools")
+#define DLG_CAPTION L"Clipboard viewer in SlxCom tools"
 
 static HACCEL g_hAccel = NULL;
 static HWND g_hwndDlg = NULL;
@@ -12,12 +12,12 @@ static void On_WM_INITDIALOG(HWND hwndDlg)
 {
     g_hwndDlg = hwndDlg;
 
-    HICON hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+    HICON hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
 
-    SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 
-    SetWindowText(hwndDlg, DLG_CAPTION);
+    SetWindowTextW(hwndDlg, DLG_CAPTION);
 }
 
 static void On_WM_COMMAND(int id)
@@ -25,7 +25,7 @@ static void On_WM_COMMAND(int id)
     switch (id)
     {
     case ID_REFRESH:
-        MessageBox(g_hwndDlg, NULL, NULL, MB_ICONEXCLAMATION);
+        MessageBoxW(g_hwndDlg, NULL, NULL, MB_ICONEXCLAMATION);
         break;
 
     default:
@@ -62,9 +62,9 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
 void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int nCmdShow)
 {
-    if (IsWindow(FindWindow(TEXT("#32770"), DLG_CAPTION)))
+    if (IsWindow(FindWindowW(L"#32770", DLG_CAPTION)))
     {
-        if (IDYES != MessageBox(hwndStub, DLG_CAPTION TEXT("已在运行，是否要打开新实例？"), TEXT("信息"), MB_ICONQUESTION | MB_DEFBUTTON2))
+        if (IDYES != MessageBoxW(hwndStub, DLG_CAPTION L"已在运行，是否要打开新实例？", L"信息", MB_ICONQUESTION | MB_DEFBUTTON2))
         {
             return;
         }
@@ -82,7 +82,7 @@ void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int 
 
     if (hAccel != NULL)
     {
-        HWND hDialog = CreateDialog(g_hinstDll, MAKEINTRESOURCE(IDD_CLIPBOARD_DIALOG), NULL, DlgProc);
+        HWND hDialog = CreateDialogW(g_hinstDll, MAKEINTRESOURCEW(IDD_CLIPBOARD_DIALOG), NULL, DlgProc);
 
         if (IsWindow(hDialog))
         {
@@ -92,7 +92,7 @@ void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int 
 
             while (TRUE)
             {
-                int nRet = GetMessage(&msg, NULL, 0, 0);
+                int nRet = GetMessageW(&msg, NULL, 0, 0);
 
                 if (nRet <= 0)
                 {
@@ -101,10 +101,10 @@ void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int 
 
                 TranslateAccelerator(hDialog, hAccel, &msg);
 
-                if (!IsDialogMessage(hDialog, &msg))
+                if (!IsDialogMessageW(hDialog, &msg))
                 {
                     TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                    DispatchMessageW(&msg);
                 }
             }
         }

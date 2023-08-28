@@ -35,14 +35,14 @@ protected:
     DWORD GetCacheSize() const;
     static DWORD __stdcall AutoCleanThread(LPVOID lpParam);
     BOOL IsCleaning() const ;
-    BOOL UpdateCache(LPCTSTR lpString, StringStatus ssValue);
+    BOOL UpdateCache(LPCWSTR lpString, StringStatus ssValue);
 
 public:
-    BOOL CheckCache(LPCTSTR lpString, StringStatus *pssValue);
-    BOOL AddCache(LPCTSTR lpString, StringStatus ssValue);
+    BOOL CheckCache(LPCWSTR lpString, StringStatus *pssValue);
+    BOOL AddCache(LPCWSTR lpString, StringStatus ssValue);
 
 public:
-    SlxStringStatusCache(LPCTSTR lpRegPath, BOOL bAutoClean = FALSE);
+    SlxStringStatusCache(LPCWSTR lpRegPath, BOOL bAutoClean = FALSE);
     ~SlxStringStatusCache();
 };
 

@@ -27,13 +27,13 @@ static INT_PTR __stdcall PeInfoDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
         //设定对话框图标
         if(hIcon == NULL)
         {
-            hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+            hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
         if(hIcon != NULL)
         {
-            SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-            SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
 
         //
@@ -42,28 +42,28 @@ static INT_PTR __stdcall PeInfoDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
         ListView_SetExtendedListViewStyleEx(hHandleList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
         //
-        LVCOLUMN col = {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT};
+        LVCOLUMNW col = {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT};
 
         col.fmt = LVCFMT_LEFT;
 
         col.cx = 45;
-        col.pszText = TEXT("#");
+        col.pszText = L"#";
         ListView_InsertColumn(hHandleList, LVH_INDEX, &col);
 
         col.cx = 75;
-        col.pszText = TEXT("文件路径");
+        col.pszText = L"文件路径";
         ListView_InsertColumn(hHandleList, LVH_PROCESSID, &col);
 
         col.cx = 80;
-        col.pszText = TEXT("进程映像");
+        col.pszText = L"进程映像";
         ListView_InsertColumn(hHandleList, LVH_PROCESSNAME, &col);
 
         col.cx = 75;
-        col.pszText = TEXT("句柄值");
+        col.pszText = L"句柄值";
         ListView_InsertColumn(hHandleList, LVH_HANDLEVALUE, &col);
 
         col.cx = 220;
-        col.pszText = TEXT("文件路径");
+        col.pszText = L"文件路径";
         ListView_InsertColumn(hHandleList, LVH_FILEPATH, &col);
 
         //
@@ -77,11 +77,11 @@ static INT_PTR __stdcall PeInfoDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
         {
             if (nArgc > 0)
             {
-                TCHAR szFilePath[MAX_PATH];
+                WCHAR szFilePath[MAX_PATH];
 
                 for (int nIndex = 0; nIndex < nArgc; nIndex += 1)
                 {
-                    wnsprintf(szFilePath, _countof(szFilePath), TEXT("%ls"), lpArgv[nIndex]);
+                    wnsprintfW(szFilePath, _countof(szFilePath), L"%ls", lpArgv[nIndex]);
 
                 }
             }
@@ -105,5 +105,5 @@ static INT_PTR __stdcall PeInfoDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
 VOID SlxPeInfoW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpCmdLine, int nShow)
 {
     DisableWow64FsRedirection();
-    DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_PEINFO), hwndStub, PeInfoDlgProc, (LPARAM)lpCmdLine);
+    DialogBoxParamW(g_hinstDll, MAKEINTRESOURCEW(IDD_PEINFO), hwndStub, PeInfoDlgProc, (LPARAM)lpCmdLine);
 }

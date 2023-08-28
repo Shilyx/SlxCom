@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define PAINTVIEWWND_CLASS      TEXT("__slx_paintViewWnd_20131122")
+#define PAINTVIEWWND_CLASS      L"__slx_paintViewWnd_20131122"
 
 static enum PaintMethod
 {
@@ -155,8 +155,8 @@ private:
     void Show() const
     {
         extern HINSTANCE g_hinstDll; //SlxCom.cpp
-        WNDCLASSEX wcex = {sizeof(wcex)};
-        HWND hSameWnd = FindWindow(PAINTVIEWWND_CLASS, PAINTVIEWWND_CLASS);
+        WNDCLASSEXW wcex = {sizeof(wcex)};
+        HWND hSameWnd = FindWindowW(PAINTVIEWWND_CLASS, PAINTVIEWWND_CLASS);
 
         if (IsWindow(hSameWnd))
         {
@@ -164,14 +164,14 @@ private:
         }
 
         wcex.lpszClassName = PAINTVIEWWND_CLASS;
-        wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wcex.hCursor = LoadCursorW(NULL, IDC_ARROW);
         wcex.hInstance = g_hinstDll;
         wcex.lpfnWndProc = WndProc;
         wcex.style = CS_HREDRAW | CS_VREDRAW;
 
-        RegisterClassEx(&wcex);
+        RegisterClassExW(&wcex);
 
-        HWND hPaintViewWnd = CreateWindowEx(
+        HWND hPaintViewWnd = CreateWindowExW(
             WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
             PAINTVIEWWND_CLASS,
             PAINTVIEWWND_CLASS,
@@ -193,7 +193,7 @@ private:
 
         while (TRUE)
         {
-            int nRet = GetMessage(&msg, NULL, 0, 0);
+            int nRet = GetMessageW(&msg, NULL, 0, 0);
 
             if (nRet <= 0)
             {
@@ -201,7 +201,7 @@ private:
             }
 
             TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            DispatchMessageW(&msg);
         }
     }
 
@@ -410,7 +410,7 @@ void WINAPI SlxPaintView(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdL
     }
     else
     {
-        MessageBox(hwndStub, TEXT("½ØÈ¡×ÀÃæ±³¾°Ê§°Ü"), NULL, MB_ICONERROR | MB_SYSTEMMODAL);
+        MessageBoxW(hwndStub, L"½ØÈ¡×ÀÃæ±³¾°Ê§°Ü", NULL, MB_ICONERROR | MB_SYSTEMMODAL);
     }
 
     SelectObject(hMemDc, hOldBmp);

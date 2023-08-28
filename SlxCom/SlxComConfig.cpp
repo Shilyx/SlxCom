@@ -6,11 +6,11 @@
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
-#define SC_REGPATH  TEXT("Software\\Shilyx Studio\\SlxCom\\Config")
+#define SC_REGPATH  L"Software\\Shilyx Studio\\SlxCom\\Config"
 
 BOOL RefreshControls(HWND hwndDlg)
 {
-    BOOL bEnableOverlayIcon = SendDlgItemMessage(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    BOOL bEnableOverlayIcon = SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
     EnableWindow(GetDlgItem(hwndDlg, IDC_ASYNC_OVERLAYICON), bEnableOverlayIcon);
 
@@ -24,19 +24,19 @@ BOOL LoadOption(HWND hwndDlg)
     DWORD dwSize;
 
     dwSize = sizeof(bEnableOverlayIcon);
-    SHGetValue(HKEY_CURRENT_USER, SC_REGPATH, TEXT("IDC_ENABLE_OVERLAYICON"), NULL, &bEnableOverlayIcon, &dwSize);
+    SHGetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ENABLE_OVERLAYICON", NULL, &bEnableOverlayIcon, &dwSize);
 
     if(bEnableOverlayIcon)
     {
-        SendDlgItemMessage(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
+        SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
     }
 
     dwSize = sizeof(bAsyncOverlayIcon);
-    SHGetValue(HKEY_CURRENT_USER, SC_REGPATH, TEXT("IDC_ASYNC_OVERLAYICON"), NULL, &bAsyncOverlayIcon, &dwSize);
+    SHGetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ASYNC_OVERLAYICON", NULL, &bAsyncOverlayIcon, &dwSize);
 
     if(bAsyncOverlayIcon)
     {
-        SendDlgItemMessage(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
+        SendDlgItemMessageW(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
     }
 
     return RefreshControls(hwndDlg);
@@ -44,11 +44,11 @@ BOOL LoadOption(HWND hwndDlg)
 
 BOOL SaveOption(HWND hwndDlg)
 {
-    BOOL bEnableOverlayIcon = SendDlgItemMessage(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
-    BOOL bAsyncOverlayIcon = SendDlgItemMessage(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    BOOL bEnableOverlayIcon = SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    BOOL bAsyncOverlayIcon = SendDlgItemMessageW(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
-    SHSetValue(HKEY_CURRENT_USER, SC_REGPATH, TEXT("IDC_ENABLE_OVERLAYICON"), REG_DWORD, &bEnableOverlayIcon, sizeof(bEnableOverlayIcon));
-    SHSetValue(HKEY_CURRENT_USER, SC_REGPATH, TEXT("IDC_ASYNC_OVERLAYICON"), REG_DWORD, &bAsyncOverlayIcon, sizeof(bAsyncOverlayIcon));
+    SHSetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ENABLE_OVERLAYICON", REG_DWORD, &bEnableOverlayIcon, sizeof(bEnableOverlayIcon));
+    SHSetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ASYNC_OVERLAYICON", REG_DWORD, &bAsyncOverlayIcon, sizeof(bAsyncOverlayIcon));
 
     return FALSE;
 }
@@ -91,7 +91,7 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
         break;
 
     case WM_INITDIALOG:
-        SetClassLongPtr(hwndDlg, GCLP_HICON, (LONG_PTR)LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON)));
+        SetClassLongPtr(hwndDlg, GCLP_HICON, (LONG_PTR)LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON)));
 
         LoadOption(hwndDlg);
 
@@ -106,5 +106,5 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
 
 void WINAPI SlxComConfig(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
-    DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_CONFIG_DIALOG), hwndStub, (DLGPROC)SlxComConfigDlgProc, NULL);
+    DialogBoxParamW(g_hinstDll, MAKEINTRESOURCEW(IDD_CONFIG_DIALOG), hwndStub, (DLGPROC)SlxComConfigDlgProc, NULL);
 }

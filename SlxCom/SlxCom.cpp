@@ -22,11 +22,11 @@ using namespace std;
 #error Need UNICODE & _UNICODE pre-defined
 #endif
 
-#define APPNAME TEXT("SlxAddin")
+#define APPNAME L"SlxAddin"
 
 // {191B1456-2DC2-41a7-A3FA-AC4D017889DA}
 DEFINE_GUID(GUID_SLXCOM, 0x191b1456, 0x2dc2, 0x41a7, 0xa3, 0xfa, 0xac, 0x4d, 0x1, 0x78, 0x89, 0xda);
-static LPCTSTR g_lpGuidSlxCom = TEXT("{191B1456-2DC2-41a7-A3FA-AC4D017889DA}");
+static LPCWSTR g_lpGuidSlxCom = L"{191B1456-2DC2-41a7-A3FA-AC4D017889DA}";
 
 HINSTANCE g_hinstDll = NULL;
 WCHAR g_szSlxComDllFullPath[MAX_PATH] = L"";              // slxcom.dll完整路径
@@ -60,19 +60,19 @@ BOOL g_bDebugMode = FALSE;                                  // 调试模式，dll文件
 
 DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
 {
-    TCHAR szLastPath[MAX_PATH];
+    WCHAR szLastPath[MAX_PATH];
     DWORD dwType = REG_NONE;
     DWORD dwSize = sizeof(szLastPath);
 
-    SHGetValue(HKEY_CURRENT_USER,
-        TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPath"),
+    SHGetValueW(HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"SlxLastPath",
         &dwType, szLastPath, &dwSize);
 
     if(dwType == REG_SZ)
     {
         WaitForInputIdle(GetCurrentProcess(), INFINITE);
 
-        if(PathFileExists(szLastPath))
+        if(PathFileExistsW(szLastPath))
         {
             BrowseForFile(szLastPath);
         }
@@ -224,7 +224,7 @@ bool operator==(const POINT &pt1, const POINT &pt2)
 
 DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
 {
-//     MessageBox(NULL, NULL, NULL, MB_ICONERROR | MB_TOPMOST);
+//     MessageBoxW(NULL, NULL, NULL, MB_ICONERROR | MB_TOPMOST);
     while (true)
     {
         HWND hListView = GetDesktopListViewWnd();
@@ -246,7 +246,7 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
             continue;
         }
 
-        SafeDebugMessage(TEXT("找到了ListView %p"), hListView);
+        SafeDebugMessage(L"找到了ListView %p", hListView);
 
         ModifyStyle(hListView, LVS_AUTOARRANGE, 0);
         ModifyExStyle(hListView, LVS_EX_SNAPTOGRID, 0);
@@ -265,7 +265,7 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
             }
         }
 
-        SafeDebugMessage(TEXT("CellSize：%d\n"), nCellSize);
+        SafeDebugMessage(L"CellSize：%d\n", nCellSize);
 
         ModifyStyle(hListView, 0, LVS_AUTOARRANGE);
         ModifyExStyle(hListView, 0, LVS_EX_SNAPTOGRID);
@@ -287,7 +287,7 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
                 SetListViewIconPositions(hListView, vectorShouldBePositions);
             }
 
-            if (IsDebuggerPresent() && MessageBox(NULL, NULL, NULL, MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
+            if (IsDebuggerPresent() && MessageBoxW(NULL, NULL, NULL, MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
             {
                 DebugBreak();
             }
@@ -358,15 +358,15 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
                 DWORD dwType = REG_NONE;
                 DWORD dwTickCount = GetTickCount();
 
-                SHGetValue(HKEY_CURRENT_USER,
-                    TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"), TEXT("SlxLastPathTime"),
+                SHGetValueW(HKEY_CURRENT_USER,
+                    L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"SlxLastPathTime",
                     &dwType, &dwLastPathTime, &dwSize);
 
                 if(dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000)
                 {
-                    SHDeleteValue(HKEY_CURRENT_USER,
-                        TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer"),
-                        TEXT("SlxLastPathTime"));
+                    SHDeleteValueW(HKEY_CURRENT_USER,
+                        L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+                        L"SlxLastPathTime");
 
                     HANDLE hOpenLastPathThread = CreateThread(NULL, 0, OpenLastPathProc, NULL, 0, NULL);
                     CloseHandle(hOpenLastPathThread);
@@ -391,26 +391,26 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
             SafeDebugMessage(L"SlxCom 启用Debug模式\n");
         }
 
-        g_hInstallBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_INSTALL));
-        g_hUninstallBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNINSTALL));
-        g_hCombineBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COMBINE));
-        g_hCopyFullPathBmp          = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COPYFULLPATH));
-        g_hAddToCopyBmp             = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCOPY));
-        g_hAddToCutBmp              = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_ADDTOCUT));
-        g_hTryRunBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUN));
-        g_hTryRunWithArgumentsBmp   = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_TRYRUNWITHARGUMENTS));
-        g_hRunCmdHereBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_RUNCMDHERE));
-        g_hOpenWithNotepadBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_OPENWITHNOTEPAD));
-        g_hKillExplorerBmp          = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_KILLEXPLORER));
-        g_hManualCheckSignatureBmp  = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_CHECKSIGNATURE));
-        g_hUnescapeBmp              = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNESCAPE));
-        g_hAppPathBmp               = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_APPPATH));
-        g_hDriverBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_DRIVER));
-        g_hUnlockFileBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_UNLOCKFILE));
-        g_hCopyPictureHtmlBmp       = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_COPY_PICTURE_HTML));
-        g_hCreateLinkBmp            = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_CREATELINK));
-        g_hEdfBmp                   = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_EDF));
-        g_hLocateBmp                = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_LOCATE));
+        g_hInstallBmp               = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_INSTALL));
+        g_hUninstallBmp             = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_UNINSTALL));
+        g_hCombineBmp               = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_COMBINE));
+        g_hCopyFullPathBmp          = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_COPYFULLPATH));
+        g_hAddToCopyBmp             = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_ADDTOCOPY));
+        g_hAddToCutBmp              = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_ADDTOCUT));
+        g_hTryRunBmp                = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_TRYRUN));
+        g_hTryRunWithArgumentsBmp   = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_TRYRUNWITHARGUMENTS));
+        g_hRunCmdHereBmp            = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_RUNCMDHERE));
+        g_hOpenWithNotepadBmp       = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_OPENWITHNOTEPAD));
+        g_hKillExplorerBmp          = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_KILLEXPLORER));
+        g_hManualCheckSignatureBmp  = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CHECKSIGNATURE));
+        g_hUnescapeBmp              = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_UNESCAPE));
+        g_hAppPathBmp               = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_APPPATH));
+        g_hDriverBmp                = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_DRIVER));
+        g_hUnlockFileBmp            = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_UNLOCKFILE));
+        g_hCopyPictureHtmlBmp       = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_COPY_PICTURE_HTML));
+        g_hCreateLinkBmp            = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CREATELINK));
+        g_hEdfBmp                   = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_EDF));
+        g_hLocateBmp                = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_LOCATE));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);
@@ -453,30 +453,30 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
     {
         if(bInstall)
         {
-            TCHAR szCommand[MAX_PATH + 100];
-            TCHAR szDllPath[MAX_PATH];
+            WCHAR szCommand[MAX_PATH + 100];
+            WCHAR szDllPath[MAX_PATH];
 
-            GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
+            GetModuleFileNameW(g_hinstDll, szDllPath, MAX_PATH);
 
-            wnsprintf(
+            wnsprintfW(
                 szCommand,
-                sizeof(szCommand) / sizeof(TCHAR),
-                TEXT("rundll32 \"%s\" BrowserLinkFilePosition \"%%1\""),
+                sizeof(szCommand) / sizeof(WCHAR),
+                L"rundll32 \"%s\" BrowserLinkFilePosition \"%%1\"",
                 szDllPath
                 );
 
-            return SHSetValue(
+            return SHSetValueW(
                 HKEY_CLASSES_ROOT,
-                TEXT("lnkfile\\shell\\打开文件位置(&B)\\command"),
+                L"lnkfile\\shell\\打开文件位置(&B)\\command",
                 NULL,
                 REG_SZ,
                 szCommand,
-                (lstrlen(szCommand) + 1) * sizeof(TCHAR)
+                (lstrlenW(szCommand) + 1) * sizeof(WCHAR)
                 );
         }
         else
         {
-            return SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("lnkfile\\shell\\打开文件位置(&B)"));
+            return SHDeleteKeyW(HKEY_CLASSES_ROOT, L"lnkfile\\shell\\打开文件位置(&B)");
         }
     }
 
@@ -490,72 +490,72 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
 // 自动删除原有的99_SlxAddin标记。安装和卸载时都自动调用
 static void Ensure__99_SlxAddin__NotExists()
 {
-    TCHAR szRegPath[1024];
+    WCHAR szRegPath[1024];
     int nSumValue = 0;
 
-    wnsprintf(szRegPath, RTL_NUMBER_OF(szRegPath),
-        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s"),
+    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s",
         APPNAME);
 
-    SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+    SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 }
 
 STDAPI DllRegisterServer(void)
 {
-    TCHAR szRegPath[1000];
-    TCHAR szDllPath[MAX_PATH];
+    WCHAR szRegPath[1000];
+    WCHAR szDllPath[MAX_PATH];
     int nSumValue = 0;
 
-    GetModuleFileName(g_hinstDll, szDllPath, MAX_PATH);
+    GetModuleFileNameW(g_hinstDll, szDllPath, MAX_PATH);
     Ensure__99_SlxAddin__NotExists();
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("*\\shellex\\PropertySheetHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"*\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\shellex\\PropertySheetHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"*\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\shellex\\DragDropHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\shellex\\DragDropHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\Background\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Drive\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, TEXT("dllfile\\ShellEx\\IconHandler"), NULL, REG_SZ, g_lpGuidSlxCom, (lstrlen(g_lpGuidSlxCom) + 1) * sizeof(TCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, L"dllfile\\ShellEx\\IconHandler", NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("CLSID\\%s\\InprocServer32"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"CLSID\\%s\\InprocServer32",
         g_lpGuidSlxCom);
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlen(szDllPath) + 1) * sizeof(TCHAR));
-    nSumValue += !!SHSetValue(HKEY_CLASSES_ROOT, szRegPath, TEXT("ThreadingModel"), REG_SZ, TEXT("Apartment"), 20);
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlenW(szDllPath) + 1) * sizeof(WCHAR));
+    nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, L"ThreadingModel", REG_SZ, L"Apartment", 20);
 
     nSumValue += !!ConfigBrowserLinkFilePosition(TRUE);
 
@@ -563,26 +563,26 @@ STDAPI DllRegisterServer(void)
     {
         if (g_osi.dwMajorVersion >= 6 && !g_bElevated)
         {
-            if (IDYES == MessageBox(
+            if (IDYES == MessageBoxW(
                 NULL,
-                TEXT("注册未完全成功，是否尝试以管理员方式注册？\r\n\r\n")
-                TEXT("您也可以手动尝试以管理员方式运行regsvr32程序来解决问题。\r\n")
-                TEXT("点击“是”尝试以管理员方式运行注册工具。"),
+                L"注册未完全成功，是否尝试以管理员方式注册？\r\n\r\n"
+                L"您也可以手动尝试以管理员方式运行regsvr32程序来解决问题。\r\n"
+                L"点击“是”尝试以管理员方式运行注册工具。",
 #ifdef _WIN64
-                TEXT("注册SlxCom 64位"),
+                L"注册SlxCom 64位",
 #else
-                TEXT("注册SlxCom 32位"),
+                L"注册SlxCom 32位",
 #endif
                 MB_YESNOCANCEL | MB_ICONQUESTION
                 ))
             {
-                TCHAR szRegSvr32[MAX_PATH];
+                WCHAR szRegSvr32[MAX_PATH];
 
-                GetSystemDirectory(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
-                PathAppend(szRegSvr32, TEXT("\\regsvr32.exe"));
-                PathQuoteSpaces(szDllPath);
+                GetSystemDirectoryW(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
+                PathAppendW(szRegSvr32, L"\\regsvr32.exe");
+                PathQuoteSpacesW(szDllPath);
 
-                ShellExecute(NULL, TEXT("runas"), szRegSvr32, szDllPath, NULL, SW_SHOW);
+                ShellExecuteW(NULL, L"runas", szRegSvr32, szDllPath, NULL, SW_SHOW);
             }
 
             ExitProcess(0);
@@ -598,57 +598,57 @@ STDAPI DllRegisterServer(void)
 
 STDAPI DllUnregisterServer(void)
 {
-    TCHAR szRegPath[1000];
+    WCHAR szRegPath[1000];
     int nSumValue = 0;
 
     Ensure__99_SlxAddin__NotExists();
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("*\\shellex\\PropertySheetHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"*\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\shellex\\PropertySheetHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\shellex\\DragDropHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\shellex\\DragDropHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("*\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"*\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Directory\\Background\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Directory\\Background\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("Drive\\shellex\\ContextMenuHandlers\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"Drive\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintf(szRegPath, sizeof(szRegPath) / sizeof(TCHAR),
-        TEXT("CLSID\\%s"),
+    wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
+        L"CLSID\\%s",
         g_lpGuidSlxCom);
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, szRegPath);
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    nSumValue += !!SHDeleteKey(HKEY_CLASSES_ROOT, TEXT("dllfile\\ShellEx\\IconHandler"));
+    nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, L"dllfile\\ShellEx\\IconHandler");
 
     nSumValue += !!ConfigBrowserLinkFilePosition(FALSE);
 
@@ -656,30 +656,30 @@ STDAPI DllUnregisterServer(void)
     {
         if (g_osi.dwMajorVersion >= 6 && !g_bElevated)
         {
-            if (IDYES == MessageBox(
+            if (IDYES == MessageBoxW(
                 NULL,
-                TEXT("卸载未完全成功，是否尝试以管理员方式卸载？\r\n\r\n")
-                TEXT("您也可以手动尝试以管理员方式运行regsvr32程序来解决问题。\r\n")
-                TEXT("点击“是”尝试以管理员方式运行卸载工具。"),
+                L"卸载未完全成功，是否尝试以管理员方式卸载？\r\n\r\n"
+                L"您也可以手动尝试以管理员方式运行regsvr32程序来解决问题。\r\n"
+                L"点击“是”尝试以管理员方式运行卸载工具。",
 #ifdef _WIN64
-                TEXT("卸载SlxCom 64位"),
+                L"卸载SlxCom 64位",
 #else
-                TEXT("卸载SlxCom 32位"),
+                L"卸载SlxCom 32位",
 #endif
                 MB_YESNOCANCEL | MB_ICONQUESTION
                 ))
             {
-                TCHAR szRegSvr32[MAX_PATH];
-                TCHAR szDllPath[MAX_PATH + 20];
+                WCHAR szRegSvr32[MAX_PATH];
+                WCHAR szDllPath[MAX_PATH + 20];
 
-                GetSystemDirectory(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
-                PathAppend(szRegSvr32, TEXT("\\regsvr32.exe"));
+                GetSystemDirectoryW(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
+                PathAppendW(szRegSvr32, L"\\regsvr32.exe");
 
-                GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
-                PathQuoteSpaces(szDllPath);
-                StrCatBuff(szDllPath, TEXT(" /u"), RTL_NUMBER_OF(szDllPath));
+                GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+                PathQuoteSpacesW(szDllPath);
+                StrCatBuffW(szDllPath, L" /u", RTL_NUMBER_OF(szDllPath));
 
-                ShellExecute(NULL, TEXT("runas"), szRegSvr32, szDllPath, NULL, SW_SHOW);
+                ShellExecuteW(NULL, L"runas", szRegSvr32, szDllPath, NULL, SW_SHOW);
             }
 
             ExitProcess(0);

@@ -24,11 +24,11 @@ DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam)
     }
     else
     {
-        map<tstring, HWND> *pMapPaths = (map<tstring, HWND> *)lpParam;
+        map<wstring, HWND> *pMapPaths = (map<wstring, HWND> *)lpParam;
 
         if(pMapPaths != NULL && !pMapPaths->empty())
         {
-            map<tstring, HWND>::iterator it = pMapPaths->begin();
+            map<wstring, HWND>::iterator it = pMapPaths->begin();
             HWND hTargetWindow = it->second;
             DWORD dwFileIndex = 0;
 
@@ -38,14 +38,14 @@ DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam)
                 {
                     BOOL bSigned = FALSE;
 
-                    if(PathFileExists(it->first.c_str()))
+                    if(PathFileExistsW(it->first.c_str()))
                     {
-                        TCHAR szString[MAX_PATH + 100];
+                        WCHAR szString[MAX_PATH + 100];
 
                         if(CSlxComOverlay::BuildFileMarkString(
                             it->first.c_str(),
                             szString,
-                            sizeof(szString) / sizeof(TCHAR)
+                            sizeof(szString) / sizeof(WCHAR)
                             ))
                         {
                             if(IsFileSigned(it->first.c_str()))
@@ -63,7 +63,7 @@ DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam)
 
                     if(IsWindow(hTargetWindow))
                     {
-                        PostMessage(hTargetWindow, WM_SIGNRESULT, dwFileIndex, bSigned);
+                        PostMessageW(hTargetWindow, WM_SIGNRESULT, dwFileIndex, bSigned);
                     }
                     else
                     {
@@ -84,21 +84,21 @@ DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam)
 static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
     ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;
-    TCHAR szText1[1000] = TEXT("");
-    TCHAR szText2[1000] = TEXT("");
+    WCHAR szText1[1000] = L"";
+    WCHAR szText2[1000] = L"";
 
-    ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(TCHAR));
-    ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(TCHAR));
+    ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(WCHAR));
+    ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(WCHAR));
 
-    if(lstrcmp(szText1, szText2) == 0)
+    if(lstrcmpW(szText1, szText2) == 0)
     {
         return 0;
     }
 
     if(pLcss->nSubItem == LVH_INDEX)
     {
-        int n1 = StrToInt(szText1);
-        int n2 = StrToInt(szText2);
+        int n1 = StrToIntW(szText1);
+        int n2 = StrToIntW(szText2);
 
         if(n1 > n2)
         {
@@ -111,11 +111,11 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     }
     else if(pLcss->nSubItem == LVH_PATH)
     {
-        return lstrcmp(szText1, szText2) * pLcss->nRet;
+        return lstrcmpW(szText1, szText2) * pLcss->nRet;
     }
     else if(pLcss->nSubItem == LVH_RESULT)
     {
-        return lstrcmp(szText1, szText2) * pLcss->nRet;
+        return lstrcmpW(szText1, szText2) * pLcss->nRet;
     }
     else
     {
@@ -134,45 +134,45 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
         //设定对话框图标
         if(hIcon == NULL)
         {
-            hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+            hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
         if(hIcon != NULL)
         {
-            SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-            SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
 
         //设置全选风格
         ListView_SetExtendedListViewStyleEx(hFileList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
         //填充列表
-        LVCOLUMN col = {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT};
+        LVCOLUMNW col = {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT};
 
         col.fmt = LVCFMT_LEFT;
 
         col.cx = 35;
-        col.pszText = TEXT("#");
+        col.pszText = L"#";
         ListView_InsertColumn(hFileList, LVH_INDEX, &col);
 
         col.cx = 345;
-        col.pszText = TEXT("路径");
+        col.pszText = L"路径";
         ListView_InsertColumn(hFileList, LVH_PATH, &col);
 
         col.cx = 50;
-        col.pszText = TEXT("结果");
+        col.pszText = L"结果";
         ListView_InsertColumn(hFileList, LVH_RESULT, &col);
 
         //开始启动校验过程
-        map<tstring, HWND> *pMapPaths = (map<tstring, HWND> *)lParam;
+        map<wstring, HWND> *pMapPaths = (map<wstring, HWND> *)lParam;
 
         if(pMapPaths != NULL && !pMapPaths->empty())
         {
             //填充列表
-            TCHAR szText[1000];
+            WCHAR szText[1000];
             DWORD dwIndex = 0;
-            LVITEM item = {LVIF_TEXT};
-            map<tstring, HWND>::iterator it = pMapPaths->begin();
+            LVITEMW item = {LVIF_TEXT};
+            map<wstring, HWND>::iterator it = pMapPaths->begin();
 
             it->second = hwndDlg;
 
@@ -181,21 +181,21 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
                 item.iItem = dwIndex;
                 item.pszText = szText;
 
-                wnsprintf(szText, sizeof(szText) / sizeof(TCHAR), TEXT("%lu"), dwIndex + 1);
+                wnsprintfW(szText, sizeof(szText) / sizeof(WCHAR), L"%lu", dwIndex + 1);
                 ListView_InsertItem(hFileList, &item);
 
-                lstrcpyn(szText, it->first.c_str(), sizeof(szText) / sizeof(TCHAR));
+                lstrcpynW(szText, it->first.c_str(), sizeof(szText) / sizeof(WCHAR));
                 ListView_SetItemText(hFileList, dwIndex, LVH_PATH, szText);
 
-                lstrcpyn(szText, TEXT(""), sizeof(szText) / sizeof(TCHAR));
+                lstrcpynW(szText, L"", sizeof(szText) / sizeof(WCHAR));
                 ListView_SetItemText(hFileList, dwIndex, LVH_RESULT, szText);
             }
 
             //记录总文件个数
-            TCHAR szWindowText[100];
+            WCHAR szWindowText[100];
 
-            wnsprintf(szWindowText, sizeof(szWindowText) / sizeof(TCHAR), TEXT("校验数字签名 0/%lu(0.00%%)"), pMapPaths->size());
-            SetWindowText(hwndDlg, szWindowText);
+            wnsprintfW(szWindowText, sizeof(szWindowText) / sizeof(WCHAR), L"校验数字签名 0/%lu(0.00%%)", pMapPaths->size());
+            SetWindowTextW(hwndDlg, szWindowText);
 
             //开始校验
             extern volatile HANDLE m_hManualCheckSignatureThread; //Slx
@@ -218,20 +218,20 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
         {
             static DWORD dwTimeStamp = 0;
 
-            TCHAR szText[100];
-            TCHAR *szTimeStr[] = {
-                TEXT("◤"),
-                TEXT("◥"),
-                TEXT("◢"),
-                TEXT("◣")
+            WCHAR szText[100];
+            WCHAR *szTimeStr[] = {
+                L"◤",
+                L"◥",
+                L"◢",
+                L"◣"
             };
             HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
 
             for(int nIndex = 0; nIndex < ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST)); nIndex += 1)
             {
-                ListView_GetItemText(hFileList, nIndex, LVH_RESULT, szText, sizeof(szText) / sizeof(TCHAR));
+                ListView_GetItemText(hFileList, nIndex, LVH_RESULT, szText, sizeof(szText) / sizeof(WCHAR));
 
-                if(lstrlen(szText) <= 1)
+                if(lstrlenW(szText) <= 1)
                 {
                     ListView_SetItemText(
                         hFileList,
@@ -261,17 +261,17 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
                 }
                 else if(CDDS_ITEMPREPAINT == lpNMCustomDraw->nmcd.dwDrawStage)
                 {
-                    TCHAR szResult[100] = TEXT("");
+                    WCHAR szResult[100] = L"";
 
                     ListView_GetItemText(
                         hFileList,
                         lpNMCustomDraw->nmcd.dwItemSpec,
                         LVH_RESULT,
                         szResult,
-                        sizeof(szResult) / sizeof(TCHAR)
+                        sizeof(szResult) / sizeof(WCHAR)
                         );
 
-                    if(lstrcmpi(szResult, TEXT("已签名")) == 0)
+                    if(lstrcmpiW(szResult, L"已签名") == 0)
                     {
                         lpNMCustomDraw->clrText = RGB(0, 0, 255);
                     }
@@ -307,7 +307,7 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
                 lcss.hListCtrl = hFileList;
                 lcss.nSubItem = lpNmListView->iSubItem;
 
-                LVITEM item = {LVIF_PARAM};
+                LVITEMW item = {LVIF_PARAM};
 
                 for(int nIndex = 0; nIndex < ListView_GetItemCount(hFileList); nIndex += 1)
                 {
@@ -322,17 +322,17 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
             else if(lpNmHdr->code == NM_DBLCLK)
             {
                 LPNMITEMACTIVATE lpNmItemActivate = (LPNMITEMACTIVATE)lParam;
-                TCHAR szFilePath[MAX_PATH] = TEXT("");
+                WCHAR szFilePath[MAX_PATH] = L"";
 
-                ListView_GetItemText(hFileList, lpNmItemActivate->iItem, LVH_PATH, szFilePath, sizeof(szFilePath) / sizeof(TCHAR));
+                ListView_GetItemText(hFileList, lpNmItemActivate->iItem, LVH_PATH, szFilePath, sizeof(szFilePath) / sizeof(WCHAR));
 
-                if(PathFileExists(szFilePath))
+                if(PathFileExistsW(szFilePath))
                 {
                     BrowseForFile(szFilePath);
                 }
                 else
                 {
-                    MessageBox(hwndDlg, TEXT("文件不存在，无法定位。"), NULL, MB_ICONERROR);
+                    MessageBoxW(hwndDlg, L"文件不存在，无法定位。", NULL, MB_ICONERROR);
                 }
             }
         }
@@ -393,28 +393,28 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
     }
     else if(uMsg == WM_SIGNRESULT)
     {
-        TCHAR szIndex[100];
-        TCHAR szIndexInList[100];
-        TCHAR szResult[100];
+        WCHAR szIndex[100];
+        WCHAR szIndexInList[100];
+        WCHAR szResult[100];
         HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
         int nCount = ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST));
 
         //更新列表状态
-        wnsprintf(szIndex, sizeof(szIndex) / sizeof(TCHAR), TEXT("%lu"), wParam + 1);
+        wnsprintfW(szIndex, sizeof(szIndex) / sizeof(WCHAR), L"%lu", wParam + 1);
 
         for(int nIndex = 0; nIndex < nCount; nIndex += 1)
         {
-            ListView_GetItemText(hFileList, nIndex, LVH_INDEX, szIndexInList, sizeof(szIndexInList) / sizeof(TCHAR));
+            ListView_GetItemText(hFileList, nIndex, LVH_INDEX, szIndexInList, sizeof(szIndexInList) / sizeof(WCHAR));
 
-            if(lstrcmpi(szIndexInList, szIndex) == 0)
+            if(lstrcmpiW(szIndexInList, szIndex) == 0)
             {
                 if((BOOL)lParam)
                 {
-                    lstrcpyn(szResult, TEXT("已签名"), sizeof(szResult) / sizeof(TCHAR));
+                    lstrcpynW(szResult, L"已签名", sizeof(szResult) / sizeof(WCHAR));
                 }
                 else
                 {
-                    lstrcpyn(szResult, TEXT("未签名"), sizeof(szResult) / sizeof(TCHAR));
+                    lstrcpynW(szResult, L"未签名", sizeof(szResult) / sizeof(WCHAR));
                 }
 
                 ListView_SetItemText(hFileList, nIndex, LVH_RESULT, szResult);
@@ -425,19 +425,19 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
         }
 
         //更新标题
-        TCHAR szWindowText[100];
+        WCHAR szWindowText[100];
 
-        wnsprintf(
+        wnsprintfW(
             szWindowText,
-            sizeof(szWindowText) / sizeof(TCHAR),
-            TEXT("校验数字签名 %lu/%lu(%lu.%02lu%%)"),
+            sizeof(szWindowText) / sizeof(WCHAR),
+            L"校验数字签名 %lu/%lu(%lu.%02lu%%)",
             wParam + 1,
             nCount,
             (wParam + 1) * 100 / nCount,
             (wParam + 1) * 100 * 100 / nCount % 100
             );
 
-        SetWindowText(hwndDlg, szWindowText);
+        SetWindowTextW(hwndDlg, szWindowText);
     }
 
     return bDlgProcResult;

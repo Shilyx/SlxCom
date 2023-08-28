@@ -3,6 +3,6 @@
 
 #include <Windows.h>
 
-BOOL PeIsCOMModule(LPCTSTR lpFilePath);
+BOOL PeIsCOMModule(LPCWSTR lpFilePath);
 
 #endif // _SLXCOMPETOOLS_H

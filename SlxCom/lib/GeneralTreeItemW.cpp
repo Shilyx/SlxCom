@@ -20,7 +20,7 @@ namespace Internal
         tvis.hParent = hTreeParentItem;
         tvis.hInsertAfter = TVI_LAST;
 
-        HTREEITEM hTreeItem = (HTREEITEM)SendMessage(hTreeCtrl, TVM_INSERTITEM, 0, (LPARAM)&tvis);
+        HTREEITEM hTreeItem = (HTREEITEM)SendMessageW(hTreeCtrl, TVM_INSERTITEM, 0, (LPARAM)&tvis);
 
         if (hTreeItem == NULL)
         {
@@ -59,7 +59,7 @@ namespace Internal
             pChild = pChild->next_sibling();
         }
 
-//         PostMessage(hTreeCtrl, TVM_EXPAND, TVE_EXPAND, (LPARAM)hTreeItem);
+//         PostMessageW(hTreeCtrl, TVM_EXPAND, TVE_EXPAND, (LPARAM)hTreeItem);
 
         return TRUE;
     }

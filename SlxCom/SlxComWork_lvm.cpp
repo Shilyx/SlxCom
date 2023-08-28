@@ -4,7 +4,7 @@
 
 #pragma comment(lib, "ComCtl32.lib")
 
-LPCTSTR szClassName = TEXT("_______Slx___RnMgr___65_1");
+LPCWSTR szClassName = L"_______Slx___RnMgr___65_1";
 static WNDPROC lpOldEditProc = NULL;
 static WNDPROC lpOldListViewProc = NULL;
 
@@ -12,20 +12,20 @@ INT_PTR GetDotIndex(HWND hEdit)
 {
     if (IsWindow(hEdit))
     {
-        TCHAR szWindowText[1000] = TEXT("");
-        int nTextLength = GetWindowText(hEdit, szWindowText, RTL_NUMBER_OF(szWindowText));
+        WCHAR szWindowText[1000] = L"";
+        int nTextLength = GetWindowTextW(hEdit, szWindowText, RTL_NUMBER_OF(szWindowText));
 
-        INT_PTR nTar = (INT_PTR)StrRStrI(szWindowText, NULL, TEXT(".tar."));
-        INT_PTR nDot = (INT_PTR)StrRChr(szWindowText, NULL, TEXT('.'));
+        INT_PTR nTar = (INT_PTR)StrRStrIW(szWindowText, NULL, L".tar.");
+        INT_PTR nDot = (INT_PTR)StrRChrW(szWindowText, NULL, L'.');
 
-        if (nTar != NULL && nDot - nTar == 4 * sizeof(TCHAR))
+        if (nTar != NULL && nDot - nTar == 4 * sizeof(WCHAR))
         {
-            return (nTar - (INT_PTR)szWindowText) / sizeof(TCHAR);
+            return (nTar - (INT_PTR)szWindowText) / sizeof(WCHAR);
         }
 
         if (nDot != NULL)
         {
-            return (nDot - (INT_PTR)szWindowText) / sizeof(TCHAR);
+            return (nDot - (INT_PTR)szWindowText) / sizeof(WCHAR);
         }
     }
 
@@ -39,14 +39,14 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         if (wParam == VK_F2)
         {
             HWND hParent = GetParent(hwnd);
-            TCHAR szParentClassName[100] = TEXT("");
+            WCHAR szParentClassName[100] = L"";
 
             if (IsWindow(hParent))
             {
-                GetClassName(hParent, szParentClassName, RTL_NUMBER_OF(szParentClassName));
+                GetClassNameW(hParent, szParentClassName, RTL_NUMBER_OF(szParentClassName));
 
-                if (lstrcmpi(szParentClassName, TEXT("SysListView32")) == 0 ||
-                    lstrcmpi(szParentClassName, TEXT("CtrlNotifySink")) == 0
+                if (lstrcmpiW(szParentClassName, L"SysListView32") == 0 ||
+                    lstrcmpiW(szParentClassName, L"CtrlNotifySink") == 0
                     )
                 {
                     INT_PTR nDotIndex = GetDotIndex(hwnd);
@@ -58,16 +58,16 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                         switch (dwUserData)
                         {
                         case 0:
-                            SendMessage(hwnd, EM_SETSEL, 0, -1);
+                            SendMessageW(hwnd, EM_SETSEL, 0, -1);
                             break;
                         case 1:
-                            SendMessage(hwnd, EM_SETSEL, nDotIndex, -1);
+                            SendMessageW(hwnd, EM_SETSEL, nDotIndex, -1);
                             break;
                         case 2:
-                            SendMessage(hwnd, EM_SETSEL, nDotIndex + 1, -1);
+                            SendMessageW(hwnd, EM_SETSEL, nDotIndex + 1, -1);
                             break;
                         case 3:
-                            SendMessage(hwnd, EM_SETSEL, 0, nDotIndex);
+                            SendMessageW(hwnd, EM_SETSEL, 0, nDotIndex);
                             break;
                         default:
                             break;
@@ -93,7 +93,7 @@ LRESULT WINAPI NewListViewWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
         if (nDotIndex != -1)
         {
-            PostMessage(hEdit, EM_SETSEL, 0, nDotIndex);
+            PostMessageW(hEdit, EM_SETSEL, 0, nDotIndex);
         }
 
         return (LRESULT)hEdit;
@@ -106,14 +106,14 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
 {
     if(lpOldListViewProc == NULL)
     {
-        WNDCLASSEX wcex = {sizeof(wcex)};
+        WNDCLASSEXW wcex = {sizeof(wcex)};
 
-        TCHAR szText[300] = TEXT("SlxCom::LvmInit Called By ");
+        WCHAR szText[300] = L"SlxCom::LvmInit Called By ";
 
-        GetModuleFileName(GetModuleHandle(NULL), szText + lstrlen(szText), MAX_PATH);
-        lstrcat(szText, TEXT("\r\n"));
+        GetModuleFileNameW(GetModuleHandleW(NULL), szText + lstrlenW(szText), MAX_PATH);
+        lstrcatW(szText, L"\r\n");
 
-        OutputDebugString(szText);
+        OutputDebugStringW(szText);
 
         InitCommonControls();
 
@@ -121,14 +121,14 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
         wcex.lpszClassName = szClassName;
         wcex.lpfnWndProc = DefWindowProc;
 
-        RegisterClassEx(&wcex);
+        RegisterClassExW(&wcex);
 
-        HWND hWindow = CreateWindowEx(0, szClassName, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 100, 100,
+        HWND hWindow = CreateWindowExW(0, szClassName, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 100, 100,
             NULL, NULL, NULL, NULL);
 
         if(IsWindow(hWindow))
         {
-            HWND hEdit = CreateWindowEx(0, TEXT("Edit"), NULL, WS_CHILD, 10, 10, 10, 10, hWindow, NULL, NULL, NULL);
+            HWND hEdit = CreateWindowExW(0, L"Edit", NULL, WS_CHILD, 10, 10, 10, 10, hWindow, NULL, NULL, NULL);
 
             if (IsWindow(hEdit))
             {
@@ -136,14 +136,14 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
 
                 SetClassLongPtr(hEdit, GCLP_WNDPROC, (LONG_PTR)NewEditWindowProc);
 
-//                 TCHAR szText[1000];
-//                 wsprintf(szText, TEXT("SlxCom::Edit:老：%x 新：%x"), lpOldEditProc, GetClassLongPtr(hEdit, GCLP_WNDPROC));
-//                 OutputDebugString(szText);
+//                 WCHAR szText[1000];
+//                 wsprintf(szText, L"SlxCom::Edit:老：%x 新：%x", lpOldEditProc, GetClassLongPtr(hEdit, GCLP_WNDPROC));
+//                 OutputDebugStringW(szText);
             }
 
             if (bIsXpOrEarlier)
             {
-                HWND hList = CreateWindowEx(0, TEXT("SysListView32"), NULL, WS_CHILD, 0, 0, 10, 10, hWindow, NULL, NULL, NULL);
+                HWND hList = CreateWindowExW(0, L"SysListView32", NULL, WS_CHILD, 0, 0, 10, 10, hWindow, NULL, NULL, NULL);
 
                 if(IsWindow(hList))
                 {
@@ -151,9 +151,9 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
 
                     SetClassLongPtr(hList, GCLP_WNDPROC, (LONG_PTR)NewListViewWindowProc);
 
-//                     TCHAR szText[1000];
-//                     wsprintf(szText, TEXT("SlxCom::ListView:老：%x 新：%x"), lpOldListViewProc, GetClassLongPtr(hList, GCLP_WNDPROC));
-//                     OutputDebugString(szText);
+//                     WCHAR szText[1000];
+//                     wsprintf(szText, L"SlxCom::ListView:老：%x 新：%x", lpOldListViewProc, GetClassLongPtr(hList, GCLP_WNDPROC));
+//                     OutputDebugStringW(szText);
                 }
             }
 

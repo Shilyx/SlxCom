@@ -32,12 +32,12 @@ public:
 
             m_oldWndProc_ListCtrl = (WNDPROC)SetWindowLongPtr(m_hListCtrl, GWLP_WNDPROC, (LONG_PTR)newWindowProc_ListCtrl);
             SetTimer(m_hListCtrl, TI_AUTOHIDE, 1001, NULL);
-            SetProp(m_hListCtrl, TEXT("CDbClickListener"), (HANDLE)this);
+            SetPropW(m_hListCtrl, L"CDbClickListener", (HANDLE)this);
 
             if (IsWindow(m_hShellDll))
             {
                 m_oldWndProc_ShellDll = (WNDPROC)SetWindowLongPtr(m_hShellDll, GWLP_WNDPROC, (LONG_PTR)newWindowProc_ShellDll);
-                SetProp(m_hShellDll, TEXT("CDbClickListener"), (HANDLE)this);
+                SetPropW(m_hShellDll, L"CDbClickListener", (HANDLE)this);
             }
         }
     }
@@ -47,14 +47,14 @@ public:
         if (IsWindow(m_hListCtrl))
         {
             SetWindowLongPtr(m_hListCtrl, GWLP_WNDPROC, (LONG_PTR)m_oldWndProc_ListCtrl);
-            RemoveProp(m_hListCtrl, TEXT("CDbClickListener"));
+            RemovePropW(m_hListCtrl, L"CDbClickListener");
             KillTimer(m_hListCtrl, TI_AUTOHIDE);
         }
 
         if (IsWindow(m_hShellDll))
         {
             SetWindowLongPtr(m_hShellDll, GWLP_WNDPROC, (LONG_PTR)m_oldWndProc_ShellDll);
-            RemoveProp(m_hShellDll, TEXT("CDbClickListener"));
+            RemovePropW(m_hShellDll, L"CDbClickListener");
         }
     }
 
@@ -65,7 +65,7 @@ private:
 
         if (IsWindow(hwnd))
         {
-            return SendMessage(hwnd, LVM_HITTEST, 0, (LPARAM)&info);
+            return SendMessageW(hwnd, LVM_HITTEST, 0, (LPARAM)&info);
         }
 
         return -1;
@@ -73,7 +73,7 @@ private:
 
     static LRESULT CALLBACK newWindowProc_ListCtrl(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        CMButtonUpListener *pDbClickListener = (CMButtonUpListener *)GetProp(hwnd, TEXT("CDbClickListener"));
+        CMButtonUpListener *pDbClickListener = (CMButtonUpListener *)GetPropW(hwnd, L"CDbClickListener");
 
         if (pDbClickListener != NULL && pDbClickListener->m_hListCtrl == hwnd)
         {
@@ -115,7 +115,7 @@ private:
 
     static LRESULT CALLBACK newWindowProc_ShellDll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        CMButtonUpListener *pDbClickListener = (CMButtonUpListener *)GetProp(hwnd, TEXT("CDbClickListener"));
+        CMButtonUpListener *pDbClickListener = (CMButtonUpListener *)GetPropW(hwnd, L"CDbClickListener");
 
         if (pDbClickListener != NULL && hwnd == pDbClickListener->m_hShellDll)
         {
@@ -155,15 +155,15 @@ static HWND GetDesktopListView()
 
     for (list<HWND>::iterator it = listDesktopWindows.begin(); it != listDesktopWindows.end(); ++it)
     {
-        HWND hSHELLDLL_DefView = FindWindowEx(*it, NULL, TEXT("SHELLDLL_DefView"), TEXT(""));
+        HWND hSHELLDLL_DefView = FindWindowExW(*it, NULL, L"SHELLDLL_DefView", L"");
 
         if (IsWindow(hSHELLDLL_DefView))
         {
-            HWND hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), TEXT("FolderView"));
+            HWND hSysListView32 = FindWindowExW(hSHELLDLL_DefView, NULL, L"SysListView32", L"FolderView");
 
             if (!IsWindow(hSysListView32))
             {
-                hSysListView32 = FindWindowEx(hSHELLDLL_DefView, NULL, TEXT("SysListView32"), NULL);
+                hSysListView32 = FindWindowExW(hSHELLDLL_DefView, NULL, L"SysListView32", NULL);
             }
 
             if (IsWindow(hSysListView32))

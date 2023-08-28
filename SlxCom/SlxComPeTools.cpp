@@ -232,7 +232,7 @@ static UINT WINAPI _PeRVAToFileOffset(void* lpMem, UINT rva, LPSTR sectionName, 
     return offset;
 }
 
-BOOL PeIsCOMModule(LPCTSTR fileName)
+BOOL PeIsCOMModule(LPCWSTR fileName)
 {
     BOOL bRet = FALSE;
     PFILE_MAPPING_STRUCT pfms = NULL;

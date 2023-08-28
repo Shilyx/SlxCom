@@ -11,12 +11,12 @@ using namespace std;
 #define SSC_MAXSIZE     20000
 #define SSC_CLEANTOSIZE 10000
 
-SlxStringStatusCache::SlxStringStatusCache(LPCTSTR lpRegPath, BOOL bAutoClean)
+SlxStringStatusCache::SlxStringStatusCache(LPCWSTR lpRegPath, BOOL bAutoClean)
 {
     m_bAutoClean = bAutoClean;
     m_hThreadClean = NULL;
 
-    RegCreateKeyEx(HKEY_CURRENT_USER, lpRegPath, 0, NULL, REG_OPTION_VOLATILE, KEY_QUERY_VALUE | KEY_SET_VALUE, NULL, &m_hRegKey, NULL);
+    RegCreateKeyExW(HKEY_CURRENT_USER, lpRegPath, 0, NULL, REG_OPTION_VOLATILE, KEY_QUERY_VALUE | KEY_SET_VALUE, NULL, &m_hRegKey, NULL);
 }
 
 SlxStringStatusCache::~SlxStringStatusCache(void)
@@ -72,11 +72,11 @@ DWORD __stdcall SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
             {
                 dwStringMaxSize += 100;
 
-                TCHAR *szString = new TCHAR[dwStringMaxSize];
+                WCHAR *szString = new WCHAR[dwStringMaxSize];
 
                 if(szString != NULL)
                 {
-                    multimap<DWORD, tstring> mapAllStrings;
+                    multimap<DWORD, wstring> mapAllStrings;
 
                     while(TRUE)
                     {
@@ -85,7 +85,7 @@ DWORD __stdcall SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
                         DWORD dwData = 0;
                         DWORD dwDataSize = sizeof(dwData);
 
-                        if(ERROR_SUCCESS == RegEnumValue(hRegKey, dwIndex, szString, &dwStringSize, NULL, &dwRegType, (LPBYTE)&dwData, &dwDataSize))
+                        if(ERROR_SUCCESS == RegEnumValueW(hRegKey, dwIndex, szString, &dwStringSize, NULL, &dwRegType, (LPBYTE)&dwData, &dwDataSize))
                         {
                             mapAllStrings.insert(make_pair(dwData, szString));
                         }
@@ -102,7 +102,7 @@ DWORD __stdcall SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
                     if(mapAllStrings.size() > SSC_MAXSIZE)
                     {
                         DWORD dwCount = (DWORD)mapAllStrings.size() - SSC_MAXSIZE;
-                        multimap<DWORD, tstring>::iterator it = mapAllStrings.begin();
+                        multimap<DWORD, wstring>::iterator it = mapAllStrings.begin();
 
                         for(dwIndex = 0; dwIndex < dwCount; dwIndex += 1, it++)
                         {
@@ -111,7 +111,7 @@ DWORD __stdcall SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
                                 break;
                             }
 
-                            RegDeleteValue(hRegKey, it->second.c_str());
+                            RegDeleteValueW(hRegKey, it->second.c_str());
                         }
                     }
                 }
@@ -141,19 +141,19 @@ BOOL SlxStringStatusCache::IsCleaning() const
     return FALSE;
 }
 
-BOOL SlxStringStatusCache::UpdateCache(LPCTSTR lpString, StringStatus ssValue)
+BOOL SlxStringStatusCache::UpdateCache(LPCWSTR lpString, StringStatus ssValue)
 {
     if(m_hRegKey != NULL)
     {
         DWORD dwData = (GetTickCount() & ~(DWORD)SS_MASK) | ssValue;
 
-        return ERROR_SUCCESS == RegSetValueEx(m_hRegKey, lpString, 0, REG_DWORD, (LPCBYTE)&dwData, sizeof(dwData));
+        return ERROR_SUCCESS == RegSetValueExW(m_hRegKey, lpString, 0, REG_DWORD, (LPCBYTE)&dwData, sizeof(dwData));
     }
 
     return FALSE;
 }
 
-BOOL SlxStringStatusCache::CheckCache(LPCTSTR lpString, StringStatus *pssValue)
+BOOL SlxStringStatusCache::CheckCache(LPCWSTR lpString, StringStatus *pssValue)
 {
     DWORD dwRegData = 0;
     DWORD dwRegType = REG_NONE;
@@ -161,15 +161,15 @@ BOOL SlxStringStatusCache::CheckCache(LPCTSTR lpString, StringStatus *pssValue)
 
     if(m_hRegKey != NULL)
     {
-        if(ERROR_SUCCESS == RegQueryValueEx(m_hRegKey, lpString, NULL, &dwRegType, (LPBYTE)&dwRegData, &dwDataSize))
+        if(ERROR_SUCCESS == RegQueryValueExW(m_hRegKey, lpString, NULL, &dwRegType, (LPBYTE)&dwRegData, &dwDataSize))
         {
             *pssValue = (StringStatus)(dwRegData & SS_MASK);
 
 // #ifdef _DEBUG
-//             TCHAR szDebugText[1000];
+//             WCHAR szDebugText[1000];
 // 
-//             wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!命中%s\r\n"), lpString);
-//             OutputDebugString(szDebugText);
+//             wnsprintfW(szDebugText, sizeof(szDebugText) / sizeof(WCHAR), L"SlxCom!命中%s\r\n", lpString);
+//             OutputDebugStringW(szDebugText);
 // #endif
 
             return UpdateCache(lpString, *pssValue);
@@ -179,7 +179,7 @@ BOOL SlxStringStatusCache::CheckCache(LPCTSTR lpString, StringStatus *pssValue)
     return FALSE;
 }
 
-BOOL SlxStringStatusCache::AddCache(LPCTSTR lpString, StringStatus ssValue)
+BOOL SlxStringStatusCache::AddCache(LPCWSTR lpString, StringStatus ssValue)
 {
     if(m_hRegKey)
     {
@@ -194,7 +194,7 @@ BOOL SlxStringStatusCache::AddCache(LPCTSTR lpString, StringStatus ssValue)
                 if(hCopyedKey != NULL)
                 {
 #ifdef _DEBUG
-                    OutputDebugString(TEXT("SlxCom!开始清理\r\n"));
+                    OutputDebugStringW(L"SlxCom!开始清理\r\n");
 #endif
 
                     m_hThreadClean = CreateThread(NULL, 0, AutoCleanThread, (LPVOID)hCopyedKey, 0, NULL);
@@ -204,10 +204,10 @@ BOOL SlxStringStatusCache::AddCache(LPCTSTR lpString, StringStatus ssValue)
     }
 
 // #ifdef _DEBUG
-//     TCHAR szDebugText[1000];
+//     WCHAR szDebugText[1000];
 // 
-//     wnsprintf(szDebugText, sizeof(szDebugText) / sizeof(TCHAR), TEXT("SlxCom!添加%s\r\n"), lpString);
-//     OutputDebugString(szDebugText);
+//     wnsprintfW(szDebugText, sizeof(szDebugText) / sizeof(WCHAR), L"SlxCom!添加%s\r\n", lpString);
+//     OutputDebugStringW(szDebugText);
 // #endif
 
     return UpdateCache(lpString, ssValue);

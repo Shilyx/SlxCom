@@ -4,7 +4,7 @@
 #include "SlxComTools.h"
 #include "resource.h"
 
-#define CLASS_NAME TEXT("__SlxTimePlateClass_20150912")
+#define CLASS_NAME L"__SlxTimePlateClass_20150912"
 
 static volatile LONG g_bEnabled = FALSE;
 static HANDLE g_hWorkThread = NULL;
@@ -36,13 +36,13 @@ public:
         m_hMemBmp = CreateCompatibleBitmap(hScreenDc, MAX_PIXEL, MAX_PIXEL);
         m_hOldBmp = SelectObject(m_hMemDc, m_hMemBmp);
 
-        LOGFONT logfont;
+        LOGFONTW logfont;
 
         ZeroMemory(&logfont, sizeof(logfont));
         logfont.lfHeight = -MulDiv(nSize, GetDeviceCaps(m_hMemDc, LOGPIXELSY), 72);
-        lstrcpyn(logfont.lfFaceName, TEXT("DS-Digital"), RTL_NUMBER_OF(logfont.lfFaceName));
+        lstrcpynW(logfont.lfFaceName, L"DS-Digital", RTL_NUMBER_OF(logfont.lfFaceName));
 
-        m_hMemFont = CreateFontIndirect(&logfont);
+        m_hMemFont = CreateFontIndirectW(&logfont);
         m_hOldFont = SelectObject(m_hMemDc, m_hMemFont);
 
         SetBkColor(m_hMemDc, DEFALUT_BK_COLOR);
@@ -78,28 +78,28 @@ public:
             m_nMinute = m_nMinute;
             m_nSecond = m_nSecond;
 
-            TCHAR szTimeString[128];
-            TCHAR szTimeStringAdjusted[RTL_NUMBER_OF(szTimeString) * 2];
-            TCHAR ch = TEXT(':');
+            WCHAR szTimeString[128];
+            WCHAR szTimeStringAdjusted[RTL_NUMBER_OF(szTimeString) * 2];
+            WCHAR ch = L':';
 
-            wnsprintf(szTimeString, RTL_NUMBER_OF(szTimeString), TEXT(" %02u %c %02u %c %02u "), nHour, ch, nMinute, ch, nSecond);
+            wnsprintfW(szTimeString, RTL_NUMBER_OF(szTimeString), L" %02u %c %02u %c %02u ", nHour, ch, nMinute, ch, nSecond);
 
             for (int i = 0, j = 0; i < RTL_NUMBER_OF(szTimeString); ++i, ++j)
             {
-                if (szTimeString[i] == TEXT('1'))
+                if (szTimeString[i] == L'1')
                 {
-                    szTimeStringAdjusted[j++] = TEXT(' ');
+                    szTimeStringAdjusted[j++] = L' ';
                 }
 
                 szTimeStringAdjusted[j] = szTimeString[i];
 
-                if (szTimeStringAdjusted[j] == TEXT('\0'))
+                if (szTimeStringAdjusted[j] == L'\0')
                 {
                     break;
                 }
             }
 
-            TextOut(m_hMemDc, 0, 0, szTimeStringAdjusted, lstrlen(szTimeStringAdjusted));
+            TextOutW(m_hMemDc, 0, 0, szTimeStringAdjusted, lstrlenW(szTimeStringAdjusted));
             InvalidateRect(hWnd, NULL, TRUE);
         }
     }
@@ -122,7 +122,7 @@ public:
 private:
     void CalcTextSize()
     {
-        m_nTextWidth = (int)GetDrawTextSizeInDc(m_hMemDc, TEXT(" 88 : 88 : 88 "), (UINT *)&m_nTextHeight);
+        m_nTextWidth = (int)GetDrawTextSizeInDc(m_hMemDc, L" 88 : 88 : 88 ", (UINT *)&m_nTextHeight);
     }
 
 private:
@@ -255,7 +255,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 static DWORD CALLBACK WorkProc(LPVOID lpParam)
 {
     DWORD dwResSize = 0;
-    LPCVOID lpResBuffer = GetResourceBuffer(g_hinstDll, TEXT("RT_FILE"), MAKEINTRESOURCE(IDR_DIGIB_FONT), &dwResSize);
+    LPCVOID lpResBuffer = GetResourceBuffer(g_hinstDll, L"RT_FILE", MAKEINTRESOURCEW(IDR_DIGIB_FONT), &dwResSize);
 
     if (lpResBuffer != NULL && dwResSize != 0)
     {
@@ -270,7 +270,7 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
 
     g_pImageBuilder = new CImageBuilder(72);
 
-    WNDCLASSEX wcex = {sizeof(wcex)};
+    WNDCLASSEXW wcex = {sizeof(wcex)};
 
     wcex.lpszClassName  = CLASS_NAME;
     wcex.hInstance      = g_hinstDll;
@@ -279,12 +279,12 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hIcon          = NULL;
-    wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
+    wcex.hCursor        = LoadCursorW(NULL, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
 
-    if (RegisterClassEx(&wcex))
+    if (RegisterClassExW(&wcex))
     {
-        HWND hWindow = CreateWindowEx(
+        HWND hWindow = CreateWindowExW(
             WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE,
             CLASS_NAME,
             CLASS_NAME,
@@ -305,7 +305,7 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
 
             while (TRUE)
             {
-                int nRet = GetMessage(&msg, NULL, 0, 0);
+                int nRet = GetMessageW(&msg, NULL, 0, 0);
 
                 if (nRet <= 0)
                 {
@@ -313,7 +313,7 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
                 }
 
                 TranslateMessage(&msg);
-                DispatchMessage(&msg);
+                DispatchMessageW(&msg);
             }
         }
     }

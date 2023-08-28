@@ -3,7 +3,7 @@
 #include "SlxComTools.h"
 #include "resource.h"
 
-#define APPPATH_PATH TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\")
+#define APPPATH_PATH L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\"
 
 #ifndef BCM_SETSHIELD
 #define BCM_SETSHIELD (0x1600 + 0x000C)
@@ -13,13 +13,13 @@ using namespace std;
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 
-// BOOL ModifyAppPath_GetCommandFilePath(LPCTSTR lpCommand, TCHAR szFilePath[], DWORD dwSize)
+// BOOL ModifyAppPath_GetCommandFilePath(LPCWSTR lpCommand, WCHAR szFilePath[], DWORD dwSize)
 // {
 //     DWORD dwRegType = 0;
 // 
-//     dwSize *= sizeof(TCHAR);
+//     dwSize *= sizeof(WCHAR);
 // 
-//     SHGetValue(
+//     SHGetValueW(
 //         HKEY_LOCAL_MACHINE,
 //         APPPATH_PATH,
 //         lpFilePath,
@@ -31,13 +31,13 @@ extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 //     return dwRegType == REG_SZ;
 // }
 
-BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD dwSize)
+BOOL ModifyAppPath_GetFileCommand(LPCWSTR lpFilePath, WCHAR szCommand[], DWORD dwSize)
 {
     DWORD dwRegType = 0;
 
-    dwSize *= sizeof(TCHAR);
+    dwSize *= sizeof(WCHAR);
 
-    SHGetValue(
+    SHGetValueW(
         HKEY_LOCAL_MACHINE,
         APPPATH_PATH,
         lpFilePath,
@@ -52,36 +52,36 @@ BOOL ModifyAppPath_GetFileCommand(LPCTSTR lpFilePath, TCHAR szCommand[], DWORD d
 INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HICON hIcon = NULL;
-    TCHAR szCommandInReg[MAX_PATH] = TEXT("");
+    WCHAR szCommandInReg[MAX_PATH] = L"";
 
     switch(uMsg)
     {
     case WM_INITDIALOG:
         if(hIcon == NULL)
         {
-            hIcon = LoadIcon(g_hinstDll, MAKEINTRESOURCE(IDI_CONFIG_ICON));
+            hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
         if(hIcon != NULL)
         {
-            SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-            SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
 
-        SendDlgItemMessage(hwndDlg, IDOK, BCM_SETSHIELD, 0, TRUE);
-        SendDlgItemMessage(hwndDlg, IDCANCEL, BCM_SETSHIELD, 0, TRUE);
+        SendDlgItemMessageW(hwndDlg, IDOK, BCM_SETSHIELD, 0, TRUE);
+        SendDlgItemMessageW(hwndDlg, IDCANCEL, BCM_SETSHIELD, 0, TRUE);
 
-        ModifyAppPath_GetFileCommand((LPCTSTR)lParam, szCommandInReg, sizeof(szCommandInReg) / sizeof(TCHAR));
+        ModifyAppPath_GetFileCommand((LPCWSTR)lParam, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
 
-        SetDlgItemText(hwndDlg, IDC_FILE, (LPCTSTR)lParam);
-        SetDlgItemText(hwndDlg, IDC_KEY, szCommandInReg);
+        SetDlgItemTextW(hwndDlg, IDC_FILE, (LPCWSTR)lParam);
+        SetDlgItemTextW(hwndDlg, IDC_KEY, szCommandInReg);
 
-        if (lstrlen(szCommandInReg) == 0)
+        if (lstrlenW(szCommandInReg) == 0)
         {
-            SetDlgItemText(hwndDlg, IDC_KEY, PathFindFileName((LPCTSTR)lParam));
+            SetDlgItemTextW(hwndDlg, IDC_KEY, PathFindFileNameW((LPCWSTR)lParam));
         }
 
-        SendDlgItemMessage(hwndDlg, IDC_KEY, EM_SETLIMITTEXT, sizeof(szCommandInReg) / sizeof(TCHAR), 0);
+        SendDlgItemMessageW(hwndDlg, IDC_KEY, EM_SETLIMITTEXT, sizeof(szCommandInReg) / sizeof(WCHAR), 0);
 
         return FALSE;
 
@@ -92,61 +92,61 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     case WM_COMMAND:
         if(LOWORD(wParam) == IDOK)
         {
-            TCHAR szRegPath[1000];
-            TCHAR szFilePath[MAX_PATH] = TEXT("");
-            TCHAR szCommand[MAX_PATH] = TEXT("");
+            WCHAR szRegPath[1000];
+            WCHAR szFilePath[MAX_PATH] = L"";
+            WCHAR szCommand[MAX_PATH] = L"";
 
-            GetDlgItemText(hwndDlg, IDC_FILE, szFilePath, sizeof(szFilePath) / sizeof(TCHAR));
-            GetDlgItemText(hwndDlg, IDC_KEY, szCommand, sizeof(szCommand) / sizeof(TCHAR));
-            ModifyAppPath_GetFileCommand(szFilePath, szCommandInReg, sizeof(szCommandInReg) / sizeof(TCHAR));
+            GetDlgItemTextW(hwndDlg, IDC_FILE, szFilePath, sizeof(szFilePath) / sizeof(WCHAR));
+            GetDlgItemTextW(hwndDlg, IDC_KEY, szCommand, sizeof(szCommand) / sizeof(WCHAR));
+            ModifyAppPath_GetFileCommand(szFilePath, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
 
-            if (lstrlen(szCommandInReg) > 0)
+            if (lstrlenW(szCommandInReg) > 0)
             {
-                wnsprintf(
+                wnsprintfW(
                     szRegPath,
-                    sizeof(szRegPath) / sizeof(TCHAR),
-                    TEXT("%s\\%s"),
+                    sizeof(szRegPath) / sizeof(WCHAR),
+                    L"%s\\%s",
                     APPPATH_PATH,
                     szCommandInReg
                     );
 
-                SHDeleteKey(HKEY_LOCAL_MACHINE, szRegPath);
+                SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
             }
 
-            if (lstrlen(szCommand) <= 0)
+            if (lstrlenW(szCommand) <= 0)
             {
-                SHDeleteValue(HKEY_LOCAL_MACHINE, APPPATH_PATH, szFilePath);
+                SHDeleteValueW(HKEY_LOCAL_MACHINE, APPPATH_PATH, szFilePath);
             }
             else
             {
-                if (lstrcmpi(szCommand + lstrlen(szCommand) - 4, TEXT(".exe")) != 0)
+                if (lstrcmpiW(szCommand + lstrlenW(szCommand) - 4, L".exe") != 0)
                 {
-                    if (IDYES == MessageBox(
+                    if (IDYES == MessageBoxW(
                         hwndDlg,
-                        TEXT("您提供的快捷短语未以“.exe”结尾，是否自动添加？"),
-                        TEXT("请确认"),
+                        L"您提供的快捷短语未以“.exe”结尾，是否自动添加？",
+                        L"请确认",
                         MB_ICONQUESTION | MB_YESNO
                         ))
                     {
-                        StrCatBuff(szCommand, TEXT(".exe"), sizeof(szCommand) / sizeof(TCHAR));
-                        SetDlgItemText(hwndDlg, IDC_KEY, szCommand);
+                        StrCatBuffW(szCommand, L".exe", sizeof(szCommand) / sizeof(WCHAR));
+                        SetDlgItemTextW(hwndDlg, IDC_KEY, szCommand);
                     }
                 }
 
-                SHSetValue(HKEY_LOCAL_MACHINE, APPPATH_PATH, szFilePath, REG_SZ, szCommand, (lstrlen(szCommand) + 1) * sizeof(TCHAR));
+                SHSetValueW(HKEY_LOCAL_MACHINE, APPPATH_PATH, szFilePath, REG_SZ, szCommand, (lstrlenW(szCommand) + 1) * sizeof(WCHAR));
 
-                wnsprintf(
+                wnsprintfW(
                     szRegPath,
-                    sizeof(szRegPath) / sizeof(TCHAR),
-                    TEXT("%s\\%s"),
+                    sizeof(szRegPath) / sizeof(WCHAR),
+                    L"%s\\%s",
                     APPPATH_PATH,
                     szCommand
                     );
 
-                SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, szFilePath, (lstrlen(szFilePath) + 1) * sizeof(TCHAR));
+                SHSetValueW(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, szFilePath, (lstrlenW(szFilePath) + 1) * sizeof(WCHAR));
 
-                PathRemoveFileSpec(szFilePath);
-                SHSetValue(HKEY_LOCAL_MACHINE, szRegPath, TEXT("Path"), REG_SZ, szFilePath, (lstrlen(szFilePath) + 1) * sizeof(TCHAR));
+                PathRemoveFileSpecW(szFilePath);
+                SHSetValueW(HKEY_LOCAL_MACHINE, szRegPath, L"Path", REG_SZ, szFilePath, (lstrlenW(szFilePath) + 1) * sizeof(WCHAR));
             }
 
             EndDialog(hwndDlg, IDOK);
@@ -169,26 +169,26 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     return FALSE;
 }
 
-BOOL ModifyAppPath(LPCTSTR lpFilePath)
+BOOL ModifyAppPath(LPCWSTR lpFilePath)
 {
-    return 0 != DialogBoxParam(g_hinstDll, MAKEINTRESOURCE(IDD_APPPATH), NULL, ModifyAppPathProc, (LPARAM)lpFilePath);
+    return 0 != DialogBoxParamW(g_hinstDll, MAKEINTRESOURCEW(IDD_APPPATH), NULL, ModifyAppPathProc, (LPARAM)lpFilePath);
 }
 
-std::tstring GetExistingAppPathCommand(LPCTSTR lpFilePath)
+std::wstring GetExistingAppPathCommand(LPCWSTR lpFilePath)
 {
-    tstring strCommand = RegGetString(HKEY_LOCAL_MACHINE, APPPATH_PATH, lpFilePath, TEXT(""));
+    wstring strCommand = RegGetString(HKEY_LOCAL_MACHINE, APPPATH_PATH, lpFilePath, L"");
 
     if (strCommand.empty())
     {
-        return TEXT("");
+        return L"";
     }
 
-    tstring strFilePath = RegGetString(HKEY_LOCAL_MACHINE, (APPPATH_PATH + strCommand).c_str(), NULL, TEXT(""));
+    wstring strFilePath = RegGetString(HKEY_LOCAL_MACHINE, (APPPATH_PATH + strCommand).c_str(), NULL, L"");
 
-    if (lstrcmpi(lpFilePath, strFilePath.c_str()) == 0)
+    if (lstrcmpiW(lpFilePath, strFilePath.c_str()) == 0)
     {
         return strCommand;
     }
     
-    return TEXT("");
+    return L"";
 }

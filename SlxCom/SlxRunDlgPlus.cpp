@@ -29,7 +29,7 @@ public:
         {
             SetWindowLongPtr(m_hDlg, GWLP_USERDATA, (LONG_PTR)this);
             m_procOldDlgProc = (WNDPROC)SetWindowLongPtr(m_hDlg, GWLP_WNDPROC, (LONG_PTR)newRunDlgProcPublic);
-            PostMessage(m_hDlg, WM_USER, WM_USER + 1, WM_USER + 2);
+            PostMessageW(m_hDlg, WM_USER, WM_USER + 1, WM_USER + 2);
         }
     }
 
@@ -60,11 +60,11 @@ public:
             return FALSE;
         }
 
-        TCHAR szClassName[1024] = TEXT("");
+        WCHAR szClassName[1024] = L"";
 
-        GetClassName(hWindow, szClassName, RTL_NUMBER_OF(szClassName));
+        GetClassNameW(hWindow, szClassName, RTL_NUMBER_OF(szClassName));
 
-        if (lstrcmp(szClassName, TEXT("#32770")) != 0)
+        if (lstrcmpW(szClassName, L"#32770") != 0)
         {
             return FALSE;
         }
@@ -92,16 +92,16 @@ public:
             return FALSE;
         }
 
-        HWND hComboBox = FindWindowEx(hWindow, NULL, TEXT("ComboBox"), NULL);
+        HWND hComboBox = FindWindowExW(hWindow, NULL, L"ComboBox", NULL);
 
-        if (!IsWindow(hComboBox) || !IsWindow(FindWindowEx(hComboBox, NULL, NULL, NULL)))
+        if (!IsWindow(hComboBox) || !IsWindow(FindWindowExW(hComboBox, NULL, NULL, NULL)))
         {
             return FALSE;
         }
 
-        HWND hFirstChild = FindWindowEx(hWindow, NULL, NULL, NULL);
-        HWND hFirstStatic = FindWindowEx(hWindow, NULL, TEXT("Static"), NULL);
-        HWND hSecondStatic = FindWindowEx(hWindow, hFirstStatic, TEXT("Static"), NULL);
+        HWND hFirstChild = FindWindowExW(hWindow, NULL, NULL, NULL);
+        HWND hFirstStatic = FindWindowExW(hWindow, NULL, L"Static", NULL);
+        HWND hSecondStatic = FindWindowExW(hWindow, hFirstStatic, L"Static", NULL);
 
         if (hFirstStatic != hFirstStatic || !IsWindow(hSecondStatic))
         {
@@ -129,7 +129,7 @@ private:
                         RECT rectNewButton;
                         vector<HWND>::const_reverse_iterator it = vectorButtons.rbegin();
                         HWND hCommit = NULL;
-                        m_hComboBox = FindWindowEx(m_hDlg, NULL, TEXT("ComboBox"), NULL);
+                        m_hComboBox = FindWindowExW(m_hDlg, NULL, L"ComboBox", NULL);
 
                         for (int i = 0; i < 3; ++i, ++it)
                         {
@@ -145,10 +145,10 @@ private:
                         ScreenToClient(m_hDlg, (LPPOINT)&rectNewButton);
                         ScreenToClient(m_hDlg, (LPPOINT)&rectNewButton + 1);
 
-                        m_hRunAdminMode = CreateWindowEx(
+                        m_hRunAdminMode = CreateWindowExW(
                             WS_EX_LEFT | WS_EX_LTRREADING,
-                            TEXT("BUTTON"),
-                            TEXT("提权(&R)"),
+                            L"BUTTON",
+                            L"提权(&R)",
                             WS_CHILDWINDOW | WS_TABSTOP | BS_PUSHBUTTON | BS_TEXT,
                             rectNewButton.left,
                             rectNewButton.top,
@@ -158,10 +158,10 @@ private:
                             (HMENU)ID_ADMIN,
                             g_hinstDll,
                             NULL);
-                        m_hRunAdminModeByBridge = CreateWindowEx(
+                        m_hRunAdminModeByBridge = CreateWindowExW(
                             WS_EX_LEFT | WS_EX_LTRREADING,
-                            TEXT("BUTTON"),
-                            TEXT("桥式提权(&E)"),
+                            L"BUTTON",
+                            L"桥式提权(&E)",
                             WS_CHILDWINDOW | BS_PUSHBUTTON | BS_TEXT | SW_SHOW,
                             -110,
                             -110,
@@ -174,13 +174,13 @@ private:
 
                         if (IsWindow(m_hRunAdminMode))
                         {
-                            SendMessage(m_hRunAdminMode, BCM_SETSHIELD, 0, TRUE);
+                            SendMessageW(m_hRunAdminMode, BCM_SETSHIELD, 0, TRUE);
                             SetWindowPos(m_hRunAdminMode, GetWindow(hCommit, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                            SendMessage(m_hRunAdminMode, WM_SETFONT, SendMessage(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
+                            SendMessageW(m_hRunAdminMode, WM_SETFONT, SendMessageW(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
                             ShowWindow(m_hRunAdminMode, SW_SHOW);
                         }
 
-                        PostMessage(m_hDlg, WM_COMMAND, MAKELONG(0, CBN_EDITCHANGE), (LPARAM)m_hComboBox);
+                        PostMessageW(m_hDlg, WM_COMMAND, MAKELONG(0, CBN_EDITCHANGE), (LPARAM)m_hComboBox);
                     }
                 }
                 return 0;
@@ -190,7 +190,7 @@ private:
                     HIWORD(wParam) == BN_CLICKED &&
                     IsWindow(m_hComboBox))
                 {
-                    WCHAR szText[8192] = TEXT("/c start ");
+                    WCHAR szText[8192] = L"/c start ";
                     int nLength = lstrlenW(szText);
                     SHELLEXECUTEINFOW si = {sizeof(si)};
                     BOOL bSucceed = FALSE;
@@ -214,7 +214,7 @@ private:
 
                     if (bSucceed)
                     {
-                        PostMessage(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
+                        PostMessageW(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
 
                         // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
                     }
@@ -262,12 +262,12 @@ private:
     static vector<HWND> GetButtonsInWindow(HWND hWindow)
     {
         vector<HWND> vectorButtons;
-        HWND hButton = FindWindowEx(hWindow, NULL, TEXT("BUTTON"), NULL);
+        HWND hButton = FindWindowExW(hWindow, NULL, L"BUTTON", NULL);
 
         while (IsWindow(hButton))
         {
             vectorButtons.push_back(hButton);
-            hButton = FindWindowEx(hWindow, hButton, TEXT("BUTTON"), NULL);
+            hButton = FindWindowExW(hWindow, hButton, L"BUTTON", NULL);
         }
 
         return vectorButtons;

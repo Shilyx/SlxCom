@@ -8,8 +8,8 @@
 #include "SlxElevateBridge.h"
 #include <Shlwapi.h>
 
-#define BridgeVersion TEXT("1.0@20150807")
-#define CLASS_NAME TEXT("__SlxElevateBridgeWindow")
+#define BridgeVersion L"1.0@20150807"
+#define CLASS_NAME L"__SlxElevateBridgeWindow"
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 
@@ -20,9 +20,9 @@ enum
 
 struct TaskDiscription
 {
-    TCHAR szCommand[MAX_PATH];
-    TCHAR szArguments[4096];
-    TCHAR szCurrentDirectory[MAX_PATH];
+    WCHAR szCommand[MAX_PATH];
+    WCHAR szArguments[4096];
+    WCHAR szCurrentDirectory[MAX_PATH];
     int nShowCmd;
 };
 
@@ -64,19 +64,19 @@ static BOOL NeedElevated()
 
 static HWND GetBridgeHandle()
 {
-    return FindWindow(CLASS_NAME, BridgeVersion);
+    return FindWindowW(CLASS_NAME, BridgeVersion);
 }
 
-static void GetTaskStorePath(const ULARGE_INTEGER &uliTaskId, TCHAR szPath[], int nBufferSize)
+static void GetTaskStorePath(const ULARGE_INTEGER &uliTaskId, WCHAR szPath[], int nBufferSize)
 {
-    wnsprintf(szPath, nBufferSize, TEXT("Software\\slx_tmp\\tasks\\%s\\%08x_%08x"), BridgeVersion, uliTaskId.HighPart, uliTaskId.LowPart);
+    wnsprintfW(szPath, nBufferSize, L"Software\\slx_tmp\\tasks\\%s\\%08x_%08x", BridgeVersion, uliTaskId.HighPart, uliTaskId.LowPart);
 }
 
 static ULARGE_INTEGER MakeTask(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDirectory, int nShowCmd)
 {
     ULARGE_INTEGER uliTaskId = { 0 };
     GUID guid = { 0 };
-    TCHAR szRegPath[1024];
+    WCHAR szRegPath[1024];
 
     if (lpCommand == NULL)
     {
@@ -101,7 +101,7 @@ static ULARGE_INTEGER MakeTask(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR l
 
     HKEY hKey = NULL;
 
-    if (RegCreateKeyEx(HKEY_CURRENT_USER, szRegPath, 0, NULL, REG_OPTION_VOLATILE, KEY_SET_VALUE, NULL, &hKey, NULL) == ERROR_SUCCESS)
+    if (RegCreateKeyExW(HKEY_CURRENT_USER, szRegPath, 0, NULL, REG_OPTION_VOLATILE, KEY_SET_VALUE, NULL, &hKey, NULL) == ERROR_SUCCESS)
     {
         RegSetValueExW(hKey, L"cmd", 0, REG_SZ, (const BYTE *)lpCommand, (lstrlenW(lpCommand) + 1) * sizeof(WCHAR));
         RegSetValueExW(hKey, L"arg", 0, REG_SZ, (const BYTE *)lpArguments, (lstrlenW(lpArguments) + 1) * sizeof(WCHAR));
@@ -118,29 +118,29 @@ static ULARGE_INTEGER MakeTask(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR l
 
 static void DeleteTask(const ULARGE_INTEGER &uliTaskId)
 {
-    TCHAR szRegPath[1024];
+    WCHAR szRegPath[1024];
 
     GetTaskStorePath(uliTaskId, szRegPath, RTL_NUMBER_OF(szRegPath));
-    RegDeleteKey(HKEY_CURRENT_USER, szRegPath);
+    RegDeleteKeyW(HKEY_CURRENT_USER, szRegPath);
 }
 
 int StartBridgeWithTaskId(const ULARGE_INTEGER &uliTaskId)
 {
     extern HINSTANCE g_hinstDll;
 
-    TCHAR szRundll32[MAX_PATH] = TEXT("");
-    TCHAR szDllPath[MAX_PATH] = TEXT("");
-    TCHAR szArguments[MAX_PATH + 20] = TEXT("");
+    WCHAR szRundll32[MAX_PATH] = L"";
+    WCHAR szDllPath[MAX_PATH] = L"";
+    WCHAR szArguments[MAX_PATH + 20] = L"";
 
-    GetSystemDirectory(szRundll32, RTL_NUMBER_OF(szRundll32));
-    PathAppend(szRundll32, TEXT("\\rundll32.exe"));
+    GetSystemDirectoryW(szRundll32, RTL_NUMBER_OF(szRundll32));
+    PathAppendW(szRundll32, L"\\rundll32.exe");
 
-    GetModuleFileName(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
-    PathQuoteSpaces(szDllPath);
+    GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
+    PathQuoteSpacesW(szDllPath);
 
-    wnsprintf(szArguments, RTL_NUMBER_OF(szArguments), TEXT("%s SlxElevateBridge %lu %lu"), szDllPath, uliTaskId.HighPart, uliTaskId.LowPart);
+    wnsprintfW(szArguments, RTL_NUMBER_OF(szArguments), L"%s SlxElevateBridge %lu %lu", szDllPath, uliTaskId.HighPart, uliTaskId.LowPart);
 
-    return (int)ShellExecute(NULL, TEXT("runas"), szRundll32, szArguments, NULL, SW_SHOW);
+    return (int)ShellExecuteW(NULL, L"runas", szRundll32, szArguments, NULL, SW_SHOW);
 }
 
 int WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirectory, int nShowCmd)
@@ -162,7 +162,7 @@ int WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDire
 
     if (!bNeedElevated)
     {
-        return (int)ShellExecute(NULL, L"open", lpCommand, lpArguments, lpDirectory, nShowCmd);
+        return (int)ShellExecuteW(NULL, L"open", lpCommand, lpArguments, lpDirectory, nShowCmd);
     }
 
     ULARGE_INTEGER uliTaskId = MakeTask(lpCommand, lpArguments, lpDirectory, nShowCmd);
@@ -206,13 +206,13 @@ int WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDire
 
 namespace Bridge
 {
-    PROC GetProcAddressFromDll(LPCTSTR lpDllName, LPCSTR lpFunctionName)
+    PROC GetProcAddressFromDll(LPCWSTR lpDllName, LPCSTR lpFunctionName)
     {
-        HMODULE hModule = GetModuleHandle(lpDllName);
+        HMODULE hModule = GetModuleHandleW(lpDllName);
 
         if (hModule == NULL)
         {
-            hModule = LoadLibrary(lpDllName);
+            hModule = LoadLibraryW(lpDllName);
         }
 
         if (hModule == NULL)
@@ -225,7 +225,7 @@ namespace Bridge
 
     BOOL AddMessageToWindowMessageFilter(UINT uMsg)
     {
-        static PROC pChangeWindowMessageFilter = GetProcAddressFromDll(TEXT("user32.dll"), "ChangeWindowMessageFilter");
+        static PROC pChangeWindowMessageFilter = GetProcAddressFromDll(L"user32.dll", "ChangeWindowMessageFilter");
 
         if (pChangeWindowMessageFilter != NULL)
         {
@@ -237,9 +237,9 @@ namespace Bridge
         }
     }
 
-    BOOL RegGetString(HKEY hKey, LPCTSTR lpRegPath, LPCTSTR lpRegValue, TCHAR szBuffer[], DWORD dwSize)
+    BOOL RegGetString(HKEY hKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, WCHAR szBuffer[], DWORD dwSize)
     {
-        SHGetValue(hKey, lpRegPath, lpRegValue, NULL, szBuffer, &dwSize);
+        SHGetValueW(hKey, lpRegPath, lpRegValue, NULL, szBuffer, &dwSize);
 
         return dwSize > 0;
     }
@@ -255,7 +255,7 @@ namespace Bridge
 
         int nResult = 0;
         ULARGE_INTEGER uli;
-        TCHAR szRegPath[1024];
+        WCHAR szRegPath[1024];
         TaskDiscription taskDisc;
 
         ZeroMemory(&taskDisc, sizeof(taskDisc));
@@ -264,22 +264,22 @@ namespace Bridge
 
         GetTaskStorePath(uli, szRegPath, RTL_NUMBER_OF(szRegPath));
 
-        if (RegGetString(HKEY_CURRENT_USER, szRegPath, TEXT("cmd"), taskDisc.szCommand, sizeof(taskDisc.szCommand)) &&
-            RegGetString(HKEY_CURRENT_USER, szRegPath, TEXT("arg"), taskDisc.szArguments, sizeof(taskDisc.szArguments)) &&
-            RegGetString(HKEY_CURRENT_USER, szRegPath, TEXT("dir"), taskDisc.szCurrentDirectory, sizeof(taskDisc.szCurrentDirectory)))
+        if (RegGetString(HKEY_CURRENT_USER, szRegPath, L"cmd", taskDisc.szCommand, sizeof(taskDisc.szCommand)) &&
+            RegGetString(HKEY_CURRENT_USER, szRegPath, L"arg", taskDisc.szArguments, sizeof(taskDisc.szArguments)) &&
+            RegGetString(HKEY_CURRENT_USER, szRegPath, L"dir", taskDisc.szCurrentDirectory, sizeof(taskDisc.szCurrentDirectory)))
         {
             DWORD dwSize = sizeof(taskDisc.nShowCmd);
 
-            SHGetValue(HKEY_CURRENT_USER, szRegPath, TEXT("sw"), NULL, &taskDisc.nShowCmd, &dwSize);
+            SHGetValueW(HKEY_CURRENT_USER, szRegPath, L"sw", NULL, &taskDisc.nShowCmd, &dwSize);
 
-            nResult = (int)ShellExecute(NULL, TEXT("open"), taskDisc.szCommand, taskDisc.szArguments, taskDisc.szCurrentDirectory, taskDisc.nShowCmd);
+            nResult = (int)ShellExecuteW(NULL, L"open", taskDisc.szCommand, taskDisc.szArguments, taskDisc.szCurrentDirectory, taskDisc.nShowCmd);
         }
         else
         {
             nResult = SE_ERR_PNF;
         }
 
-        SHDeleteKey(HKEY_CURRENT_USER, szRegPath);
+        SHDeleteKeyW(HKEY_CURRENT_USER, szRegPath);
 
         return nResult;
     }
@@ -328,7 +328,7 @@ namespace Bridge
             lpStr2 += 1;
         }
 
-        WNDCLASSEX wcex = { sizeof(wcex) };
+        WNDCLASSEXW wcex = { sizeof(wcex) };
 
         wcex.lpszClassName = CLASS_NAME;
         wcex.hInstance = g_hinstDll;
@@ -337,12 +337,12 @@ namespace Bridge
         wcex.cbClsExtra = 0;
         wcex.cbWndExtra = 0;
         wcex.hIcon = NULL;
-        wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wcex.hCursor = LoadCursorW(NULL, IDC_ARROW);
         wcex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 
-        if (RegisterClassEx(&wcex))
+        if (RegisterClassExW(&wcex))
         {
-            HWND hWindow = CreateWindowEx(
+            HWND hWindow = CreateWindowExW(
                 0,
                 CLASS_NAME,
                 BridgeVersion,
@@ -362,13 +362,13 @@ namespace Bridge
 //                 ShowWindow(hWindow, SW_SHOW);
 //                 UpdateWindow(hWindow);
 
-                PostMessage(hWindow, WM_TO_BRIDGE_INFO, StrToIntW(lpszCmdLine), StrToIntW(lpStr2));
+                PostMessageW(hWindow, WM_TO_BRIDGE_INFO, StrToIntW(lpszCmdLine), StrToIntW(lpStr2));
 
                 MSG msg;
 
                 while (TRUE)
                 {
-                    int nRet = GetMessage(&msg, NULL, 0, 0);
+                    int nRet = GetMessageW(&msg, NULL, 0, 0);
 
                     if (nRet <= 0)
                     {
@@ -376,7 +376,7 @@ namespace Bridge
                     }
 
                     TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                    DispatchMessageW(&msg);
                 }
             }
         }

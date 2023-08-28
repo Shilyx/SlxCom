@@ -10,7 +10,7 @@
 using namespace std;
 using namespace Gdiplus;
 
-#define WNDCLASS_NAME   TEXT("SLX_PAINT_WINDOW_20130318")
+#define WNDCLASS_NAME   L"SLX_PAINT_WINDOW_20130318"
 extern HINSTANCE g_hinstDll;
 
 
@@ -24,11 +24,11 @@ struct PaintDlgData
     int                 nHeight;
     HBITMAP             hBmpTmp;
 
-    VOID LoadBitmap();
+    VOID LoadBitmapW();
     VOID UnloadBitmap();
 };
 
-VOID PaintDlgData::LoadBitmap()
+VOID PaintDlgData::LoadBitmapW()
 {
     hBmpTmp = (HBITMAP)SelectObject(hMemDc, vectorBmps.at(dwCurrentIndex));
 }
@@ -84,7 +84,7 @@ static PaintDlgData *GetPaintDlgDataPointer(HWND hWindow)
 
             SelectObject(pData->hMemDc, GetStockObject(NULL_BRUSH));
 
-            pData->LoadBitmap();
+            pData->LoadBitmapW();
             BitBlt(pData->hMemDc, 0, 0, pData->nWidth, pData->nHeight, hScreenDc, 0, 0, SRCCOPY);
             pData->UnloadBitmap();
 
@@ -136,7 +136,7 @@ static BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID *pClsid)
     return uIndex < uNum;
 }
 
-BOOL SaveHBitmapAsJpgFile(HBITMAP hBitmap, LPCTSTR lpJpgFilePath, DWORD dwQuality)
+BOOL SaveHBitmapAsJpgFile(HBITMAP hBitmap, LPCWSTR lpJpgFilePath, DWORD dwQuality)
 {
     BOOL bResult = FALSE;
     IStream *pFileStream = NULL;
@@ -152,7 +152,7 @@ BOOL SaveHBitmapAsJpgFile(HBITMAP hBitmap, LPCTSTR lpJpgFilePath, DWORD dwQualit
         encoderParameters.Parameter[0].NumberOfValues = 1;
         encoderParameters.Parameter[0].Value = &dwQuality;
 
-        SHCreateStreamOnFile(lpJpgFilePath, STGM_WRITE | STGM_SHARE_DENY_NONE | STGM_CREATE, &pFileStream);
+        SHCreateStreamOnFileW(lpJpgFilePath, STGM_WRITE | STGM_SHARE_DENY_NONE | STGM_CREATE, &pFileStream);
 
         if(pFileStream != NULL)
         {
@@ -177,7 +177,7 @@ static HRESULT __stdcall WndProc(HWND hWindow, UINT uMsg, WPARAM wParam, LPARAM 
         PAINTSTRUCT ps;
         HDC hPaintDc = BeginPaint(hWindow, &ps);
 
-        pData->LoadBitmap();
+        pData->LoadBitmapW();
         BitBlt(hPaintDc, 0, 0, pData->nWidth, pData->nHeight, pData->hMemDc, 0, 0, SRCCOPY);
         pData->UnloadBitmap();
 
@@ -207,7 +207,7 @@ static HRESULT __stdcall WndProc(HWND hWindow, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (uMsg == WM_MBUTTONUP)
     {
-        SendMessage(hWindow, WM_SYSCOMMAND, SC_CLOSE, 0);
+        SendMessageW(hWindow, WM_SYSCOMMAND, SC_CLOSE, 0);
     }
     else if (uMsg == WM_RBUTTONUP)
     {
@@ -229,17 +229,17 @@ VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow
     ULONG_PTR gdiplusToken;
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-    WNDCLASSEX wcex = {sizeof(wcex)};
+    WNDCLASSEXW wcex = {sizeof(wcex)};
 
     wcex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     wcex.hInstance = g_hinstDll;
     wcex.lpszClassName = WNDCLASS_NAME;
-    wcex.hCursor = LoadCursor(g_hinstDll, MAKEINTRESOURCE(IDC_POINTER));
+    wcex.hCursor = LoadCursorW(g_hinstDll, MAKEINTRESOURCEW(IDC_POINTER));
     wcex.lpfnWndProc = WndProc;
 
-    if (RegisterClassEx(&wcex))
+    if (RegisterClassExW(&wcex))
     {
-        HWND hWindow = CreateWindowEx(
+        HWND hWindow = CreateWindowExW(
             WS_EX_TOOLWINDOW,
             WNDCLASS_NAME,
             NULL,
@@ -263,7 +263,7 @@ VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow
 
             while (TRUE)
             {
-                int nRet = GetMessage(&msg, NULL, 0, 0);
+                int nRet = GetMessageW(&msg, NULL, 0, 0);
 
                 if (nRet <= 0)
                 {
@@ -271,7 +271,7 @@ VOID SlxPaint(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpComLine, int nShow
                 }
 
                 TranslateMessage(&msg);
-                DispatchMessage(&msg);
+                DispatchMessageW(&msg);
             }
         }
     }

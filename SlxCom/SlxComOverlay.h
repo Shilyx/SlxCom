@@ -25,7 +25,7 @@ public:
 
 public:
     static BOOL GenericIconFile();
-    static TCHAR m_szIconFilePath[MAX_PATH];
+    static WCHAR m_szIconFilePath[MAX_PATH];
     static DWORD m_dwIcoFileSize;
 
 protected:
@@ -34,12 +34,12 @@ protected:
 
 protected:
     static volatile HANDLE m_hTaskEvent;
-    static TCHAR m_szTaskRegPath[1000];
+    static WCHAR m_szTaskRegPath[1000];
 
     static DWORD __stdcall CheckTaskProc(LPVOID lpParam);
 
 protected:
-    static BOOL BuildFileMarkString(LPCTSTR lpFilePath, LPTSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize = NULL);
+    static BOOL BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize = NULL);
 };
 
 #endif

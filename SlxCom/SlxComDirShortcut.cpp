@@ -3,7 +3,7 @@
 
 extern HINSTANCE g_hinstDll; //SlxCom.cpp
 
-static LPCTSTR g_lpMgrWindowText = TEXT("文件夹快捷通道 - SlxCom");
+static LPCWSTR g_lpMgrWindowText = L"文件夹快捷通道 - SlxCom";
 static LONG_PTR g_lUserData = 542823L;
 
 static INT_PTR CALLBACK DirShotcutMgrDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -12,7 +12,7 @@ static INT_PTR CALLBACK DirShotcutMgrDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
     {
     case WM_INITDIALOG:
         SetWindowLongPtr(hwndDlg, GWLP_USERDATA, g_lUserData);
-        SetWindowText(hwndDlg, g_lpMgrWindowText);
+        SetWindowTextW(hwndDlg, g_lpMgrWindowText);
         return FALSE;
 
     case WM_SYSCOMMAND:
@@ -31,7 +31,7 @@ static INT_PTR CALLBACK DirShotcutMgrDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
 
 static HWND GetExistWindow()
 {
-    HWND hWnd = FindWindowEx(NULL, NULL, TEXT("#32770"), g_lpMgrWindowText);
+    HWND hWnd = FindWindowExW(NULL, NULL, L"#32770", g_lpMgrWindowText);
 
     while (IsWindow(hWnd))
     {
@@ -40,7 +40,7 @@ static HWND GetExistWindow()
             return hWnd;
         }
 
-        hWnd = FindWindowEx(NULL, hWnd, TEXT("#32770"), g_lpMgrWindowText);
+        hWnd = FindWindowExW(NULL, hWnd, L"#32770", g_lpMgrWindowText);
     }
 
     return NULL;
@@ -61,18 +61,18 @@ int ShowDirShotcutMgr(HWND hwndParent)
     }
     else
     {
-        DialogBox(g_hinstDll, MAKEINTRESOURCE(IDD_DIRSHORTCUTMGR), hwndParent, DirShotcutMgrDlgProc);
+        DialogBoxW(g_hinstDll, MAKEINTRESOURCEW(IDD_DIRSHORTCUTMGR), hwndParent, DirShotcutMgrDlgProc);
     }
     
     return 0;
 }
 
-void AskForAddDirShotcut(HWND hwndParent, LPCTSTR lpDirPath, LPCTSTR lpNickName)
+void AskForAddDirShotcut(HWND hwndParent, LPCWSTR lpDirPath, LPCWSTR lpNickName)
 {
 
 }
 
-void __stdcall T4(HWND hwndStub, HINSTANCE hAppInstance, LPTSTR lpszCmdLine, int nCmdShow)
+void __stdcall T4(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdLine, int nCmdShow)
 {
     ShowDirShotcutMgr(hwndStub);
 }

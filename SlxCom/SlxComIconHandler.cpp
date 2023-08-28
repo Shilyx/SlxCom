@@ -23,7 +23,7 @@ static LPCWSTR GetDefaultDllFileIconPathIndex(int *pIndex)
     DWORD dwSize = sizeof(szData);
 
     SHGetValueW(HKEY_CLASSES_ROOT, L"dllfile\\DefaultIcon", szData, &dwRegType, szData, &dwSize);
-    ExpandEnvironmentStrings(szData, szExpandedData, RTL_NUMBER_OF(szExpandedData));
+    ExpandEnvironmentStringsW(szData, szExpandedData, RTL_NUMBER_OF(szExpandedData));
 
     BOOL bSigned = FALSE;
     LPWSTR lpDot = StrRChrW(szExpandedData, NULL, L',');
