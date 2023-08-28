@@ -33,7 +33,7 @@ DWORD SHSetTempValue(HKEY hRootKey, LPCWSTR pszSubKey, LPCWSTR pszValue, DWORD d
     HKEY hKey = NULL;
     DWORD dwRet = RegCreateKeyExW(hRootKey, pszSubKey, 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
 
-    if(ERROR_SUCCESS == dwRet)
+    if (ERROR_SUCCESS == dwRet)
     {
         dwRet = RegSetValueExW(hKey, pszValue, 0, dwType, (const unsigned char *)pvData, cbData);
 
@@ -79,11 +79,11 @@ BOOL GetFileHash(LPCWSTR lpFilePath, BYTE btHash[], DWORD *pcbSize)
         NULL
         );
 
-    if(hFile != INVALID_HANDLE_VALUE)
+    if (hFile != INVALID_HANDLE_VALUE)
     {
         __try
         {
-            if(CryptCATAdminCalcHashFromFileHandle(hFile, pcbSize, btHash, 0))
+            if (CryptCATAdminCalcHashFromFileHandle(hFile, pcbSize, btHash, 0))
             {
                 bResult = TRUE;
             }
@@ -104,19 +104,19 @@ BOOL IsFileSignedByCatlog(LPCWSTR lpFilePath)
     BYTE btHash[100];
     DWORD dwHashSize = sizeof(btHash);
 
-    if(GetFileHash(lpFilePath, btHash, &dwHashSize))
+    if (GetFileHash(lpFilePath, btHash, &dwHashSize))
     {
         HANDLE hCatHandle = NULL;
 
         CryptCATAdminAcquireContext(&hCatHandle, NULL, 0);
 
-        if(hCatHandle != NULL)
+        if (hCatHandle != NULL)
         {
             __try
             {
                 HANDLE hCatalogContext = CryptCATAdminEnumCatalogFromHash(hCatHandle, btHash, dwHashSize, 0, NULL);
 
-                if(hCatalogContext != NULL)
+                if (hCatalogContext != NULL)
                 {
                     CryptCATAdminReleaseCatalogContext(hCatHandle, hCatalogContext, 0);
 
@@ -146,20 +146,20 @@ BOOL SaveResourceToFile(LPCWSTR lpResType, LPCWSTR lpResName, LPCWSTR lpFilePath
 
     HANDLE hFile = CreateFileW(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-    if(hFile != INVALID_HANDLE_VALUE)
+    if (hFile != INVALID_HANDLE_VALUE)
     {
         HRSRC hRsrc = FindResourceW(g_hinstDll, lpResName, lpResType);
 
-        if(hRsrc != NULL)
+        if (hRsrc != NULL)
         {
             HGLOBAL hGlobal = LoadResource(g_hinstDll, hRsrc);
 
-            if(hGlobal != NULL)
+            if (hGlobal != NULL)
             {
                 LPCSTR lpBuffer = (LPCSTR)LockResource(hGlobal);
                 dwResSize = SizeofResource(g_hinstDll, hRsrc);
 
-                if(lpBuffer != NULL && dwResSize > 0)
+                if (lpBuffer != NULL && dwResSize > 0)
                 {
                     bSucceed = WriteFileHelper(hFile, lpBuffer, dwResSize);
                 }
@@ -174,7 +174,7 @@ BOOL SaveResourceToFile(LPCWSTR lpResType, LPCWSTR lpResName, LPCWSTR lpFilePath
 
 BOOL GetResultPath(LPCWSTR lpRarPath, LPWSTR lpResultPath, int nLength)
 {
-    if(nLength >= MAX_PATH)
+    if (nLength >= MAX_PATH)
     {
         WCHAR szJpgPath[MAX_PATH];
 
@@ -193,11 +193,11 @@ BOOL DoCombine(LPCWSTR lpFile1, LPCWSTR lpFile2, LPCWSTR lpFileNew)
     IStream *pStream2 = NULL;
     IStream *pStreamNew = NULL;
 
-    if(S_OK == SHCreateStreamOnFileW(lpFile1, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream1))
+    if (S_OK == SHCreateStreamOnFileW(lpFile1, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream1))
     {
-        if(S_OK == SHCreateStreamOnFileW(lpFile2, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream2))
+        if (S_OK == SHCreateStreamOnFileW(lpFile2, STGM_READ | STGM_SHARE_DENY_WRITE, &pStream2))
         {
-            if(S_OK == SHCreateStreamOnFileW(lpFileNew, STGM_WRITE | STGM_SHARE_DENY_NONE | STGM_CREATE, &pStreamNew))
+            if (S_OK == SHCreateStreamOnFileW(lpFileNew, STGM_WRITE | STGM_SHARE_DENY_NONE | STGM_CREATE, &pStreamNew))
             {
                 ULARGE_INTEGER uliSize1, uliSize2;
                 STATSTG stat;
@@ -228,12 +228,12 @@ BOOL CombineFile(LPCWSTR lpRarPath, LPCWSTR lpJpgPath, LPWSTR lpResultPath, int 
     //Get jpg file path
     WCHAR szJpgPath[MAX_PATH];
 
-    if(GetFileAttributesW(lpJpgPath) == INVALID_FILE_ATTRIBUTES)
+    if (GetFileAttributesW(lpJpgPath) == INVALID_FILE_ATTRIBUTES)
     {
         GetModuleFileNameW(g_hinstDll, szJpgPath, MAX_PATH);
         PathAppendW(szJpgPath, L"\\..\\Default.jpg");
 
-        if(GetFileAttributesW(szJpgPath) == INVALID_FILE_ATTRIBUTES)
+        if (GetFileAttributesW(szJpgPath) == INVALID_FILE_ATTRIBUTES)
         {
             SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_DEFAULTJPG), szJpgPath);
         }
@@ -243,9 +243,9 @@ BOOL CombineFile(LPCWSTR lpRarPath, LPCWSTR lpJpgPath, LPWSTR lpResultPath, int 
         lstrcpynW(szJpgPath, lpJpgPath, MAX_PATH);
     }
 
-    if(GetFileAttributesW(szJpgPath) != INVALID_FILE_ATTRIBUTES)
+    if (GetFileAttributesW(szJpgPath) != INVALID_FILE_ATTRIBUTES)
     {
-        if(GetResultPath(lpRarPath, lpResultPath, nLength))
+        if (GetResultPath(lpRarPath, lpResultPath, nLength))
         {
             return DoCombine(szJpgPath, lpRarPath, lpResultPath);
         }
@@ -259,17 +259,17 @@ BOOL SetClipboardText(LPCWSTR lpText)
     BOOL bResult = FALSE;
     HGLOBAL hGlobal = GlobalAlloc(GMEM_ZEROINIT | GMEM_MOVEABLE | GMEM_DDESHARE, (lstrlenW(lpText) + 1) * sizeof(WCHAR));
 
-    if(hGlobal != NULL)
+    if (hGlobal != NULL)
     {
         LPWSTR lpBuffer = (LPWSTR)GlobalLock(hGlobal);
 
-        if(lpBuffer != NULL)
+        if (lpBuffer != NULL)
         {
             lstrcpyW(lpBuffer, lpText);
 
             GlobalUnlock(hGlobal);
 
-            if(OpenClipboard(NULL))
+            if (OpenClipboard(NULL))
             {
                 EmptyClipboard();
 #ifdef UNICODE
@@ -284,7 +284,7 @@ BOOL SetClipboardText(LPCWSTR lpText)
         }
     }
 
-    if(!bResult && hGlobal != NULL)
+    if (!bResult && hGlobal != NULL)
     {
         GlobalFree(hGlobal);
     }
@@ -299,7 +299,7 @@ BOOL RunCommand(LPWSTR lpCommandLine, LPCWSTR lpCurrentDirectory)
 
     si.wShowWindow = SW_SHOW;   //no use
 
-    if(CreateProcessW(NULL, lpCommandLine, NULL, NULL, FALSE, 0, NULL, lpCurrentDirectory, &si, &pi))
+    if (CreateProcessW(NULL, lpCommandLine, NULL, NULL, FALSE, 0, NULL, lpCurrentDirectory, &si, &pi))
     {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
@@ -317,12 +317,12 @@ INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
     switch(uMsg)
     {
     case WM_INITDIALOG:
-        if(hIcon == NULL)
+        if (hIcon == NULL)
         {
             hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
-        if(hIcon != NULL)
+        if (hIcon != NULL)
         {
             SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
             SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
@@ -332,16 +332,16 @@ INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
         return FALSE;
 
     case WM_SYSCOMMAND:
-        if(wParam == SC_CLOSE)
+        if (wParam == SC_CLOSE)
         {
             EndDialog(hwndDlg, 0);
         }
         break;
 
     case WM_COMMAND:
-        if(LOWORD(wParam) == IDC_RUN)
+        if (LOWORD(wParam) == IDC_RUN)
         {
-            if(IDYES == MessageBoxW(hwndDlg, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
+            if (IDYES == MessageBoxW(hwndDlg, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
             {
                 BOOL bSucceed = FALSE;
                 INT_PTR nLength = 0;
@@ -353,7 +353,7 @@ INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
 
                 WCHAR *szCommand = new WCHAR[nLength];
 
-                if(szCommand != NULL)
+                if (szCommand != NULL)
                 {
                     lstrcpyW(szCommand, L"\"");
                     nOffset += 1;
@@ -370,7 +370,7 @@ INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
                     delete []szCommand;
                 }
 
-                if(bSucceed)
+                if (bSucceed)
                 {
                     EndDialog(hwndDlg, 1);
                 }
@@ -393,7 +393,7 @@ INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
                 SetFocus(GetDlgItem(hwndDlg, IDC_ARGUMENTS));
             }
         }
-        else if(LOWORD(wParam) == IDC_CANCEL)
+        else if (LOWORD(wParam) == IDC_CANCEL)
         {
             EndDialog(hwndDlg, 0);
         }
@@ -699,30 +699,30 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 // {
 //     int nCmdLineLength = lstrlenA(lpszCmdLine);
 // 
-//     if(nCmdLineLength > 0)
+//     if (nCmdLineLength > 0)
 //     {
 //         WCHAR *szBuffer = (WCHAR *)HeapAlloc(GetProcessHeap(), 0, (nCmdLineLength + 100) * sizeof(WCHAR));
 // 
-//         if(szBuffer != NULL)
+//         if (szBuffer != NULL)
 //         {
-//             if(wnsprintfW(szBuffer, (nCmdLineLength + 100), L"%S", lpszCmdLine) > 0)
+//             if (wnsprintfW(szBuffer, (nCmdLineLength + 100), L"%S", lpszCmdLine) > 0)
 //             {
 //                 int nArgc = 0;
 //                 LPWSTR *ppArgv = CommandLineToArgvW(szBuffer, &nArgc);
 // 
-//                 if(ppArgv != NULL)
+//                 if (ppArgv != NULL)
 //                 {
-//                     if(nArgc >= 1)
+//                     if (nArgc >= 1)
 //                     {
 //                         DWORD dwProcessId = StrToIntW(ppArgv[0]);
 // 
-//                         if(dwProcessId != 0)
+//                         if (dwProcessId != 0)
 //                         {
 //                             do
 //                             {
 //                                 HANDLE hProcess = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, dwProcessId);
 // 
-//                                 if(hProcess == NULL)
+//                                 if (hProcess == NULL)
 //                                 {
 //                                     MessageBoxW(hwndStub, L"打开进程失败！", NULL, MB_ICONERROR | MB_TOPMOST);
 // 
@@ -736,7 +736,7 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 //                                 DWORD dwExitCode = 0;
 //                                 GetExitCodeProcess(hProcess, &dwExitCode);
 // 
-//                                 if(dwExitCode == STILL_ACTIVE)
+//                                 if (dwExitCode == STILL_ACTIVE)
 //                                 {
 //                                     MessageBoxW(hwndStub, L"无法终止进程！", NULL, MB_ICONERROR | MB_TOPMOST);
 // 
@@ -752,9 +752,9 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 //                                 GetWindowsDirectoryW(szExplorerPath, MAX_PATH);
 //                                 PathAppendW(szExplorerPath, L"\\Explorer.exe");
 // 
-//                                 if(CreateProcessW(NULL, szExplorerPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+//                                 if (CreateProcessW(NULL, szExplorerPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 //                                 {
-//                                     if(nArgc >= 2 && lstrlenW(ppArgv[1]) < MAX_PATH)
+//                                     if (nArgc >= 2 && lstrlenW(ppArgv[1]) < MAX_PATH)
 //                                     {
 //                                         WaitForInputIdle(pi.hProcess, 10 * 1000);
 // 
@@ -765,9 +765,9 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 // 
 //                                         dwFileAttributes = GetFileAttributesW(szFilePath);
 // 
-//                                         if(dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+//                                         if (dwFileAttributes != INVALID_FILE_ATTRIBUTES)
 //                                         {
-//                                             if(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+//                                             if (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 //                                             {
 //                                                 WCHAR szFindMark[MAX_PATH];
 //                                                 WIN32_FIND_DATAW wfd;
@@ -777,18 +777,18 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 // 
 //                                                 HANDLE hFind = FindFirstFileW(szFindMark, &wfd);
 // 
-//                                                 if(hFind != INVALID_HANDLE_VALUE)
+//                                                 if (hFind != INVALID_HANDLE_VALUE)
 //                                                 {
 //                                                     do 
 //                                                     {
-//                                                         if(lstrcmpW(wfd.cFileName, L".") != 0 && lstrcmpW(wfd.cFileName, L"..") != 0)
+//                                                         if (lstrcmpW(wfd.cFileName, L".") != 0 && lstrcmpW(wfd.cFileName, L"..") != 0)
 //                                                         {
 //                                                             break;
 //                                                         }
 // 
 //                                                     } while (FindNextFileW(hFind, &wfd));
 // 
-//                                                     if(lstrcmpW(wfd.cFileName, L".") != 0 && lstrcmpW(wfd.cFileName, L"..") != 0)
+//                                                     if (lstrcmpW(wfd.cFileName, L".") != 0 && lstrcmpW(wfd.cFileName, L"..") != 0)
 //                                                     {
 //                                                         PathAddBackslash(szFilePath);
 //                                                         lstrcatW(szFilePath, wfd.cFileName);
@@ -798,7 +798,7 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 //                                                 }
 //                                             }
 // 
-//                                             if(PathFileExistsW(szFilePath))
+//                                             if (PathFileExistsW(szFilePath))
 //                                             {
 //                                                 BrowseForFile(szFilePath);
 //                                             }
@@ -815,7 +815,7 @@ BOOL BrowseForFile(LPCWSTR lpFile)
 //                                     break;
 //                                 }
 //                             }
-//                             while(FALSE);
+//                             while (FALSE);
 //                         }
 //                     }
 // 
@@ -841,7 +841,7 @@ BOOL TryUnescapeFileName(LPCWSTR lpFilePath, WCHAR szUnescapedFilePath[], int nS
 {
     BOOL bChanged = FALSE;
 
-    if(lstrlenW(lpFilePath) + 1 > nSize)
+    if (lstrlenW(lpFilePath) + 1 > nSize)
     {
         return bChanged;
     }
@@ -873,18 +873,18 @@ BOOL TryUnescapeFileName(LPCWSTR lpFilePath, WCHAR szUnescapedFilePath[], int nS
         nGroupKillDownload,
     };
 
-    for(int nIndex = 0; nIndex < sizeof(pRegs) / sizeof(pRegs[0]); nIndex += 1)
+    for (int nIndex = 0; nIndex < sizeof(pRegs) / sizeof(pRegs[0]); nIndex += 1)
     {
-        while(TRUE)
+        while (TRUE)
         {
             MatchResult result = pRegs[nIndex]->Match(szUnescapedFilePath);
 
-            if(result.IsMatched())
+            if (result.IsMatched())
             {
                 int nGroupBegin = result.GetGroupStart(pGroupKills[nIndex]);
                 int nGroupEnd = result.GetGroupEnd(pGroupKills[nIndex]);
 
-                if(nGroupBegin >= 0 && nGroupEnd > nGroupBegin)
+                if (nGroupBegin >= 0 && nGroupEnd > nGroupBegin)
                 {
                     MoveMemory(
                         szUnescapedFilePath + nGroupBegin,
@@ -906,9 +906,9 @@ BOOL TryUnescapeFileName(LPCWSTR lpFilePath, WCHAR szUnescapedFilePath[], int nS
     int nResultLength = lstrlenW(szUnescapedFilePath);
     int nMarkLength = lstrlenW(szTailMark);
 
-    if(nResultLength > nMarkLength)
+    if (nResultLength > nMarkLength)
     {
-        if(lstrcmpW(szUnescapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
+        if (lstrcmpW(szUnescapedFilePath + nResultLength - nMarkLength, szTailMark) == 0)
         {
             *(szUnescapedFilePath + nResultLength - nMarkLength) = L'\0';
 
@@ -927,7 +927,7 @@ BOOL ResolveShortcut(LPCWSTR lpLinkFilePath, WCHAR szResolvedPath[], UINT nSize)
     WIN32_FIND_DATAW wfd;
     BOOL bResult = FALSE;
 
-    if(PathFileExistsW(lpLinkFilePath))
+    if (PathFileExistsW(lpLinkFilePath))
     {
 #ifdef UNICODE
         wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%s", lpLinkFilePath);
@@ -935,11 +935,11 @@ BOOL ResolveShortcut(LPCWSTR lpLinkFilePath, WCHAR szResolvedPath[], UINT nSize)
         wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%S", lpLinkFilePath);
 #endif
 
-        if(SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&pShellLink)))
+        if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&pShellLink)))
         {
-            if(SUCCEEDED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile)))
+            if (SUCCEEDED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile)))
             {
-                if(SUCCEEDED(pPersistFile->Load(szLinkFilePath, STGM_READ)))
+                if (SUCCEEDED(pPersistFile->Load(szLinkFilePath, STGM_READ)))
                 {
                     bResult = SUCCEEDED(pShellLink->GetPath(szResolvedPath, nSize, &wfd, 0));
                 }
@@ -1215,7 +1215,7 @@ void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCST
     wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%hs", lpszCmdLine);
     PathUnquoteSpacesW(szLinkFilePath);
 
-    if(ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(WCHAR)))
+    if (ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(WCHAR)))
     {
         BrowseForFile(szTargetFilePath);
     }
@@ -1531,7 +1531,7 @@ BOOL SetClipboardHtml(const char *html)
             html
             );
 
-        if(OpenClipboard(0))
+        if (OpenClipboard(0))
         {
             EmptyClipboard();
 

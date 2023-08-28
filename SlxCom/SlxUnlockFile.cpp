@@ -35,17 +35,17 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(WCHAR));
     ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(WCHAR));
 
-    if(lstrcmpW(szText1, szText2) == 0)
+    if (lstrcmpW(szText1, szText2) == 0)
     {
         return 0;
     }
 
-    if(pLcss->nSubItem == LVH_INDEX || pLcss->nSubItem == LVH_PROCESSID)
+    if (pLcss->nSubItem == LVH_INDEX || pLcss->nSubItem == LVH_PROCESSID)
     {
         int n1 = StrToIntW(szText1);
         int n2 = StrToIntW(szText2);
 
-        if(n1 > n2)
+        if (n1 > n2)
         {
             return pLcss->nRet;
         }
@@ -54,14 +54,14 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
             return -pLcss->nRet;
         }
     }
-    else if(pLcss->nSubItem == LVH_HANDLEVALUE)
+    else if (pLcss->nSubItem == LVH_HANDLEVALUE)
     {
         int n1, n2;
 
         StrToIntExW(szText1, STIF_SUPPORT_HEX, &n1);
         StrToIntExW(szText2, STIF_SUPPORT_HEX, &n2);
 
-        if(n1 > n2)
+        if (n1 > n2)
         {
             return pLcss->nRet;
         }
@@ -70,7 +70,7 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
             return -pLcss->nRet;
         }
     }
-    else if(pLcss->nSubItem == LVH_PROCESSNAME || pLcss->nSubItem == LVH_FILEPATH)
+    else if (pLcss->nSubItem == LVH_PROCESSNAME || pLcss->nSubItem == LVH_FILEPATH)
     {
         return lstrcmpiW(szText1, szText2) * pLcss->nRet;
     }
@@ -123,12 +123,12 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     else if (uMsg == WM_INITDIALOG)
     {
         //设定对话框图标
-        if(hIcon == NULL)
+        if (hIcon == NULL)
         {
             hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
-        if(hIcon != NULL)
+        if (hIcon != NULL)
         {
             SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
             SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
@@ -359,7 +359,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
 
                     LVITEMW item = {LVIF_PARAM};
 
-                    for(int nIndex = 0; nIndex < ListView_GetItemCount(hHandleList); nIndex += 1)
+                    for (int nIndex = 0; nIndex < ListView_GetItemCount(hHandleList); nIndex += 1)
                     {
                         item.iItem = nIndex;
                         item.lParam = nIndex;
@@ -420,15 +420,15 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
             }
         }
     }
-    else if(uMsg == WM_SIZING)
+    else if (uMsg == WM_SIZING)
     {
         LPRECT pRect = (LPRECT)lParam;
         const LONG lWidthLimit = 561;
         const LONG lHeightLimit = 311;
 
-        if(pRect->right - pRect->left < lWidthLimit)
+        if (pRect->right - pRect->left < lWidthLimit)
         {
-            if(wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT)
+            if (wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT)
             {
                 pRect->left = pRect->right - lWidthLimit;
             }
@@ -438,9 +438,9 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
             }
         }
 
-        if(pRect->bottom - pRect->top < lHeightLimit)
+        if (pRect->bottom - pRect->top < lHeightLimit)
         {
-            if(wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP)
+            if (wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP)
             {
                 pRect->top = pRect->bottom - lHeightLimit;
             }
@@ -450,7 +450,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
             }
         }
     }
-    else if(uMsg == WM_SIZE)
+    else if (uMsg == WM_SIZE)
     {
         RECT rectClient;
         RECT rectEdit;

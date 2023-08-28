@@ -12,7 +12,7 @@ STDMETHODIMP CSlxComFactory::QueryInterface(REFIID riid, void **ppv)
 {
     *ppv = NULL;
 
-    if(riid == IID_IUnknown || riid == IID_IClassFactory)
+    if (riid == IID_IUnknown || riid == IID_IClassFactory)
     {
         *ppv = this;
         AddRef();
@@ -34,7 +34,7 @@ STDMETHODIMP_(ULONG) CSlxComFactory::Release()
 {
     DWORD dwRefCount = InterlockedDecrement((volatile LONG *)&m_dwRefCount);
 
-    if(dwRefCount == 0)
+    if (dwRefCount == 0)
     {
         delete this;
     }
@@ -47,7 +47,7 @@ STDMETHODIMP CSlxComFactory::CreateInstance(IUnknown * pUnkOuter, REFIID riid, v
 {
     *ppv=NULL;
 
-    if(pUnkOuter != NULL)
+    if (pUnkOuter != NULL)
     {
         return CLASS_E_NOAGGREGATION;
     }

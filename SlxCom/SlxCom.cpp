@@ -68,11 +68,11 @@ DWORD CALLBACK OpenLastPathProc(LPVOID lpParam)
         L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"SlxLastPath",
         &dwType, szLastPath, &dwSize);
 
-    if(dwType == REG_SZ)
+    if (dwType == REG_SZ)
     {
         WaitForInputIdle(GetCurrentProcess(), INFINITE);
 
-        if(PathFileExistsW(szLastPath))
+        if (PathFileExistsW(szLastPath))
         {
             BrowseForFile(szLastPath);
         }
@@ -321,7 +321,7 @@ DWORD CALLBACK CheckWin10BashProc(LPVOID)
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-    if(dwReason == DLL_PROCESS_ATTACH)
+    if (dwReason == DLL_PROCESS_ATTACH)
     {
         GetVersionEx(&g_osi);
 
@@ -334,7 +334,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
             CloseHandle(CreateThread(NULL, 0, CheckWin10BashProc, NULL, 0, NULL));
         }
 
-        if(IsExplorer())
+        if (IsExplorer())
         {
             //CloseHandle(CreateThread(NULL, 0, ReorderDesktopIcons, NULL, 0, NULL));
 
@@ -351,7 +351,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
             SystemTimeToFileTime(&st, &ftNowLocal);
             LocalFileTimeToFileTime(&ftNowLocal, &ftNow);
 
-            if((*(unsigned __int64 *)&ftNow - *(unsigned __int64 *)&ftCreation) / 10 / 1000 / 1000 < 10)    //如果是启动时执行DllMain
+            if ((*(unsigned __int64 *)&ftNow - *(unsigned __int64 *)&ftCreation) / 10 / 1000 / 1000 < 10)    //如果是启动时执行DllMain
             {
                 DWORD dwLastPathTime = 0;
                 DWORD dwSize = sizeof(dwLastPathTime);
@@ -362,7 +362,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
                     L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"SlxLastPathTime",
                     &dwType, &dwLastPathTime, &dwSize);
 
-                if(dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000)
+                if (dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000)
                 {
                     SHDeleteValueW(HKEY_CURRENT_USER,
                         L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
@@ -415,7 +415,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);
     }
-    else if(dwReason == DLL_PROCESS_DETACH)
+    else if (dwReason == DLL_PROCESS_DETACH)
     {
         return FALSE;
     }
@@ -432,11 +432,11 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 {
     *ppv = NULL;
 
-    if(rclsid == GUID_SLXCOM)
+    if (rclsid == GUID_SLXCOM)
     {
         CSlxComFactory *pFactory = new CSlxComFactory;
 
-        if(pFactory == NULL)
+        if (pFactory == NULL)
         {
             return E_OUTOFMEMORY;
         }
@@ -451,7 +451,7 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
 {
     if (g_osi.dwMajorVersion <= 5)
     {
-        if(bInstall)
+        if (bInstall)
         {
             WCHAR szCommand[MAX_PATH + 100];
             WCHAR szDllPath[MAX_PATH];

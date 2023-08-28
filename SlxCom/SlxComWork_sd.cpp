@@ -6,13 +6,13 @@ static WNDPROC lpOldStartButtonProc = NULL;
 
 static LRESULT WINAPI NewStartButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if(uMsg == WM_PAINT)
+    if (uMsg == WM_PAINT)
     {
         LRESULT lResult = CallWindowProc(lpOldStartButtonProc, hwnd, uMsg, wParam, lParam);
 
         HDC hDc = GetDC(hwnd);
 
-        if(hDc != NULL)
+        if (hDc != NULL)
         {
             RECT rect;
             HPEN hPen = CreatePen(PS_SOLID, 20, RGB(36, 93, 219));
@@ -31,18 +31,18 @@ static LRESULT WINAPI NewStartButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
         return lResult;
     }
-    else if(uMsg == WM_LBUTTONDOWN)
+    else if (uMsg == WM_LBUTTONDOWN)
     {
         RECT rect;
         int x = LOWORD(lParam);
 
         GetClientRect(hwnd, &rect);
 
-        if(x < rect.right - rect.left && x > rect.right - rect.left - 10)
+        if (x < rect.right - rect.left && x > rect.right - rect.left - 10)
         {
             IShellDispatch4 *pDisp = NULL;
 
-            if(SUCCEEDED(CoCreateInstance(CLSID_Shell, NULL, CLSCTX_ALL, IID_IShellDispatch4, (void **)&pDisp)))
+            if (SUCCEEDED(CoCreateInstance(CLSID_Shell, NULL, CLSCTX_ALL, IID_IShellDispatch4, (void **)&pDisp)))
             {
                 pDisp->ToggleDesktop();
 
@@ -63,34 +63,34 @@ DWORD CALLBACK WaitAndHookShowDesktop(LPVOID lpParam)
 
     INT_PTR nTimerId = SetTimer(NULL, 0, 700, NULL);
 
-    while(TRUE)
+    while (TRUE)
     {
         int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-        if(nRet <= 0)
+        if (nRet <= 0)
         {
             break;
         }
 
-        if(msg.message == WM_TIMER)
+        if (msg.message == WM_TIMER)
         {
-            if(!IsWindow(hTrayNotifyWnd))
+            if (!IsWindow(hTrayNotifyWnd))
             {
                 //设定托盘承载窗口的新窗口过程
                 HWND hParentWnd = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
                 HWND hChildWindow = NULL;
 
-                while(IsWindow(hParentWnd))
+                while (IsWindow(hParentWnd))
                 {
                     DWORD dwProcessId = 0;
 
                     GetWindowThreadProcessId(hParentWnd, &dwProcessId);
 
-                    if(dwProcessId == GetCurrentProcessId())
+                    if (dwProcessId == GetCurrentProcessId())
                     {
                         hChildWindow = FindWindowExW(hParentWnd, NULL, L"TrayNotifyWnd", NULL);
 
-                        if(IsWindow(hChildWindow))
+                        if (IsWindow(hChildWindow))
                         {
                             break;
                         }
@@ -99,7 +99,7 @@ DWORD CALLBACK WaitAndHookShowDesktop(LPVOID lpParam)
                     hParentWnd = FindWindowExW(NULL, hParentWnd, L"Shell_TrayWnd", NULL);
                 }
 
-                if(IsWindow(hParentWnd))
+                if (IsWindow(hParentWnd))
                 {
                     hTrayNotifyWnd = hChildWindow;
 
@@ -111,11 +111,11 @@ DWORD CALLBACK WaitAndHookShowDesktop(LPVOID lpParam)
                 //调整“开始”按钮的大小
                 HWND hParent = GetParent(hTrayNotifyWnd);
 
-                if(IsWindow(hParent))
+                if (IsWindow(hParent))
                 {
                     HWND hStart = FindWindowExW(hParent, NULL, L"Button", NULL);
 
-                    if(IsWindow(hStart))
+                    if (IsWindow(hStart))
                     {
                         RECT rectParent, rectStart;
 
@@ -125,7 +125,7 @@ DWORD CALLBACK WaitAndHookShowDesktop(LPVOID lpParam)
                         ScreenToClient(hParent, (LPPOINT)&rectStart + 0);
                         ScreenToClient(hParent, (LPPOINT)&rectStart + 1);
 
-                        if(rectStart.bottom - rectStart.top != rectParent.bottom - rectParent.top)
+                        if (rectStart.bottom - rectStart.top != rectParent.bottom - rectParent.top)
                         {
                             MoveWindow(
                                 hStart,
@@ -157,7 +157,7 @@ BOOL StartHookShowDesktop()
     GetSystemDirectoryW(szExplorerPath, MAX_PATH);
     PathAppendW(szExplorerPath, L"..\\Explorer.exe");
 
-    if(lstrcmpiW(szExplorerPath, szExePath) == 0)
+    if (lstrcmpiW(szExplorerPath, szExePath) == 0)
     {
         HANDLE hThread = CreateThread(NULL, 0, WaitAndHookShowDesktop, NULL, 0, NULL);
         CloseHandle(hThread);

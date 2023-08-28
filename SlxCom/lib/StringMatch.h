@@ -39,7 +39,7 @@ std::vector<std::basic_string<Ch>> SmSearchAll(const Ch *str, const Ch *patten, 
     CContext *context = reg.PrepareMatch(str);
     MatchResult result = reg.Match(context);
 
-    while( result.IsMatched())
+    while ( result.IsMatched())
     {
         int start = result.GetStart();
         int end = result.GetEnd();

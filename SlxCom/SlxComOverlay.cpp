@@ -22,7 +22,7 @@ CSlxComOverlay::CSlxComOverlay()
 
 STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
 {
-    if(riid == IID_IShellIconOverlayIdentifier)
+    if (riid == IID_IShellIconOverlayIdentifier)
     {
         if (g_osi.dwMajorVersion > 5)
         {
@@ -50,7 +50,7 @@ STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv)
 
         *ppv = static_cast<IShellIconOverlayIdentifier *>(this);
     }
-    else if(riid == IID_IUnknown)
+    else if (riid == IID_IUnknown)
     {
         *ppv = static_cast<IShellIconOverlayIdentifier *>(this);
     }
@@ -74,7 +74,7 @@ STDMETHODIMP_(ULONG) CSlxComOverlay::Release()
 {
     DWORD dwRefCount = InterlockedDecrement((volatile LONG *)&m_dwRefCount);
 
-    if(dwRefCount == 0)
+    if (dwRefCount == 0)
     {
         delete this;
     }
@@ -88,17 +88,17 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
     WCHAR szString[MAX_PATH + 100];
     ULARGE_INTEGER uliFileSize = {0};
 
-    if(BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(WCHAR), &uliFileSize))
+    if (BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(WCHAR), &uliFileSize))
     {
         StringStatus ssValue = SS_0;
 
-        if(m_cache.CheckCache(szString, &ssValue))
+        if (m_cache.CheckCache(szString, &ssValue))
         {
-            if(ssValue == SS_1)
+            if (ssValue == SS_1)
             {
                 return S_OK;
             }
-            else if(ssValue == SS_2)
+            else if (ssValue == SS_2)
             {
                 return S_FALSE;
             }
@@ -161,7 +161,7 @@ STDMETHODIMP CSlxComOverlay::GetOverlayInfo(LPWSTR pwszIconFile, int cchMax, int
 
 STDMETHODIMP CSlxComOverlay::GetPriority(int *pPriority)
 {
-    if(pPriority != NULL)
+    if (pPriority != NULL)
     {
         *pPriority = 0;
     }
@@ -177,11 +177,11 @@ BOOL CSlxComOverlay::GenericIconFile()
     GetTempPathW(MAX_PATH, szPath);
     PathAppendW(szPath, L"\\__SignMark_20120202.ico");
 
-    if(SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_ICON), szPath))
+    if (SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_ICON), szPath))
     {
-        if(GetFileAttributesExW(szPath, GetFileExInfoStandard, &wfaa))
+        if (GetFileAttributesExW(szPath, GetFileExInfoStandard, &wfaa))
         {
-            if(wfaa.nFileSizeHigh == 0)
+            if (wfaa.nFileSizeHigh == 0)
             {
                 lstrcpynW(m_szIconFilePath, szPath, MAX_PATH);
                 m_dwIcoFileSize = wfaa.nFileSizeLow;
@@ -198,9 +198,9 @@ BOOL CSlxComOverlay::BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int 
 {
     WIN32_FILE_ATTRIBUTE_DATA wfad;
 
-    if(GetFileAttributesExW(lpFilePath, GetFileExInfoStandard, &wfad))
+    if (GetFileAttributesExW(lpFilePath, GetFileExInfoStandard, &wfad))
     {
-        if((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+        if ((wfad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
         {
             ULARGE_INTEGER uliSize = {0};
 
@@ -213,7 +213,7 @@ BOOL CSlxComOverlay::BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int 
                 *(unsigned __int64 *)&wfad.ftCreationTime,
                 *(unsigned __int64 *)&wfad.ftLastWriteTime);
 
-            if(puliFileSize != NULL)
+            if (puliFileSize != NULL)
             {
                 *puliFileSize = uliSize;
             }
@@ -227,17 +227,17 @@ BOOL CSlxComOverlay::BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int 
 
 DWORD CALLBACK CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
 {
-    while(TRUE)
+    while (TRUE)
     {
         DWORD dwWaitResult = WaitForSingleObject(m_hTaskEvent, INFINITE);
 
-        if(dwWaitResult == WAIT_OBJECT_0)
+        if (dwWaitResult == WAIT_OBJECT_0)
         {
             HKEY hKey = NULL;
 
-            if(ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, m_szTaskRegPath, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey))
+            if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, m_szTaskRegPath, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey))
             {
-                while(TRUE)
+                while (TRUE)
                 {
                     WCHAR szFilePath[MAX_PATH] = L"";
                     DWORD dwFilePathSize = sizeof(szFilePath);
@@ -245,13 +245,13 @@ DWORD CALLBACK CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
                     DWORD dwValueNameSize = sizeof(szValueName) / sizeof(WCHAR);
                     DWORD dwRegType = REG_NONE;
 
-                    if(ERROR_SUCCESS == RegEnumValueW(hKey, 0, szValueName, &dwValueNameSize, NULL, &dwRegType, (LPBYTE)szFilePath, &dwFilePathSize))
+                    if (ERROR_SUCCESS == RegEnumValueW(hKey, 0, szValueName, &dwValueNameSize, NULL, &dwRegType, (LPBYTE)szFilePath, &dwFilePathSize))
                     {
-                        if(dwRegType == REG_SZ)
+                        if (dwRegType == REG_SZ)
                         {
-                            if(PathFileExistsW(szFilePath))
+                            if (PathFileExistsW(szFilePath))
                             {
-                                if(IsFileSigned(szFilePath))
+                                if (IsFileSigned(szFilePath))
                                 {
                                     m_cache.AddCache(szValueName, SS_1);
                                 }

@@ -57,12 +57,12 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     switch(uMsg)
     {
     case WM_INITDIALOG:
-        if(hIcon == NULL)
+        if (hIcon == NULL)
         {
             hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
-        if(hIcon != NULL)
+        if (hIcon != NULL)
         {
             SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
             SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
@@ -90,7 +90,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
         break;
 
     case WM_COMMAND:
-        if(LOWORD(wParam) == IDOK)
+        if (LOWORD(wParam) == IDOK)
         {
             WCHAR szRegPath[1000];
             WCHAR szFilePath[MAX_PATH] = L"";
@@ -151,7 +151,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
             EndDialog(hwndDlg, IDOK);
         }
-        else if(LOWORD(wParam) == IDCANCEL)
+        else if (LOWORD(wParam) == IDCANCEL)
         {
             EndDialog(hwndDlg, IDCANCEL);
         }

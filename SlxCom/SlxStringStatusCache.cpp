@@ -21,7 +21,7 @@ SlxStringStatusCache::SlxStringStatusCache(LPCWSTR lpRegPath, BOOL bAutoClean)
 
 SlxStringStatusCache::~SlxStringStatusCache(void)
 {
-    if(m_hThreadClean != NULL)
+    if (m_hThreadClean != NULL)
     {
         DWORD dwExitCode = 0;
 
@@ -29,7 +29,7 @@ SlxStringStatusCache::~SlxStringStatusCache(void)
 
         GetExitCodeThread(m_hThreadClean, &dwExitCode);
 
-        if(dwExitCode == STILL_ACTIVE)
+        if (dwExitCode == STILL_ACTIVE)
         {
             TerminateThread(m_hThreadClean, 0);
         }
@@ -37,7 +37,7 @@ SlxStringStatusCache::~SlxStringStatusCache(void)
         CloseHandle(m_hThreadClean);
     }
 
-    if(m_hRegKey != NULL)
+    if (m_hRegKey != NULL)
     {
         RegCloseKey(m_hRegKey);
     }
@@ -48,7 +48,7 @@ DWORD SlxStringStatusCache::GetCacheSize() const
     DWORD dwCount = 0;
     HKEY hKey = NULL;
 
-    if(m_hRegKey != NULL)
+    if (m_hRegKey != NULL)
     {
         RegQueryInfoKey(m_hRegKey, NULL, NULL, NULL, NULL, NULL, NULL, &dwCount, NULL, NULL, NULL, NULL);
     }
@@ -60,32 +60,32 @@ DWORD CALLBACK SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
 {
     HKEY hRegKey = (HKEY)lpParam;
 
-    if(hRegKey != NULL)
+    if (hRegKey != NULL)
     {
         DWORD dwIndex = 0;
         DWORD dwCacheSize = 0;
         DWORD dwStringMaxSize = 0;
 
-        if(ERROR_SUCCESS == RegQueryInfoKey(hRegKey, NULL, NULL, NULL, NULL, NULL, NULL, &dwCacheSize, &dwStringMaxSize, NULL, NULL, NULL))
+        if (ERROR_SUCCESS == RegQueryInfoKey(hRegKey, NULL, NULL, NULL, NULL, NULL, NULL, &dwCacheSize, &dwStringMaxSize, NULL, NULL, NULL))
         {
-            if(dwStringMaxSize > 0 && dwCacheSize > SSC_MAXSIZE)
+            if (dwStringMaxSize > 0 && dwCacheSize > SSC_MAXSIZE)
             {
                 dwStringMaxSize += 100;
 
                 WCHAR *szString = new WCHAR[dwStringMaxSize];
 
-                if(szString != NULL)
+                if (szString != NULL)
                 {
                     multimap<DWORD, wstring> mapAllStrings;
 
-                    while(TRUE)
+                    while (TRUE)
                     {
                         DWORD dwStringSize = dwStringMaxSize;
                         DWORD dwRegType = REG_NONE;
                         DWORD dwData = 0;
                         DWORD dwDataSize = sizeof(dwData);
 
-                        if(ERROR_SUCCESS == RegEnumValueW(hRegKey, dwIndex, szString, &dwStringSize, NULL, &dwRegType, (LPBYTE)&dwData, &dwDataSize))
+                        if (ERROR_SUCCESS == RegEnumValueW(hRegKey, dwIndex, szString, &dwStringSize, NULL, &dwRegType, (LPBYTE)&dwData, &dwDataSize))
                         {
                             mapAllStrings.insert(make_pair(dwData, szString));
                         }
@@ -99,14 +99,14 @@ DWORD CALLBACK SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
 
                     delete []szString;
 
-                    if(mapAllStrings.size() > SSC_MAXSIZE)
+                    if (mapAllStrings.size() > SSC_MAXSIZE)
                     {
                         DWORD dwCount = (DWORD)mapAllStrings.size() - SSC_MAXSIZE;
                         multimap<DWORD, wstring>::iterator it = mapAllStrings.begin();
 
-                        for(dwIndex = 0; dwIndex < dwCount; dwIndex += 1, it++)
+                        for (dwIndex = 0; dwIndex < dwCount; dwIndex += 1, it++)
                         {
-                            if(it == mapAllStrings.end())
+                            if (it == mapAllStrings.end())
                             {
                                 break;
                             }
@@ -126,13 +126,13 @@ DWORD CALLBACK SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
 
 BOOL SlxStringStatusCache::IsCleaning() const
 {
-    if(m_hThreadClean != NULL)
+    if (m_hThreadClean != NULL)
     {
         DWORD dwExitCode = 0;
 
         GetExitCodeThread(m_hThreadClean, &dwExitCode);
 
-        if(dwExitCode == STILL_ACTIVE)
+        if (dwExitCode == STILL_ACTIVE)
         {
             return TRUE;
         }
@@ -143,7 +143,7 @@ BOOL SlxStringStatusCache::IsCleaning() const
 
 BOOL SlxStringStatusCache::UpdateCache(LPCWSTR lpString, StringStatus ssValue)
 {
-    if(m_hRegKey != NULL)
+    if (m_hRegKey != NULL)
     {
         DWORD dwData = (GetTickCount() & ~(DWORD)SS_MASK) | ssValue;
 
@@ -159,9 +159,9 @@ BOOL SlxStringStatusCache::CheckCache(LPCWSTR lpString, StringStatus *pssValue)
     DWORD dwRegType = REG_NONE;
     DWORD dwDataSize = sizeof(dwRegData);
 
-    if(m_hRegKey != NULL)
+    if (m_hRegKey != NULL)
     {
-        if(ERROR_SUCCESS == RegQueryValueExW(m_hRegKey, lpString, NULL, &dwRegType, (LPBYTE)&dwRegData, &dwDataSize))
+        if (ERROR_SUCCESS == RegQueryValueExW(m_hRegKey, lpString, NULL, &dwRegType, (LPBYTE)&dwRegData, &dwDataSize))
         {
             *pssValue = (StringStatus)(dwRegData & SS_MASK);
 
@@ -181,17 +181,17 @@ BOOL SlxStringStatusCache::CheckCache(LPCWSTR lpString, StringStatus *pssValue)
 
 BOOL SlxStringStatusCache::AddCache(LPCWSTR lpString, StringStatus ssValue)
 {
-    if(m_hRegKey)
+    if (m_hRegKey)
     {
-        if(GetCacheSize() > SSC_MAXSIZE)
+        if (GetCacheSize() > SSC_MAXSIZE)
         {
-            if(!IsCleaning())
+            if (!IsCleaning())
             {
                 HKEY hCopyedKey = NULL;
 
                 DuplicateHandle(GetCurrentProcess(), m_hRegKey, GetCurrentProcess(), (HANDLE *)&hCopyedKey, KEY_QUERY_VALUE | KEY_SET_VALUE, FALSE, 0);
 
-                if(hCopyedKey != NULL)
+                if (hCopyedKey != NULL)
                 {
 #ifdef _DEBUG
                     OutputDebugStringW(L"SlxCom!开始清理\r\n");

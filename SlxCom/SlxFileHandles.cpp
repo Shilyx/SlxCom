@@ -245,20 +245,20 @@ PVOID GetInfoTable(IN ULONG uTableType)
     {
         mPtr = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, mSize);
 
-        if(!mPtr)
+        if (!mPtr)
             return NULL;
 
         status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)uTableType, mPtr, mSize, NULL);
 
-        if(status == STATUS_INFO_LENGTH_MISMATCH)
+        if (status == STATUS_INFO_LENGTH_MISMATCH)
         {
             HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, mPtr);
             mSize = mSize * 2;
         }
 
-    }while(status == STATUS_INFO_LENGTH_MISMATCH);
+    } while (status == STATUS_INFO_LENGTH_MISMATCH);
 
-    if(NT_SUCCESS(status))
+    if (NT_SUCCESS(status))
         return mPtr;
 
     HeapFree(GetProcessHeap(), 0, mPtr);

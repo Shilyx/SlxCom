@@ -69,19 +69,19 @@ CSlxComContextMenu::~CSlxComContextMenu()
 
 STDMETHODIMP CSlxComContextMenu::QueryInterface(REFIID riid, void **ppv)
 {
-    if(riid == IID_IShellExtInit)
+    if (riid == IID_IShellExtInit)
     {
         *ppv = static_cast<IShellExtInit *>(this);
     }
-    else if(riid == IID_IContextMenu)
+    else if (riid == IID_IContextMenu)
     {
         *ppv = static_cast<IContextMenu *>(this);
     }
-    else if(riid == IID_IShellPropSheetExt)
+    else if (riid == IID_IShellPropSheetExt)
     {
         *ppv = static_cast<IShellPropSheetExt *>(this);
     }
-    else if(riid == IID_IUnknown)
+    else if (riid == IID_IUnknown)
     {
         *ppv = static_cast<IShellExtInit *>(this);
     }
@@ -105,7 +105,7 @@ STDMETHODIMP_(ULONG) CSlxComContextMenu::Release()
 {
     DWORD dwRefCount = InterlockedDecrement((volatile LONG *)&m_dwRefCount);
 
-    if(dwRefCount == 0)
+    if (dwRefCount == 0)
     {
         delete this;
     }
@@ -181,9 +181,9 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
 
     // 旧处理逻辑
     // todo: 基于新逻辑重新实现
-    if(pdtobj == NULL)
+    if (pdtobj == NULL)
     {
-        if(pidlFolder == NULL)
+        if (pidlFolder == NULL)
         {
             return E_INVALIDARG;
         }
@@ -191,7 +191,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
         {
             WCHAR szPath[MAX_PATH];
 
-            if(SHGetPathFromIDListW(pidlFolder, szPath))
+            if (SHGetPathFromIDListW(pidlFolder, szPath))
             {
                 m_uFileCount = 1;
 
@@ -215,37 +215,37 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
         HDROP hDrop;
         HRESULT hResult = E_INVALIDARG;
 
-        if(SUCCEEDED(pdtobj->GetData(&fmt, &stg)))
+        if (SUCCEEDED(pdtobj->GetData(&fmt, &stg)))
         {
             hDrop = (HDROP)GlobalLock(stg.hGlobal);
 
-            if(hDrop != NULL)
+            if (hDrop != NULL)
             {
                 UINT uIndex;
                 UINT uNumFiles = DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
 
-                if(uNumFiles > 0)
+                if (uNumFiles > 0)
                 {
                     delete []m_pFiles;
 
                     m_pFiles = new FileInfo[uNumFiles];
                     m_uFileCount = uNumFiles;
 
-                    for(uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
+                    for (uIndex = 0; uIndex < m_uFileCount; uIndex += 1)
                     {
                         DragQueryFileW(hDrop, uIndex, m_pFiles[uIndex].szPath, MAX_PATH);
 
                         DWORD dwAttribute = GetFileAttributesW(m_pFiles[uIndex].szPath);
 
-                        if(dwAttribute != INVALID_FILE_ATTRIBUTES && (dwAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
+                        if (dwAttribute != INVALID_FILE_ATTRIBUTES && (dwAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
                         {
                             LPCWSTR lpExtension = PathFindExtensionW(m_pFiles[uIndex].szPath);
 
-                            if(lstrcmpiW(lpExtension, L".dll") == 0 || lstrcmpiW(lpExtension, L".ocx") == 0)
+                            if (lstrcmpiW(lpExtension, L".dll") == 0 || lstrcmpiW(lpExtension, L".ocx") == 0)
                             {
                                 m_pFiles[uIndex].bIsDll = TRUE;
                             }
-                            else if(lstrcmpiW(lpExtension, L".jpg") == 0 || lstrcmpiW(lpExtension, L".jpeg") == 0)
+                            else if (lstrcmpiW(lpExtension, L".jpg") == 0 || lstrcmpiW(lpExtension, L".jpeg") == 0)
                             {
                                 m_pFiles[uIndex].bIsJpg = TRUE;
                                 m_pFiles[uIndex].bIsPicture = TRUE;
@@ -259,7 +259,7 @@ STDMETHODIMP CSlxComContextMenu::Initialize(LPCITEMIDLIST pidlFolder, IDataObjec
                             {
                                 m_pFiles[uIndex].bIsPicture = TRUE;
                             }
-                            else if(lstrcmpiW(lpExtension, L".rar") == 0)
+                            else if (lstrcmpiW(lpExtension, L".rar") == 0)
                             {
                                 m_pFiles[uIndex].bIsRar = TRUE;
                             }
@@ -315,7 +315,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     UINT uMenuIndex = 0;
     UINT uFileIndex;
 
-    if(m_uFileCount == 0)
+    if (m_uFileCount == 0)
     {
         return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0);
     }
@@ -346,14 +346,14 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
     BOOL bExistCom = FALSE;
     BOOL bExistPicture = FALSE;
 
-    for(uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
+    for (uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
     {
-        if(!bExistDll && m_pFiles[uFileIndex].bIsDll)
+        if (!bExistDll && m_pFiles[uFileIndex].bIsDll)
         {
             bExistDll = TRUE;
         }
 
-        if(!bExistFile && m_pFiles[uFileIndex].bIsFile)
+        if (!bExistFile && m_pFiles[uFileIndex].bIsFile)
         {
             bExistFile = TRUE;
         }
@@ -368,7 +368,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
             bExistPicture = TRUE;
         }
 
-        if(bExistDll * bExistFile * bExistCom * bExistPicture)
+        if (bExistDll * bExistFile * bExistCom * bExistPicture)
         {
             break;
         }
@@ -391,7 +391,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
 
         //Dll Register
-        if(bExistCom)
+        if (bExistCom)
         {
             InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_REGISTER, L"注册组件(&R)");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_REGISTER, MF_BYCOMMAND, g_hInstallBmp, g_hInstallBmp);
@@ -401,20 +401,20 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
 
         //File Combine
-        if(TRUE)
+        if (TRUE)
         {
             BOOL bCouldCombine = FALSE;
 
-            if(m_uFileCount == 1)
+            if (m_uFileCount == 1)
             {
                 bCouldCombine = m_pFiles[0].bIsRar;
             }
-            else if(m_uFileCount == 2)
+            else if (m_uFileCount == 2)
             {
                 bCouldCombine = m_pFiles[0].bIsJpg && m_pFiles[1].bIsRar || m_pFiles[0].bIsRar && m_pFiles[1].bIsJpg;
             }
 
-            if(bCouldCombine)
+            if (bCouldCombine)
             {
                 InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_COMBINE, L"文件合成(&C)");
                 SetMenuItemBitmaps(hmenu, idCmdFirst + ID_COMBINE, MF_BYCOMMAND, g_hCombineBmp, g_hCombineBmp);
@@ -422,25 +422,25 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
 
         //Check Signature
-        if(bExistFile)
+        if (bExistFile)
         {
             InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_MANUALCHECKSIGNATURE, L"校验数字签名");
             SetMenuItemBitmaps(hmenu, idCmdFirst + ID_MANUALCHECKSIGNATURE, MF_BYCOMMAND, g_hManualCheckSignatureBmp, g_hManualCheckSignatureBmp);
         }
 
-        if(m_uFileCount == 1)
+        if (m_uFileCount == 1)
         {
             DWORD dwFileAttribute = GetFileAttributesW(m_pFiles[0].szPath);
 
-            if(dwFileAttribute != INVALID_FILE_ATTRIBUTES)
+            if (dwFileAttribute != INVALID_FILE_ATTRIBUTES)
             {
-                if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
+                if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) == 0)
                 {
-                    if(bShiftDown)
+                    if (bShiftDown)
                     {
                         HMENU hPopupMenu = CreatePopupMenu();
 
-                        if(hPopupMenu != NULL)
+                        if (hPopupMenu != NULL)
                         {
                             InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING | MF_POPUP, (UINT_PTR)hPopupMenu, L"尝试运行");
                             SetMenuItemBitmaps(hmenu, indexMenu + uMenuIndex - 1, MF_BYPOSITION, g_hTryRunBmp, g_hTryRunBmp);
@@ -463,7 +463,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     //Unescape
                     WCHAR szUnescapedFileName[MAX_PATH];
 
-                    if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR)))
+                    if (TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR)))
                     {
                         WCHAR szCommandText[MAX_PATH + 100];
 
@@ -524,7 +524,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     }
                 }
 
-                if((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
+                if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0)
                 {
                     //RunCmdHere
                     InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNCMDHERE, L"在此处运行命令行");
@@ -575,7 +575,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
         }
     }
 
-    if(bShiftDown)
+    if (bShiftDown)
     {
         //结束Explorer
         InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_KILLEXPLORER, L"结束Explorer进程");
@@ -625,7 +625,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
 
 STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax)
 {
-    if(uFlags & GCS_UNICODE)
+    if (uFlags & GCS_UNICODE)
     {
         memset(pszName, 0, cchMax * 2);
     }
@@ -639,17 +639,17 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
 
     LPCSTR lpText = "";
 
-    if(idCmd == ID_REGISTER)
+    if (idCmd == ID_REGISTER)
     {
         lpText = "注册组件。";
     }
-    else if(idCmd == ID_UNREGISTER)
+    else if (idCmd == ID_UNREGISTER)
     {
         lpText = "取消注册组件。";
     }
-    else if(idCmd == ID_COMBINE)
+    else if (idCmd == ID_COMBINE)
     {
-        if(m_uFileCount == 1)
+        if (m_uFileCount == 1)
         {
             lpText = "将选定的rar文件附加到默认jpg文件之后。";
         }
@@ -658,47 +658,47 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
             lpText = "将选定的rar文件附加到选定的jpg文件之后。";
         }
     }
-    else if(idCmd == ID_COPYFULLPATH)
+    else if (idCmd == ID_COPYFULLPATH)
     {
         lpText = "复制选中的文件或文件夹的完整路径到剪贴板。";
     }
-    else if(idCmd == ID_APPPATH)
+    else if (idCmd == ID_APPPATH)
     {
         lpText = "维护在“运行”对话框中快速启动的条目。";
     }
-    else if(idCmd == ID_UNLOCKFILE)
+    else if (idCmd == ID_UNLOCKFILE)
     {
         lpText = "查看文件夹或文件是否锁定和解除这些锁定。";
     }
-    else if(idCmd == ID_TRYRUN)
+    else if (idCmd == ID_TRYRUN)
     {
         lpText = "尝试将文件作为可执行文件运行。";
     }
-    else if(idCmd == ID_TRYRUNWITHARGUMENTS)
+    else if (idCmd == ID_TRYRUNWITHARGUMENTS)
     {
         lpText = "尝试将文件作为可执行文件运行，并附带命令行参数。";
     }
-    else if(idCmd == ID_RUNCMDHERE)
+    else if (idCmd == ID_RUNCMDHERE)
     {
         lpText = "在当前目录启动命令行。";
     }
-    else if(idCmd == ID_RUNBASHHERE)
+    else if (idCmd == ID_RUNBASHHERE)
     {
         lpText = "在当前目录启动Win10 linux子系统bash。";
     }
-    else if(idCmd == ID_OPENWITHNOTEPAD)
+    else if (idCmd == ID_OPENWITHNOTEPAD)
     {
         lpText = "在记事本打开当前文件。";
     }
-    else if(idCmd == ID_KILLEXPLORER)
+    else if (idCmd == ID_KILLEXPLORER)
     {
         lpText = "结束Explorer，随后系统将自动重新启动Explorer。";
     }
-    else if(idCmd == ID_MANUALCHECKSIGNATURE)
+    else if (idCmd == ID_MANUALCHECKSIGNATURE)
     {
         lpText = "手动校验选中的文件的数字签名。";
     }
-    else if(idCmd == ID_UNESCAPE)
+    else if (idCmd == ID_UNESCAPE)
     {
         lpText = "转化文件名为较合适的形式。";
     }
@@ -707,7 +707,7 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
         lpText = "将图片内容复制到剪贴板，支持在QQ上粘贴。";
     }
 
-    if(uFlags & GCS_UNICODE)
+    if (uFlags & GCS_UNICODE)
     {
         wnsprintfW((LPWSTR)pszName, cchMax, L"%hs", lpText);
     }
@@ -721,12 +721,12 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
 
 STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 {
-    if(0 != HIWORD(pici->lpVerb))
+    if (0 != HIWORD(pici->lpVerb))
     {
         return E_INVALIDARG;
     }
 
-    if((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
+    if ((GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0))
     {
         ConvertToShortPaths();
     }
@@ -788,13 +788,13 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         BOOL bSucceed = FALSE;
         WCHAR szResultPath[MAX_PATH];
 
-        if(m_uFileCount == 1)
+        if (m_uFileCount == 1)
         {
             bSucceed = CombineFile(m_pFiles[0].szPath, NULL, szResultPath, MAX_PATH);
         }
-        else if(m_uFileCount == 2)
+        else if (m_uFileCount == 2)
         {
-            if(m_pFiles[0].bIsRar)
+            if (m_pFiles[0].bIsRar)
             {
                 bSucceed = CombineFile(m_pFiles[0].szPath, m_pFiles[1].szPath, szResultPath, MAX_PATH);
             }
@@ -804,7 +804,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
             }
         }
 
-        if(!bSucceed)
+        if (!bSucceed)
         {
             MessageBoxW(pici->hwnd, L"合成文件出错", NULL, MB_ICONERROR | MB_TOPMOST);
         }
@@ -864,21 +864,21 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_COPYFULLPATH:
     {
-        if(m_uFileCount == 1)
+        if (m_uFileCount == 1)
         {
             SetClipboardText(m_pFiles[0].szPath);
         }
-        else if(m_uFileCount > 1)
+        else if (m_uFileCount > 1)
         {
             WCHAR *szText = new WCHAR[MAX_PATH * m_uFileCount];
 
-            if(szText != NULL)
+            if (szText != NULL)
             {
                 UINT uFileIndex = 0;
 
                 szText[0] = L'\0';
 
-                for(; uFileIndex < m_uFileCount; uFileIndex += 1)
+                for (; uFileIndex < m_uFileCount; uFileIndex += 1)
                 {
                     lstrcatW(szText, m_pFiles[uFileIndex].szPath);
                     lstrcatW(szText, L"\r\n");
@@ -899,9 +899,9 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
         wnsprintfW(szCommandLine, sizeof(szCommandLine) / sizeof(WCHAR), L"\"%s\"", m_pFiles[0].szPath);
 
-        if(IDYES == MessageBoxW(pici->hwnd, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
+        if (IDYES == MessageBoxW(pici->hwnd, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3))
         {
-            if(!RunCommand(szCommandLine))
+            if (!RunCommand(szCommandLine))
             {
                 WCHAR szErrorMessage[MAX_PATH + 300];
 
@@ -970,7 +970,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         GetSystemDirectoryW(szCommandLine, MAX_PATH);
         PathAppendW(szCommandLine, L"\\notepad.exe");
 
-        if(GetFileAttributesW(szCommandLine) == INVALID_FILE_ATTRIBUTES)
+        if (GetFileAttributesW(szCommandLine) == INVALID_FILE_ATTRIBUTES)
         {
             GetWindowsDirectoryW(szCommandLine, MAX_PATH);
             PathAppendW(szCommandLine, L"\\notepad.exe");
@@ -980,7 +980,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         lstrcatW(szCommandLine, m_pFiles[0].szPath);
         lstrcatW(szCommandLine, L"\"");
 
-        if(!RunCommand(szCommandLine))
+        if (!RunCommand(szCommandLine))
         {
             WCHAR szErrorMessage[MAX_PATH + 300];
 
@@ -1060,11 +1060,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 
     case ID_MANUALCHECKSIGNATURE:
     {
-        if(m_hManualCheckSignatureThread == NULL)
+        if (m_hManualCheckSignatureThread == NULL)
         {
             WaitForSingleObject(g_hManualCheckSignatureMutex, INFINITE);
 
-            if(m_hManualCheckSignatureThread == NULL)
+            if (m_hManualCheckSignatureThread == NULL)
             {
                 m_hManualCheckSignatureThread = CreateThread(NULL, 0, ManualCheckSignatureThreadProc, NULL, 0, NULL);
             }
@@ -1072,7 +1072,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
             ReleaseMutex(g_hManualCheckSignatureMutex);
         }
 
-        if(m_hManualCheckSignatureThread == NULL)
+        if (m_hManualCheckSignatureThread == NULL)
         {
             MessageBoxW(pici->hwnd, L"启动数字签名校验组件失败。", NULL, MB_ICONERROR);
         }
@@ -1083,17 +1083,17 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
 #else
             map<wstring, HWND> *pMapPaths = new map<wstring, HWND>;
 #endif
-            if(pMapPaths != NULL)
+            if (pMapPaths != NULL)
             {
-                for(DWORD dwIndex = 0; dwIndex < m_uFileCount; dwIndex += 1)
+                for (DWORD dwIndex = 0; dwIndex < m_uFileCount; dwIndex += 1)
                 {
-                    if(m_pFiles[dwIndex].bIsFile)
+                    if (m_pFiles[dwIndex].bIsFile)
                     {
                         pMapPaths->insert(make_pair(wstring(m_pFiles[dwIndex].szPath), HWND(NULL)));
                     }
                 }
 
-                if(pMapPaths->empty())
+                if (pMapPaths->empty())
                 {
                     delete pMapPaths;
 
@@ -1120,9 +1120,9 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
         WCHAR szUnescapedFileName[MAX_PATH];
         WCHAR szMsgText[MAX_PATH + 1000];
 
-        if(TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR)))
+        if (TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR)))
         {
-            if(PathFileExistsW(szUnescapedFileName))
+            if (PathFileExistsW(szUnescapedFileName))
             {
                 wnsprintfW(
                     szMsgText,
@@ -1131,14 +1131,14 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                     szUnescapedFileName
                     );
 
-                if(IDYES == MessageBoxW(
+                if (IDYES == MessageBoxW(
                     pici->hwnd,
                     szMsgText,
                     L"请确认",
                     MB_ICONQUESTION | MB_YESNOCANCEL
                     ))
                 {
-                    if(!DeleteFileW(szUnescapedFileName))
+                    if (!DeleteFileW(szUnescapedFileName))
                     {
                         MessageBoxW(pici->hwnd, L"删除失败。", NULL, MB_ICONERROR);
 
@@ -1151,7 +1151,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici)
                 }
             }
 
-            if(!MoveFileW(m_pFiles[0].szPath, szUnescapedFileName))
+            if (!MoveFileW(m_pFiles[0].szPath, szUnescapedFileName))
             {
                 wnsprintfW(
                     szMsgText,
@@ -2750,7 +2750,7 @@ BOOL CSlxComContextMenu::ConvertToShortPaths()
 {
     WCHAR szFilePathTemp[MAX_PATH];
 
-    for(UINT uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
+    for (UINT uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1)
     {
         GetShortPathNameW(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(WCHAR));
         lstrcpynW(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(WCHAR));

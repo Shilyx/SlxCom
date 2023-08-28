@@ -66,15 +66,15 @@ STDMETHODIMP CSlxComIconHandler::QueryInterface(REFIID riid, void **ppv)
     {
         *ppv = static_cast<IExtractIconW *>(this);
     }
-    else if(riid == IID_IExtractIconW)
+    else if (riid == IID_IExtractIconW)
     {
         *ppv = static_cast<IExtractIconW *>(this);
     }
-    else if(riid == IID_IPersistFile)
+    else if (riid == IID_IPersistFile)
     {
         *ppv = static_cast<IPersistFile *>(this);
     }
-    else if(riid == IID_IPersist)
+    else if (riid == IID_IPersist)
     {
         *ppv = static_cast<IPersist *>(this);
     }

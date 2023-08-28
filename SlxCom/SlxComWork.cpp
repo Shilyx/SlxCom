@@ -22,7 +22,7 @@ BOOL SlxWork(HINSTANCE hinstDll)
         StartDesktopIconManager();
     }
 
-    if(osi.dwMajorVersion == 5 && osi.dwMinorVersion > 0)
+    if (osi.dwMajorVersion == 5 && osi.dwMinorVersion > 0)
     {
         StartHookShowDesktop();
     }

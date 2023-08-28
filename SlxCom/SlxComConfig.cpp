@@ -26,7 +26,7 @@ BOOL LoadOption(HWND hwndDlg)
     dwSize = sizeof(bEnableOverlayIcon);
     SHGetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ENABLE_OVERLAYICON", NULL, &bEnableOverlayIcon, &dwSize);
 
-    if(bEnableOverlayIcon)
+    if (bEnableOverlayIcon)
     {
         SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
     }
@@ -34,7 +34,7 @@ BOOL LoadOption(HWND hwndDlg)
     dwSize = sizeof(bAsyncOverlayIcon);
     SHGetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ASYNC_OVERLAYICON", NULL, &bAsyncOverlayIcon, &dwSize);
 
-    if(bAsyncOverlayIcon)
+    if (bAsyncOverlayIcon)
     {
         SendDlgItemMessageW(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
     }
@@ -83,7 +83,7 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
         break;
 
     case WM_SYSCOMMAND:
-        if(wParam == SC_CLOSE)
+        if (wParam == SC_CLOSE)
         {
             EndDialog(hwndDlg, 0);
         }

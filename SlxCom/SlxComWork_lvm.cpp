@@ -86,7 +86,7 @@ LRESULT WINAPI NewEditWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
 LRESULT WINAPI NewListViewWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if(uMsg == LVM_GETEDITCONTROL)
+    if (uMsg == LVM_GETEDITCONTROL)
     {
         HWND hEdit = (HWND)CallWindowProc(lpOldListViewProc, hwnd, uMsg, wParam, lParam);
         INT_PTR nDotIndex = GetDotIndex(hEdit);
@@ -104,7 +104,7 @@ LRESULT WINAPI NewListViewWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
 BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
 {
-    if(lpOldListViewProc == NULL)
+    if (lpOldListViewProc == NULL)
     {
         WNDCLASSEXW wcex = {sizeof(wcex)};
 
@@ -126,7 +126,7 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
         HWND hWindow = CreateWindowExW(0, szClassName, NULL, WS_OVERLAPPEDWINDOW, 0, 0, 100, 100,
             NULL, NULL, NULL, NULL);
 
-        if(IsWindow(hWindow))
+        if (IsWindow(hWindow))
         {
             HWND hEdit = CreateWindowExW(0, L"Edit", NULL, WS_CHILD, 10, 10, 10, 10, hWindow, NULL, NULL, NULL);
 
@@ -145,7 +145,7 @@ BOOL LvmInit(HINSTANCE hInstance, BOOL bIsXpOrEarlier)
             {
                 HWND hList = CreateWindowExW(0, L"SysListView32", NULL, WS_CHILD, 0, 0, 10, 10, hWindow, NULL, NULL, NULL);
 
-                if(IsWindow(hList))
+                if (IsWindow(hList))
                 {
                     lpOldListViewProc = (WNDPROC)GetClassLongPtr(hList, GCLP_WNDPROC);
 
