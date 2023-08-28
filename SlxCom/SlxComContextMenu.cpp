@@ -1874,7 +1874,7 @@ INT_PTR CALLBACK CSlxComContextMenu::HashPropSheetDlgProc(HWND hwndDlg, UINT uMs
                     SetBkMode(hDc, TRANSPARENT);
                 }
 
-                return (BOOL)GetStockObject(WHITE_BRUSH);
+                return (INT_PTR)GetStockObject(WHITE_BRUSH);
             }
         }
 

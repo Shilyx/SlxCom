@@ -160,7 +160,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     case WM_CTLCOLORSTATIC:
     case WM_CTLCOLORDLG:
         SetBkMode((HDC)wParam, TRANSPARENT);
-        return (BOOL)GetStockObject(WHITE_BRUSH);
+        return (INT_PTR)GetStockObject(WHITE_BRUSH);
 
     default:
         break;

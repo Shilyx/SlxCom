@@ -203,7 +203,7 @@ INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM
             QueueUserAPC(
                 (PAPCFUNC)ManualCheckSignatureThreadProc,
                 m_hManualCheckSignatureThread,
-                (DWORD)pMapPaths
+                (ULONG_PTR)pMapPaths
                 );
         }
 

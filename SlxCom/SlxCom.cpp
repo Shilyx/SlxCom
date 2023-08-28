@@ -148,22 +148,22 @@ HWND GetDesktopListViewWnd()
 
 void ModifyStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
 {
-    DWORD_PTR dwStyle = GetWindowLongPtr(hWindow, GWL_STYLE);
+    DWORD dwStyle = GetWindowLong(hWindow, GWL_STYLE);
 
     dwStyle |= dwAdd;
     dwStyle &= ~dwRemove;
 
-    SetWindowLongPtr(hWindow, GWL_STYLE, dwStyle);
+    SetWindowLong(hWindow, GWL_STYLE, dwStyle);
 }
 
 void ModifyExStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
 {
-    DWORD_PTR dwStyle = GetWindowLongPtr(hWindow, GWL_EXSTYLE);
+    DWORD dwStyle = GetWindowLong(hWindow, GWL_EXSTYLE);
 
     dwStyle |= dwAdd;
     dwStyle &= ~dwRemove;
 
-    SetWindowLongPtr(hWindow, GWL_EXSTYLE, dwStyle);
+    SetWindowLong(hWindow, GWL_EXSTYLE, dwStyle);
 }
 
 vector<POINT> GetAllIconPositions(HWND hListView)

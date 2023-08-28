@@ -6,7 +6,7 @@ using namespace std;
 
 #define PAINTVIEWWND_CLASS      L"__slx_paintViewWnd_20131122"
 
-static enum PaintMethod
+enum PaintMethod
 {
     PM_LINE,
     PM_ECLIPSE,
@@ -14,7 +14,7 @@ static enum PaintMethod
     PM_TEXT,
 };
 
-static enum PaintStatus
+enum PaintStatus
 {
     PS_LINE,
     PS_ECLIPSE,

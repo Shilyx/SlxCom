@@ -140,7 +140,7 @@ int StartBridgeWithTaskId(const ULARGE_INTEGER &uliTaskId)
 
     wnsprintfW(szArguments, RTL_NUMBER_OF(szArguments), L"%s SlxElevateBridge %lu %lu", szDllPath, uliTaskId.HighPart, uliTaskId.LowPart);
 
-    return (int)ShellExecuteW(NULL, L"runas", szRundll32, szArguments, NULL, SW_SHOW);
+    return (int)(INT_PTR)ShellExecuteW(NULL, L"runas", szRundll32, szArguments, NULL, SW_SHOW);
 }
 
 int WINAPI ElevateAndRunA(LPCSTR lpCommand, LPCSTR lpArguments, LPCSTR lpDirectory, int nShowCmd)
@@ -162,7 +162,7 @@ int WINAPI ElevateAndRunW(LPCWSTR lpCommand, LPCWSTR lpArguments, LPCWSTR lpDire
 
     if (!bNeedElevated)
     {
-        return (int)ShellExecuteW(NULL, L"open", lpCommand, lpArguments, lpDirectory, nShowCmd);
+        return (int)(INT_PTR)ShellExecuteW(NULL, L"open", lpCommand, lpArguments, lpDirectory, nShowCmd);
     }
 
     ULARGE_INTEGER uliTaskId = MakeTask(lpCommand, lpArguments, lpDirectory, nShowCmd);
@@ -272,7 +272,7 @@ namespace Bridge
 
             SHGetValueW(HKEY_CURRENT_USER, szRegPath, L"sw", NULL, &taskDisc.nShowCmd, &dwSize);
 
-            nResult = (int)ShellExecuteW(NULL, L"open", taskDisc.szCommand, taskDisc.szArguments, taskDisc.szCurrentDirectory, taskDisc.nShowCmd);
+            nResult = (int)(INT_PTR)ShellExecuteW(NULL, L"open", taskDisc.szCommand, taskDisc.szArguments, taskDisc.szCurrentDirectory, taskDisc.nShowCmd);
         }
         else
         {

@@ -191,15 +191,15 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
         DWORD dwCount = (DWORD)wParam;
         FileHandleInfo *pHandles = (FileHandleInfo *)lParam;
         FileHandleInfo *pLastHandles = (FileHandleInfo *)GetPropW(hwndDlg, lpPropHandles);
-        DWORD dwLastCount = (DWORD)GetPropW(hwndDlg, lpPropCount);
+        DWORD dwLastCount = (DWORD)(DWORD_PTR)GetPropW(hwndDlg, lpPropCount);
 
         if (pLastHandles != NULL)
         {
             FreeFileHandleInfos(pLastHandles);
         }
 
-        SetPropW(hwndDlg, lpPropHandles, (HANDLE)pHandles);
-        SetPropW(hwndDlg, lpPropCount, (HANDLE)dwCount);
+        SetPropW(hwndDlg, lpPropHandles, (HANDLE)(DWORD_PTR)pHandles);
+        SetPropW(hwndDlg, lpPropCount, (HANDLE)(DWORD_PTR)dwCount);
 
         PostMessageW(hwndDlg, WM_REVIEW, 0, 0);
     }
@@ -298,7 +298,7 @@ INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM w
         ListView_DeleteAllItems(hHandleList);
 
         FileHandleInfo *pHandles = (FileHandleInfo *)GetPropW(hwndDlg, lpPropHandles);
-        DWORD dwCount = (DWORD)GetPropW(hwndDlg, lpPropCount);
+        DWORD dwCount = (DWORD)(DWORD_PTR)GetPropW(hwndDlg, lpPropCount);
 
         if (pHandles != NULL)
         {

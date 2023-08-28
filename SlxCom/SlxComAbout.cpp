@@ -80,7 +80,7 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
             }
 
             SetBkMode(hDc, TRANSPARENT);
-            return (BOOL)GetStockObject(NULL_BRUSH);
+            return (INT_PTR)GetStockObject(NULL_BRUSH);
         }
 
         break;

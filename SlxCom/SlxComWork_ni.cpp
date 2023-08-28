@@ -24,7 +24,7 @@ using namespace tr1;
 #define REG_QUESTION_TITLE  L"处理注册表路径不存在的问题"
 #define COMPACT_WIDTH       400
 
-static enum
+enum
 {
     WM_CALLBACK = WM_USER + 112,
     WM_HIDEICON,
@@ -89,7 +89,7 @@ static struct
     { L"ShellIconOverlayIdentifiers", L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers"},
 };
 
-static enum
+enum
 {
     SYS_QUIT = 1,
     SYS_HIDEICON,
@@ -108,7 +108,7 @@ static enum
     SYS_MAXVALUE,
 };
 
-static enum
+enum
 {
     HK_PAINTVIEW = 112,
 };
@@ -597,8 +597,8 @@ public:
 //         AppendMenuW(m_hMenu, MF_STRING, SYS_PAINTVIEW, L"桌面画板(&P)...");
 //         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
         AppendMenuW(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, L"窗口管理器(&W)...");
-        AppendMenuW(m_hMenu, MF_POPUP, (UINT)hTimePlateMenu, L"整点报时(&T)");
-        AppendMenuW(m_hMenu, MF_POPUP, (UINT)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
+        AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)hTimePlateMenu, L"整点报时(&T)");
+        AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(m_hMenu, MF_STRING, SYS_RESETEXPLORER, L"重新启动Explorer(&E)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
@@ -792,7 +792,7 @@ private:
                 AppendMenuW(
                     hPopupMenu,
                     MF_POPUP,
-                    (UINT)RegistryPathToMenu(pMenuId, hRootKey, strSubPath.c_str(), FALSE, TRUE),
+                    (UINT)(UINT_PTR)RegistryPathToMenu(pMenuId, hRootKey, strSubPath.c_str(), FALSE, TRUE),
                     itSubPath->c_str()
                     );
             }
@@ -853,17 +853,17 @@ private:
 
         if (GetMenuItemCount(hBuildinMenu) > 0)
         {
-            AppendMenuW(hRetMenu, MF_POPUP, (UINT)hBuildinMenu, L"注册表常用位置(&B)");
+            AppendMenuW(hRetMenu, MF_POPUP, (UINT)(UINT_PTR)hBuildinMenu, L"注册表常用位置(&B)");
         }
 
         HMENU hSysMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSysRegPath, TRUE, FALSE);
-        AppendMenuW(hRetMenu, MF_POPUP, (UINT)hSysMenu, L"注册表编辑器搜藏位置(&F)");
+        AppendMenuW(hRetMenu, MF_POPUP, (UINT)(UINT_PTR)hSysMenu, L"注册表编辑器搜藏位置(&F)");
 
         HMENU hSlxMenu = RegistryPathToMenu(pMenuId, HKEY_CURRENT_USER, lpSlxRegPath, FALSE, TRUE);
         InsertMenuW(hSlxMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
         InsertMenuW(hSlxMenu, 0, MF_BYPOSITION, *pMenuId, L"配置SlxCom搜藏(&C)...");
         m_mapMenuItems[*pMenuId] = &*m_setMenuItemsRegistry.insert(MenuItemRegistry(*pMenuId, NULL, lpSlxRegPath2)).first;
-        AppendMenuW(hRetMenu, MF_POPUP, (UINT)hSlxMenu, L"SlxCom搜藏位置(&S)");
+        AppendMenuW(hRetMenu, MF_POPUP, (UINT)(UINT_PTR)hSlxMenu, L"SlxCom搜藏位置(&S)");
         *pMenuId += 1;
 
         return hRetMenu;

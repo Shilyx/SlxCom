@@ -11,7 +11,7 @@ static DWORD gs_dwSlxComWindowManagerWindowProcessId = 0;
 static HWND gs_hSlxComWindowManagerWindow = NULL;
 static HWND gs_hMainWindow = NULL;
 
-static enum
+enum
 {
     WM_TASK = WM_USER + 112,
 };

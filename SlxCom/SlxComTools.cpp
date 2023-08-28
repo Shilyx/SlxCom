@@ -402,7 +402,7 @@ INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     case WM_CTLCOLORSTATIC:
     case WM_CTLCOLORDLG:
         SetBkMode((HDC)wParam, TRANSPARENT);
-        return (BOOL)GetStockObject(WHITE_BRUSH);
+        return (INT_PTR)GetStockObject(WHITE_BRUSH);
 
     default:
         break;
@@ -418,7 +418,7 @@ BOOL RunCommandWithArguments(LPCWSTR lpFile)
 
 BOOL RunCommandEx(LPCWSTR lpApplication, LPCWSTR lpArguments, LPCWSTR lpCurrentDirectory, BOOL bElevate)
 {
-    return (int)ShellExecuteW(
+    return (int)(INT_PTR)ShellExecuteW(
         NULL,
         bElevate ? L"runas" : L"open",
         lpApplication,
@@ -1510,9 +1510,9 @@ BOOL SetClipboardHtml(const char *html)
         html
         );
 
-    nStartHtml = (int)StrStrA(buffer, "<html") - (int)buffer;
-    nStartFragment = (int)StrStrA(buffer, "<!--StartFrag") - (int)buffer;
-    nEndFragment = (int)StrStrA(buffer, "<!--EndFragment") - (int)buffer;
+    nStartHtml = (int)(INT_PTR)(StrStrA(buffer, "<html") - buffer);
+    nStartFragment = (int)(INT_PTR)(StrStrA(buffer, "<!--StartFrag") - buffer);
+    nEndFragment = (int)(INT_PTR)(StrStrA(buffer, "<!--EndFragment") - buffer);
 
     if (nStartHtml != 0 &&
         nEndHtml != 0 &&
@@ -2086,7 +2086,7 @@ BOOL KillProcess(DWORD dwProcessId)
 
         wnsprintfW(szArguments, RTL_NUMBER_OF(szArguments), L"%s K_Process %lu", szDllPath, dwProcessId);
 
-        bRet = (int)ShellExecuteW(NULL, L"runas", szRundll32, szArguments, NULL, SW_SHOW) > 32;
+        bRet = (int)(INT_PTR)ShellExecuteW(NULL, L"runas", szRundll32, szArguments, NULL, SW_SHOW) > 32;
     }
 
     return bRet;

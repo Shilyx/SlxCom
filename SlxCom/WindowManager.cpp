@@ -16,18 +16,18 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 #define BASE_REG_PATH   L"Software\\Shilyx Studio\\SlxCom\\WindowManager"
 #define RECORD_REG_PATH L"Software\\Shilyx Studio\\SlxCom\\WindowManager\\Records"
 
-static enum
+enum
 {
     WM_CALLBACK = WM_USER + 12,     // 托盘图标的回调消息
     WM_REMOVE_NOTIFY,               // 通知主窗口销毁某托盘，wparam为id，lparam为hwnd
 };
 
-static enum
+enum
 {
     ID_CHECK = 12,
 };
 
-static enum
+enum
 {
     HK_HIDEWINDOW = 12,
     HK_HIDEWINDOW2,
@@ -37,7 +37,7 @@ static enum
     HK_ADDWINDOW2,
 };
 
-static enum
+enum
 {
     CMD_ABOUT = 1,          // 关于
     CMD_DESTROYONSHOW,      // 控制是否在窗口显示时销毁托盘图标
