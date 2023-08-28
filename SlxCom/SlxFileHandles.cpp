@@ -293,7 +293,7 @@ struct QueryFileNameThreadParam
     WCHAR szFilePath[MAX_PATH];
 };
 
-DWORD __stdcall QueryFileNameProc(LPVOID lpParam)
+DWORD CALLBACK QueryFileNameProc(LPVOID lpParam)
 {
     QueryFileNameThreadParam *pThreadParam = (QueryFileNameThreadParam *)lpParam;
     BOOL bDriveLetterSucceed = FALSE;

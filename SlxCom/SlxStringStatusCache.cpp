@@ -56,7 +56,7 @@ DWORD SlxStringStatusCache::GetCacheSize() const
     return dwCount;
 }
 
-DWORD __stdcall SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
+DWORD CALLBACK SlxStringStatusCache::AutoCleanThread(LPVOID lpParam)
 {
     HKEY hRegKey = (HKEY)lpParam;
 

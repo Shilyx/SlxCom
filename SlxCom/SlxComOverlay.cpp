@@ -225,7 +225,7 @@ BOOL CSlxComOverlay::BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int 
     return FALSE;
 }
 
-DWORD __stdcall CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
+DWORD CALLBACK CSlxComOverlay::CheckTaskProc(LPVOID lpParam)
 {
     while(TRUE)
     {

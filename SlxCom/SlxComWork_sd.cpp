@@ -54,7 +54,7 @@ static LRESULT WINAPI NewStartButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
     return CallWindowProc(lpOldStartButtonProc, hwnd, uMsg, wParam, lParam);
 }
 
-DWORD __stdcall WaitAndHookShowDesktop(LPVOID lpParam)
+DWORD CALLBACK WaitAndHookShowDesktop(LPVOID lpParam)
 {
     HWND hTrayNotifyWnd = NULL;
     MSG msg;

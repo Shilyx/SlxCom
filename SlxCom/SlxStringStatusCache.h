@@ -33,7 +33,7 @@ protected:
     HKEY m_hRegKey;
 
     DWORD GetCacheSize() const;
-    static DWORD __stdcall AutoCleanThread(LPVOID lpParam);
+    static DWORD CALLBACK AutoCleanThread(LPVOID lpParam);
     BOOL IsCleaning() const ;
     BOOL UpdateCache(LPCWSTR lpString, StringStatus ssValue);
 

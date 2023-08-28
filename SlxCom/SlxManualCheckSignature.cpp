@@ -13,7 +13,7 @@ using namespace std;
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
-DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam)
+DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam)
 {
     if(lpParam == 0)
     {

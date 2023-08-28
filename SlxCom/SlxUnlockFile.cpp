@@ -80,7 +80,7 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     }
 }
 
-static DWORD __stdcall RefreshThread(LPVOID lpParam)
+static DWORD CALLBACK RefreshThread(LPVOID lpParam)
 {
     HWND hwndDlg = (HWND)lpParam;
 

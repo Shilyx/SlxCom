@@ -1123,7 +1123,7 @@ static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(g_hMsgHook, nCode, wParam, lParam);
 }
 
-static DWORD __stdcall NotifyIconManagerProc(LPVOID lpParam)
+static DWORD CALLBACK NotifyIconManagerProc(LPVOID lpParam)
 {
     if (g_hMsgHook != NULL)
     {

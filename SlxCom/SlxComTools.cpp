@@ -435,7 +435,7 @@ struct BrowserForRegPathParam
     LPCWSTR lpRegPath;
 };
 
-DWORD __stdcall BrowserForRegPathProc(LPVOID lpParam)
+DWORD CALLBACK BrowserForRegPathProc(LPVOID lpParam)
 {
     BrowserForRegPathParam *pParam = (BrowserForRegPathParam *)lpParam;
 
@@ -1438,7 +1438,7 @@ BOOL KillAllExplorers()
     return TRUE;
 }
 
-static DWORD __stdcall ResetExplorerProc(LPVOID lpParam)
+static DWORD CALLBACK ResetExplorerProc(LPVOID lpParam)
 {
     InvokeDesktopRefresh();
     KillAllExplorers();

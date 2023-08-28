@@ -58,7 +58,7 @@ BOOL g_bElevated = FALSE;
 BOOL g_bHasWin10Bash = FALSE;
 BOOL g_bDebugMode = FALSE;                                  // 调试模式，dll文件名中含有DEBUG字样后启用
 
-DWORD __stdcall OpenLastPathProc(LPVOID lpParam)
+DWORD CALLBACK OpenLastPathProc(LPVOID lpParam)
 {
     WCHAR szLastPath[MAX_PATH];
     DWORD dwType = REG_NONE;

@@ -8,7 +8,7 @@
 class CSlxComOverlay : public IShellIconOverlayIdentifier
 {
     friend class CSlxComContextMenu;
-    friend DWORD __stdcall ManualCheckSignatureThreadProc(LPVOID lpParam);
+    friend DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam);
 
 public:
     CSlxComOverlay();
@@ -36,7 +36,7 @@ protected:
     static volatile HANDLE m_hTaskEvent;
     static WCHAR m_szTaskRegPath[1000];
 
-    static DWORD __stdcall CheckTaskProc(LPVOID lpParam);
+    static DWORD CALLBACK CheckTaskProc(LPVOID lpParam);
 
 protected:
     static BOOL BuildFileMarkString(LPCWSTR lpFilePath, LPWSTR lpMark, int nSize, ULARGE_INTEGER *puliFileSize = NULL);
