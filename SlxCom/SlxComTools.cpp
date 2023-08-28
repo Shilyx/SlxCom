@@ -310,7 +310,7 @@ BOOL RunCommand(LPWSTR lpCommandLine, LPCWSTR lpCurrentDirectory)
     return FALSE;
 }
 
-INT_PTR __stdcall RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HICON hIcon = NULL;
 

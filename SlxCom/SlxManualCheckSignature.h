@@ -3,6 +3,6 @@
 
 #include <Windows.h>
 
-INT_PTR __stdcall ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 #endif // _SLXMANUALCHECKSIGNATURE_H

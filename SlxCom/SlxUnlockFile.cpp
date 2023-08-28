@@ -95,7 +95,7 @@ static DWORD CALLBACK RefreshThread(LPVOID lpParam)
     return 0;
 }
 
-INT_PTR __stdcall UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HICON hIcon = NULL;
     static BOOL bFilter = TRUE;
