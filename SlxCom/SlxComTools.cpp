@@ -1104,10 +1104,16 @@ VOID DrvAction(HWND hWindow, LPCWSTR lpFilePath, DRIVER_ACTION daValue)
         return;
     }
 
-    WCHAR szServiceName[MAX_PATH] = L"";
+    WCHAR szServiceName[MAX_PATH] = L"_slxcom_";
 
-    lstrcpynW(szServiceName, PathFindFileNameW(lpFilePath), sizeof(szServiceName) / sizeof(WCHAR));
+    StrCatBuffW(szServiceName, PathFindFileNameW(lpFilePath), RTL_NUMBER_OF(szServiceName));
     PathRemoveExtensionW(szServiceName);
+
+    for (int i = 0; i < lstrlenW(szServiceName); i++) {
+        if (szServiceName[i] == L' ') {
+            szServiceName[i] = L'_';
+        }
+    }
 
     if (daValue == DA_INSTALL)
     {
