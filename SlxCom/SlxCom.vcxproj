@@ -224,6 +224,7 @@
     <ClCompile Include="SlxManualCheckSignature.cpp" />
     <ClCompile Include="SlxPaintView.cpp" />
     <ClCompile Include="SlxPeInformation.cpp" />
+    <ClCompile Include="SlxQuickPopupMenu.cpp" />
     <ClCompile Include="SlxRunDlgPlus.cpp" />
     <ClCompile Include="SlxStringStatusCache.cpp" />
     <ClCompile Include="SlxTimePlate.cpp" />
@@ -270,6 +271,7 @@
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />
     <ClInclude Include="SlxPeInformation.h" />
+    <ClInclude Include="SlxQuickPopupMenu.h" />
     <ClInclude Include="SlxRunDlgPlus.h" />
     <ClInclude Include="SlxStringStatusCache.h" />
     <ClInclude Include="SlxTimePlate.h" />
@@ -318,6 +320,9 @@
   <ItemGroup>
     <Library Include="libs\Dummy_WinTrust_Win32.lib" />
     <Library Include="libs\Dummy_WinTrust_x64.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="res\SlxCom.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

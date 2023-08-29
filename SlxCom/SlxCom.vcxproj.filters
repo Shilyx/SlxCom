@@ -123,6 +123,9 @@
     <ClCompile Include="lib\ReadonlyFileMapping.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="SlxQuickPopupMenu.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -234,6 +237,9 @@
     </ClInclude>
     <ClInclude Include="lib\StringMatch.h">
       <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxQuickPopupMenu.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -357,5 +363,10 @@
     <Library Include="libs\Dummy_WinTrust_Win32.lib">
       <Filter>libs</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="res\SlxCom.manifest">
+      <Filter>资源文件</Filter>
+    </Manifest>
   </ItemGroup>
 </Project>
