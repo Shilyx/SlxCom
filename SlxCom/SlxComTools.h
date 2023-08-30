@@ -27,9 +27,10 @@ struct ListCtrlSortStruct
 VOID DrvAction(HWND hWindow, LPCWSTR lpFilePath, DRIVER_ACTION daValue);
 DWORD SHSetTempValue(HKEY hRootKey, LPCWSTR pszSubKey, LPCWSTR pszValue, DWORD dwType, LPCVOID pvData, DWORD cbData);
 BOOL IsFileSigned(LPCWSTR lpFilePath);
+BOOL IsFileHasSignatureArea(LPCWSTR lpFilePath);
+BOOL RemoveFileSignatrueArea(LPCWSTR lpFilePath);
 BOOL CombineFile(LPCWSTR lpRarPath, LPCWSTR lpJpgPath, LPWSTR lpResultPath, int nLength);
 BOOL SaveResourceToFile(LPCWSTR lpResType, LPCWSTR lpResName, LPCWSTR lpFilePath);
-LPCWSTR GetClipboardFiles(DWORD *pdwEffect, UINT *puFileCount = NULL);
 BOOL SetClipboardText(LPCWSTR lpText);
 BOOL RunCommand(LPWSTR lpCommandLine, LPCWSTR lpCurrentDirectory = NULL);
 BOOL RunCommandWithArguments(LPCWSTR lpFile);

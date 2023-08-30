@@ -4,6 +4,7 @@
 #include <shlwapi.h>
 #include <shlobj.h>
 #include <WinTrust.h>
+#include <ImageHlp.h>
 #include "resource.h"
 #include "lib/deelx.h"
 #include <TlHelp32.h>
@@ -22,6 +23,7 @@ using namespace std;
 
 #pragma comment(lib, "Wintrust.lib")
 #pragma comment(lib, "PsApi.lib")
+#pragma comment(lib, "ImageHlp.lib")
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 extern BOOL g_bVistaLater;      // SlxCom.cpp
@@ -137,6 +139,60 @@ BOOL IsFileSignedByCatlog(LPCWSTR lpFilePath)
 BOOL IsFileSigned(LPCWSTR lpFilePath)
 {
     return IsFileSignedBySelf(lpFilePath) || IsFileSignedByCatlog(lpFilePath);
+}
+
+BOOL IsFileHasSignatureArea(LPCWSTR lpFilePath)
+{
+    BOOL bRet = FALSE;
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+        DWORD dwCertCount = 0;
+        if (ImageEnumerateCertificates(hFile, CERT_SECTION_TYPE_ANY, &dwCertCount, NULL, 0) && dwCertCount > 0)
+        {
+            bRet = TRUE;
+        }
+
+        CloseHandle(hFile);
+    }
+
+    return bRet;
+}
+
+BOOL RemoveFileSignatrueArea(LPCWSTR lpFilePath)
+{
+    if (!IsFileHasSignatureArea(lpFilePath))
+    {
+        return FALSE;
+    }
+
+    DWORD dwCertCount = 0;
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        return FALSE;
+    }
+
+    if (!ImageEnumerateCertificates(hFile, CERT_SECTION_TYPE_ANY, &dwCertCount, NULL, 0) || dwCertCount == 0)
+    {
+        CloseHandle(hFile);
+        SetLastError(ERROR_EMPTY);
+        return FALSE;
+    }
+
+    for (DWORD i = 0; i < dwCertCount; i++)
+    {
+        if (!ImageRemoveCertificate(hFile, i))
+        {
+            CloseHandle(hFile);
+            return FALSE;
+        }
+    }
+
+    CloseHandle(hFile);
+    return TRUE;
 }
 
 BOOL SaveResourceToFile(LPCWSTR lpResType, LPCWSTR lpResName, LPCWSTR lpFilePath)

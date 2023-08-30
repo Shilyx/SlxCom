@@ -6,6 +6,7 @@
 #include <map>
 #include "lib/charconv.h"
 #include "SlxComOverlay.h"
+#include "SlxQuickPopupMenu.h"
 
 using namespace std;
 
@@ -15,65 +16,60 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
 DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam)
 {
-    if (lpParam == 0)
+    while (lpParam == 0)
     {
-        while (TRUE)
-        {
-            SleepEx(INFINITE, TRUE);
-        }
+        SleepEx(INFINITE, TRUE);
     }
-    else
+
+    map<wstring, HWND> *pMapPaths = (map<wstring, HWND> *)lpParam;
+
+    if (pMapPaths != NULL && !pMapPaths->empty())
     {
-        map<wstring, HWND> *pMapPaths = (map<wstring, HWND> *)lpParam;
+        map<wstring, HWND>::iterator it = pMapPaths->begin();
+        HWND hTargetWindow = it->second;
+        DWORD dwFileIndex = 0;
 
-        if (pMapPaths != NULL && !pMapPaths->empty())
+        if (IsWindow(hTargetWindow))             //通过排队，窗口可能已经被取消
         {
-            map<wstring, HWND>::iterator it = pMapPaths->begin();
-            HWND hTargetWindow = it->second;
-            DWORD dwFileIndex = 0;
-
-            if (IsWindow(hTargetWindow))             //通过排队，窗口可能已经被取消
+            for (; it != pMapPaths->end(); it++, dwFileIndex++)
             {
-                for (; it != pMapPaths->end(); it++, dwFileIndex++)
+                BOOL bSigned = FALSE;
+
+                if (PathFileExistsW(it->first.c_str()))
                 {
-                    BOOL bSigned = FALSE;
+                    WCHAR szString[MAX_PATH + 100];
 
-                    if (PathFileExistsW(it->first.c_str()))
+                    if (CSlxComOverlay::BuildFileMarkString(
+                        it->first.c_str(),
+                        szString,
+                        sizeof(szString) / sizeof(WCHAR)
+                        ))
                     {
-                        WCHAR szString[MAX_PATH + 100];
-
-                        if (CSlxComOverlay::BuildFileMarkString(
-                            it->first.c_str(),
-                            szString,
-                            sizeof(szString) / sizeof(WCHAR)
-                            ))
+                        if (IsFileSigned(it->first.c_str()))
                         {
-                            if (IsFileSigned(it->first.c_str()))
-                            {
-                                CSlxComOverlay::m_cache.AddCache(szString, SS_1);
-
-                                bSigned = TRUE;
-                            }
-                            else
-                            {
-                                CSlxComOverlay::m_cache.AddCache(szString, SS_2);
-                            }
+                            CSlxComOverlay::m_cache.AddCache(szString, SS_1);
+                            bSigned = TRUE;
+                        }
+                        else
+                        {
+                            CSlxComOverlay::m_cache.AddCache(szString, SS_2);
                         }
                     }
+                }
 
-                    if (IsWindow(hTargetWindow))
-                    {
-                        PostMessageW(hTargetWindow, WM_SIGNRESULT, dwFileIndex, bSigned);
-                    }
-                    else
-                    {
-                        break;
-                    }
+                if (IsWindow(hTargetWindow))
+                {
+                    SendMessageW(hTargetWindow, WM_SIGNRESULT, (WPARAM)it->first.c_str(), bSigned);
+                }
+                else
+                {
+                    break;
                 }
             }
         }
     }
 
+    delete pMapPaths;
     return 0;
 }
 
@@ -199,7 +195,6 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
 
             //开始校验
             extern volatile HANDLE m_hManualCheckSignatureThread; //Slx
-
             QueueUserAPC(
                 (PAPCFUNC)ManualCheckSignatureThreadProc,
                 m_hManualCheckSignatureThread,
@@ -335,6 +330,91 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                     MessageBoxW(hwndDlg, L"文件不存在，无法定位。", NULL, MB_ICONERROR);
                 }
             }
+            else if (lpNmHdr->code == NM_RCLICK)
+            {
+                LPNMITEMACTIVATE lpNmItemActivate = (LPNMITEMACTIVATE)lParam;
+
+                if (lpNmItemActivate->iItem >= 0)
+                {
+                    enum
+                    {
+                        IDM_BROWSE_FILE = 1000,
+                        IDM_REMOVE_SIGNATURE,
+                    };
+                    POINT pt;
+                    int nSelCount = ListView_GetSelectedCount(hFileList);
+
+                    GetCursorPos(&pt);
+
+                    switch (CSlxQuickPopupMenu()
+                            .AddItemIf(L"定位到文件(&B)", IDM_BROWSE_FILE, FALSE, FALSE, FALSE, nSelCount == 1)
+                            .AddItemIf(L"去除数字签名(&R)", IDM_REMOVE_SIGNATURE, FALSE, FALSE, FALSE, nSelCount > 0)
+                            .Popup(hFileList, pt.x, pt.y))
+                    {
+                    case IDM_BROWSE_FILE:
+                        lpNmHdr->code = NM_DBLCLK;
+                        SendMessageW(hwndDlg, WM_NOTIFY, wParam, lParam);
+                        lpNmHdr->code = NM_RCLICK;
+                        break;
+
+                    case IDM_REMOVE_SIGNATURE:
+                        if (MessageBoxW(hwndDlg, L"要尝试去除这些文件的数字签名吗？如有需要请自行备份文件。", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL) == IDYES)
+                        {
+                            WCHAR szPath[MAX_PATH];
+                            vector<wstring> vectorFilesFailed;
+                            vector<wstring> vectorFilesSucced;
+
+                            int pos = ListView_GetNextItem(hFileList, -1, LVNI_SELECTED);
+                            while (pos >= 0)
+                            {
+                                ListView_GetItemText(hFileList, pos, LVH_PATH, szPath, RTL_NUMBER_OF(szPath));
+
+                                if (!RemoveFileSignatrueArea(szPath))
+                                {
+                                    vectorFilesFailed.push_back(szPath);
+                                }
+                                else
+                                {
+                                    vectorFilesSucced.push_back(szPath);
+                                }
+
+                                pos = ListView_GetNextItem(hFileList, pos, LVNI_SELECTED);
+                            }
+                            
+                            if (!vectorFilesFailed.empty())
+                            {
+                                wstring strText = L"以下文件操作失败:\r\n\r\n";
+                                for (vector<wstring>::const_iterator it = vectorFilesFailed.begin(); it != vectorFilesFailed.end(); ++it)
+                                {
+                                    strText += *it;
+                                    strText += L"\r\n";
+                                }
+                                MessageBoxW(hwndDlg, strText.c_str(), NULL, MB_ICONERROR);
+                            }
+
+                            // 更新界面
+                            if (!vectorFilesSucced.empty())
+                            {
+                                map<wstring, HWND>* pMapPaths = new map<wstring, HWND>;
+                                for (vector<wstring>::const_iterator it = vectorFilesSucced.begin(); it != vectorFilesSucced.end(); ++it)
+                                {
+                                    (*pMapPaths)[*it] = hwndDlg;
+                                }
+
+                                extern volatile HANDLE m_hManualCheckSignatureThread; //Slx
+                                QueueUserAPC(
+                                    (PAPCFUNC)ManualCheckSignatureThreadProc,
+                                    m_hManualCheckSignatureThread,
+                                    (ULONG_PTR)pMapPaths);
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
+                    }
+                }
+            }
         }
     }
     else if (uMsg == WM_SIZING)
@@ -393,20 +473,17 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
     }
     else if (uMsg == WM_SIGNRESULT)
     {
-        WCHAR szIndex[100];
-        WCHAR szIndexInList[100];
+        WCHAR szPath[MAX_PATH];
         WCHAR szResult[100];
         HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
         int nCount = ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST));
 
         //更新列表状态
-        wnsprintfW(szIndex, sizeof(szIndex) / sizeof(WCHAR), L"%lu", wParam + 1);
-
         for (int nIndex = 0; nIndex < nCount; nIndex += 1)
         {
-            ListView_GetItemText(hFileList, nIndex, LVH_INDEX, szIndexInList, sizeof(szIndexInList) / sizeof(WCHAR));
+            ListView_GetItemText(hFileList, nIndex, LVH_PATH, szPath, RTL_NUMBER_OF(szPath));
 
-            if (lstrcmpiW(szIndexInList, szIndex) == 0)
+            if (lstrcmpiW((LPCWSTR)wParam, szPath) == 0)
             {
                 if ((BOOL)lParam)
                 {
@@ -423,21 +500,6 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                 break;
             }
         }
-
-        //更新标题
-        WCHAR szWindowText[100];
-
-        wnsprintfW(
-            szWindowText,
-            sizeof(szWindowText) / sizeof(WCHAR),
-            L"校验数字签名 %lu/%lu(%lu.%02lu%%)",
-            wParam + 1,
-            nCount,
-            (wParam + 1) * 100 / nCount,
-            (wParam + 1) * 100 * 100 / nCount % 100
-            );
-
-        SetWindowTextW(hwndDlg, szWindowText);
     }
 
     return bDlgProcResult;
