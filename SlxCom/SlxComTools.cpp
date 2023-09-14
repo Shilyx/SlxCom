@@ -2198,6 +2198,35 @@ BOOL GetProcessNameById(DWORD dwProcessId, WCHAR szProcessName[], DWORD dwBuffer
     return bRet;
 }
 
+HRESULT SHGetNameFromIDListHelper(PCIDLIST_ABSOLUTE pidl, SIGDN sigdnName, PWSTR* ppszName)
+{
+    typedef HRESULT(WINAPI *FuncSHGetNameFromIDList)(
+        PCIDLIST_ABSOLUTE pidl,
+        SIGDN             sigdnName,
+        PWSTR             *ppszName
+        );
+
+    HMODULE hModule = GetModuleHandleW(L"Shell32.dll");
+    if (hModule == NULL)
+    {
+        hModule = LoadLibraryW(L"Shell32.dll");
+    }
+    if (hModule == NULL)
+    {
+        return ERROR_CALL_NOT_IMPLEMENTED;
+    }
+
+    FuncSHGetNameFromIDList func = NULL;
+    (PROC&)func = GetProcAddress(hModule, "SHGetNameFromIDList");
+
+    if (func == NULL)
+    {
+        return ERROR_CALL_NOT_IMPLEMENTED;
+    }
+
+    return func(pidl, sigdnName, ppszName);
+}
+
 BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue)
 {
     DWORD dwExStyle = (DWORD)GetWindowLongPtr(hWindow, GWL_EXSTYLE);

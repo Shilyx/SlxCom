@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <CommCtrl.h>
+#include <ShlObj.h>
 #pragma warning(disable: 4786)
 #include "lib/charconv.h"
 #include <list>
@@ -83,6 +84,7 @@ std::wstring GetEscapedFilePathInDirectoryW(LPCWSTR lpFileName, LPCWSTR lpDestDi
 bool CreateHardLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 bool CreateSoftLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 void AutoCloseMessageBoxForThreadInSeconds(DWORD dwThreadId, int nSeconds);
+HRESULT SHGetNameFromIDListHelper(PCIDLIST_ABSOLUTE pidl, SIGDN sigdnName, PWSTR* ppszName);
 
 enum WindowUnalphaValue
 {
