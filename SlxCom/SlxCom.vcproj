@@ -383,6 +383,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComDisableCtrlCopyInSameDir.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComExpandDirFiles.cpp"
 				>
 			</File>
@@ -506,6 +510,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComDirShortcut.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComDisableCtrlCopyInSameDir.h"
 				>
 			</File>
 			<File

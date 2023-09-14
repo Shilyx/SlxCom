@@ -126,6 +126,9 @@
     <ClCompile Include="SlxQuickPopupMenu.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComDisableCtrlCopyInSameDir.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -239,6 +242,9 @@
       <Filter>lib</Filter>
     </ClInclude>
     <ClInclude Include="SlxQuickPopupMenu.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComDisableCtrlCopyInSameDir.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

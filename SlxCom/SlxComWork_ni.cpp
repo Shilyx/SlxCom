@@ -11,6 +11,7 @@
 #include "lib/charconv.h"
 #include "SlxComAbout.h"
 #include "SlxComConfigLight.h"
+#include "SlxComDisableCtrlCopyInSameDir.h"
 #include "lib/StringMatch.h"
 
 using namespace std;
@@ -95,6 +96,7 @@ enum
     SYS_HIDEICON,
     SYS_ABOUT,
     SYS_RESETEXPLORER,
+    SYS_DISABLECTRLCOPYINSAMEDIR,
     SYS_DEBUGBREAK,
     SYS_WINDOWMANAGER,
     SYS_SHOWTIMEPALTE_DISABLE,
@@ -487,6 +489,18 @@ public:
             }
             break;
 
+        case SYS_DISABLECTRLCOPYINSAMEDIR:
+            if (DisableCtrlCopyInSameDir_IsRunning())
+            {
+                DisableCtrlCopyInSameDir_Op(DCCO_OFF);
+            }
+            else
+            {
+                DisableCtrlCopyInSameDir_Op(DCCO_ON);
+            }
+            UpdateMenu();
+            break;
+
         case SYS_DEBUGBREAK:
             PostMessageW(m_hWindow, WM_SET_DEBUGBREAK_TASK, 0, 0);
             break;
@@ -601,10 +615,13 @@ public:
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(m_hMenu, MF_STRING, SYS_RESETEXPLORER, L"重新启动Explorer(&E)");
+        AppendMenuW(m_hMenu, MF_STRING, SYS_DISABLECTRLCOPYINSAMEDIR, L"禁用同目录内按住Ctrl键制作副本(&C)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
         AppendMenuW(m_hMenu, MF_STRING, SYS_UPDATEMENU, L"刷新菜单内容(&U)");
         AppendMenuW(m_hMenu, MF_STRING, SYS_HIDEICON, L"不显示托盘图标(&Q)");
+
+        CheckMenuItemHelper(m_hMenu, SYS_DISABLECTRLCOPYINSAMEDIR, 0, DisableCtrlCopyInSameDir_IsRunning());
 
         switch (m_nTimePlageIntervalMinutes)
         {

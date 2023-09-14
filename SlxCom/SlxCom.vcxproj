@@ -208,6 +208,7 @@
     <ClCompile Include="SlxComConfig.cpp" />
     <ClCompile Include="SlxComConfigLight.cpp" />
     <ClCompile Include="SlxComContextMenu.cpp" />
+    <ClCompile Include="SlxComDisableCtrlCopyInSameDir.cpp" />
     <ClCompile Include="SlxComExpandDirFiles.cpp" />
     <ClCompile Include="SlxComFactory.cpp" />
     <ClCompile Include="SlxComIconHandler.cpp" />
@@ -256,6 +257,7 @@
     <ClInclude Include="SlxComConfigLight.h" />
     <ClInclude Include="SlxComContextMenu.h" />
     <ClInclude Include="SlxComDirShortcut.h" />
+    <ClInclude Include="SlxComDisableCtrlCopyInSameDir.h" />
     <ClInclude Include="SlxComExpandDirFiles.h" />
     <ClInclude Include="SlxComFactory.h" />
     <ClInclude Include="SlxComIconHandler.h" />
