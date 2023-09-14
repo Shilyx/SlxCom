@@ -34,6 +34,7 @@ enum
 
 extern HBITMAP g_hKillExplorerBmp;  // SlxCom.cpp
 extern BOOL g_bDebugMode;           // SlxCom.cpp
+extern BOOL g_bVistaLater;          // SlxCom.cpp
 
 static HHOOK g_hMsgHook = NULL;
 static BOOL g_bChangeButtonText = FALSE;
@@ -615,13 +616,16 @@ public:
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(m_hMenu, MF_STRING, SYS_RESETEXPLORER, L"重新启动Explorer(&E)");
-        AppendMenuW(m_hMenu, MF_STRING, SYS_DISABLECTRLCOPYINSAMEDIR, L"禁用同目录内按住Ctrl键制作副本(&C)");
+        if (g_bVistaLater)
+        {
+            AppendMenuW(m_hMenu, MF_STRING, SYS_DISABLECTRLCOPYINSAMEDIR, L"禁用同目录内按住Ctrl键制作副本(&C)");
+            CheckMenuItemHelper(m_hMenu, SYS_DISABLECTRLCOPYINSAMEDIR, 0, DisableCtrlCopyInSameDir_IsRunning());
+        }
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         SetMenuItemBitmaps(m_hMenu, SYS_RESETEXPLORER, MF_BYCOMMAND, g_hKillExplorerBmp, g_hKillExplorerBmp);
         AppendMenuW(m_hMenu, MF_STRING, SYS_UPDATEMENU, L"刷新菜单内容(&U)");
         AppendMenuW(m_hMenu, MF_STRING, SYS_HIDEICON, L"不显示托盘图标(&Q)");
 
-        CheckMenuItemHelper(m_hMenu, SYS_DISABLECTRLCOPYINSAMEDIR, 0, DisableCtrlCopyInSameDir_IsRunning());
 
         switch (m_nTimePlageIntervalMinutes)
         {
