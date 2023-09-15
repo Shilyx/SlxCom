@@ -470,14 +470,6 @@
 				RelativePath=".\SlxUnlockFile.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\WindowManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\WindowManagerProcess.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -590,14 +582,6 @@
 			</File>
 			<File
 				RelativePath=".\SlxTimePlate.h"
-				>
-			</File>
-			<File
-				RelativePath=".\WindowManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\WindowManagerProcess.h"
 				>
 			</File>
 		</Filter>
@@ -817,6 +801,26 @@
 			</File>
 			<File
 				RelativePath=".\libs\Dummy_WinTrust_x64.lib"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="WindowManager"
+			>
+			<File
+				RelativePath=".\WindowManager\WindowManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManager\WindowManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManager\WindowManagerProcess.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManager\WindowManagerProcess.h"
 				>
 			</File>
 		</Filter>
