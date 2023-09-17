@@ -808,6 +808,14 @@
 			Name="WindowManager"
 			>
 			<File
+				RelativePath=".\WindowManager\NotifyClass.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManager\NotifyClass.h"
+				>
+			</File>
+			<File
 				RelativePath=".\WindowManager\WindowManager.cpp"
 				>
 			</File>
