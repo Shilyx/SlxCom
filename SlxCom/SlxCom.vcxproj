@@ -230,8 +230,8 @@
     <ClCompile Include="SlxStringStatusCache.cpp" />
     <ClCompile Include="SlxTimePlate.cpp" />
     <ClCompile Include="SlxUnlockFile.cpp" />
-    <ClCompile Include="WindowManager.cpp" />
-    <ClCompile Include="WindowManagerProcess.cpp" />
+    <ClCompile Include="WindowManager\WindowManager.cpp" />
+    <ClCompile Include="WindowManager\WindowManagerProcess.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SlxCom.rc" />
@@ -277,8 +277,8 @@
     <ClInclude Include="SlxRunDlgPlus.h" />
     <ClInclude Include="SlxStringStatusCache.h" />
     <ClInclude Include="SlxTimePlate.h" />
-    <ClInclude Include="WindowManager.h" />
-    <ClInclude Include="WindowManagerProcess.h" />
+    <ClInclude Include="WindowManager\WindowManager.h" />
+    <ClInclude Include="WindowManager\WindowManagerProcess.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\AboutLogo.bmp" />

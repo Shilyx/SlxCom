@@ -4,7 +4,7 @@
 #include "SlxComWork_ni.h"
 #include "SlxComTools.h"
 #include "SlxRunDlgPlus.h"
-#include "WindowManager.h"
+#include "WindowManager/WindowManager.h"
 #include "DesktopIconManager.h"
 
 BOOL SlxWork(HINSTANCE hinstDll)

@@ -22,6 +22,9 @@
     <Filter Include="libs">
       <UniqueIdentifier>{2d9bc3fb-ccfd-43ad-864e-89bdf9e5b908}</UniqueIdentifier>
     </Filter>
+    <Filter Include="WindowManager">
+      <UniqueIdentifier>{9af9079a-b5e0-4a2b-9493-c011fff1230f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SlxCom.cpp">
@@ -96,12 +99,6 @@
     <ClCompile Include="SlxUnlockFile.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="WindowManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowManagerProcess.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="SlxCrypto.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -128,6 +125,12 @@
     </ClCompile>
     <ClCompile Include="SlxComDisableCtrlCopyInSameDir.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManager\WindowManagerProcess.cpp">
+      <Filter>WindowManager</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManager\WindowManager.cpp">
+      <Filter>WindowManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -217,12 +220,6 @@
     <ClInclude Include="SlxTimePlate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WindowManager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowManagerProcess.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="lib\charconv.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -246,6 +243,12 @@
     </ClInclude>
     <ClInclude Include="SlxComDisableCtrlCopyInSameDir.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager\WindowManager.h">
+      <Filter>WindowManager</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager\WindowManagerProcess.h">
+      <Filter>WindowManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
