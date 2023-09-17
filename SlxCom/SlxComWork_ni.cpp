@@ -494,10 +494,12 @@ public:
             if (DisableCtrlCopyInSameDir_IsRunning())
             {
                 DisableCtrlCopyInSameDir_Op(DCCO_OFF);
+                cfglSetBool(L"DisableCtrlCopyInSameDir", FALSE);
             }
             else
             {
                 DisableCtrlCopyInSameDir_Op(DCCO_ON);
+                cfglSetBool(L"DisableCtrlCopyInSameDir", TRUE);
             }
             UpdateMenu();
             break;
@@ -947,6 +949,12 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         lstrcpynW(nid.szTip, L"SlxCom", sizeof(nid.szTip));
 
         Shell_NotifyIconW(NIM_ADD, &nid);
+
+        // 
+        if (cfglGetBool(L"DisableCtrlCopyInSameDir"))
+        {
+            DisableCtrlCopyInSameDir_Op(DCCO_ON);
+        }
 
         //
         SetTimer(hWnd, TIMER_ICON, 55, NULL);

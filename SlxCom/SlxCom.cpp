@@ -7,6 +7,7 @@
 #include "resource.h"
 #include "SlxComTools.h"
 #include <set>
+#include "SlxComDisableCtrlCopyInSameDir.h"
 
 #ifndef LVS_EX_SNAPTOGRID
 #define LVS_EX_SNAPTOGRID       0x00080000  // Icons automatically snap to grid.
@@ -417,6 +418,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
     }
     else if (dwReason == DLL_PROCESS_DETACH)
     {
+        DisableCtrlCopyInSameDir_StopAll();
         return FALSE;
     }
 
