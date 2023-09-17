@@ -2613,7 +2613,7 @@ LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt)
     return lpSt;
 }
 
-HRESULT WINAPI SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv)
+HRESULT SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv)
 {
     typedef HRESULT(WINAPI *FuncSHGetPropertyStoreForWindow)(HWND hwnd, REFIID riid, void** ppv);
     static FuncSHGetPropertyStoreForWindow funcSHGetPropertyStoreForWindow = NULL;
