@@ -156,7 +156,8 @@ static HRESULT WINAPI newCopyItems(IFileOperation *pThis, IUnknown *punkItems, I
 
     if (gs_bRunning &&
         !vectorSrcs.empty() &&
-        vectorSrcs.begin()->find((strDest + L"\\").c_str()) == 0)
+        vectorSrcs.begin()->find((strDest + L"\\").c_str()) == 0 && 
+        vectorSrcs.begin()->substr(strDest.length() + 1).find(L'\\') == wstring::npos)
     {
         set<wstring> setClipboardFiles = GetClipboardFiles(NULL);
         BOOL bAllSrcInClipboard = TRUE;
