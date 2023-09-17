@@ -2613,6 +2613,33 @@ LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt)
     return lpSt;
 }
 
+HRESULT WINAPI SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv)
+{
+    typedef HRESULT(WINAPI *FuncSHGetPropertyStoreForWindow)(HWND hwnd, REFIID riid, void** ppv);
+    static FuncSHGetPropertyStoreForWindow funcSHGetPropertyStoreForWindow = NULL;
+
+    if (funcSHGetPropertyStoreForWindow == NULL)
+    {
+        HMODULE hModule = GetModuleHandleW(L"shell32.dll");
+        if (hModule == NULL)
+        {
+            hModule = LoadLibraryW(L"shell32.dll");
+        }
+        if (hModule == NULL)
+        {
+            return E_FAIL;
+        }
+        (PROC&)funcSHGetPropertyStoreForWindow = GetProcAddress(hModule, "SHGetPropertyStoreForWindow");
+    }
+
+    if (funcSHGetPropertyStoreForWindow == NULL)
+    {
+        return E_FAIL;
+    }
+
+    return funcSHGetPropertyStoreForWindow(hwnd, riid, ppv);
+}
+
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
 {
     BrowseForFile(L"C:\\Windows\\system32\\cmd.exe");

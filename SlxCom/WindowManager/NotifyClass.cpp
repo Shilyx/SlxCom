@@ -1,6 +1,7 @@
 #include "NotifyClass.h"
 #include "../SlxComTools.h"
 #include "../SlxComAbout.h"
+#include "WindowAppID.h"
 #include <Shlwapi.h>
 #include <set>
 
@@ -9,6 +10,7 @@ using namespace std;
 #define BASE_REG_PATH   L"Software\\Shilyx Studio\\SlxCom\\WindowManager"
 #define RECORD_REG_PATH L"Software\\Shilyx Studio\\SlxCom\\WindowManager\\Records"
 
+extern BOOL g_bVistaLater; // SlxCom.cpp
 BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"DestroyOnShow", TRUE);
 BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"ShowBalloon", TRUE);
 BOOL CNotifyClass::ms_bHideOnMinimaze = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"HideOnMinimaze", FALSE);
@@ -173,6 +175,16 @@ void CNotifyClass::DoContextMenu(int x, int y)
         AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"不透明度(&A)");
     }
 
+    if (g_bVistaLater)
+    {
+        AppendMenuW(hMenu, MF_STRING, CMD_UNGROUPING_WINDOW, L"在任务栏不分组此窗口(&G)");
+
+        if (HasWinAppID(m_hTargetWindow))
+        {
+            CheckMenuItemHelper(hPopupMenu, CMD_UNGROUPING_WINDOW, 0, TRUE);
+        }
+    }
+
     CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
 
     if (IsWindow(m_hTargetWindow))
@@ -335,6 +347,17 @@ void CNotifyClass::DoContextMenu(int x, int y)
                     KillProcess(dwProcessId);
                 }
             }
+        }
+        break;
+
+    case CMD_UNGROUPING_WINDOW:
+        if (HasWinAppID(m_hTargetWindow))
+        {
+            UnsetWinAppID(m_hTargetWindow);
+        }
+        else
+        {
+            SetWinAppID(m_hTargetWindow);
         }
         break;
 

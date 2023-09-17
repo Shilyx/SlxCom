@@ -135,6 +135,9 @@
     <ClCompile Include="WindowManager\NotifyClass.cpp">
       <Filter>WindowManager</Filter>
     </ClCompile>
+    <ClCompile Include="WindowManager\WindowAppID.cpp">
+      <Filter>WindowManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -254,6 +257,9 @@
       <Filter>WindowManager</Filter>
     </ClInclude>
     <ClInclude Include="WindowManager\NotifyClass.h">
+      <Filter>WindowManager</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager\WindowAppID.h">
       <Filter>WindowManager</Filter>
     </ClInclude>
   </ItemGroup>

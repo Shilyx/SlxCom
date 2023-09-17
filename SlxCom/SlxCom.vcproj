@@ -816,6 +816,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\WindowManager\WindowAppID.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowManager\WindowAppID.h"
+				>
+			</File>
+			<File
 				RelativePath=".\WindowManager\WindowManager.cpp"
 				>
 			</File>

@@ -106,6 +106,7 @@ std::wstring GetDesktopName(HDESK hDesktop);
 std::string GetFriendlyFileSizeA(unsigned __int64 nSize);
 std::wstring fmtW(const wchar_t *fmt, ...);
 LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt);
+HRESULT SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv);
 
 template <class T>
 std::wstring AnyTypeToString(const T &value)

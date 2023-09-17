@@ -38,6 +38,7 @@ enum
     CMD_ALPHA_20,           // 不透明度，20%
     CMD_OPEN_IMAGE_PATH,    // 打开进程所在目录
     CMD_KILL_WINDOW_PROCESS,// 杀死窗口进程
+    CMD_UNGROUPING_WINDOW,  // 禁用任务栏分组，针对窗口
 };
 
 class CNotifyClass
