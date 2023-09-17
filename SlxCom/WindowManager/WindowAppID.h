@@ -7,3 +7,5 @@ BOOL HasWinAppID(HWND hWnd);
 BOOL SetWinAppID(HWND hWnd);
 
 BOOL UnsetWinAppID(HWND hWnd);
+
+BOOL ToggleWinAppID(HWND hWnd);

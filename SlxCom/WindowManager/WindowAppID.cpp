@@ -72,3 +72,15 @@ BOOL UnsetWinAppID(HWND hWnd)
 
     return bRet;
 }
+
+BOOL ToggleWinAppID(HWND hWnd)
+{
+    if (HasWinAppID(hWnd))
+    {
+        return UnsetWinAppID(hWnd);
+    }
+    else
+    {
+        return SetWinAppID(hWnd);
+    }
+}

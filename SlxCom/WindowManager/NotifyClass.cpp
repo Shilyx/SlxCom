@@ -22,7 +22,8 @@ CNotifyClass::CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LP
     if (lpCreateTime == NULL)
     {
         m_strCreateTime = GetCurrentTimeString();
-    } else
+    }
+    else
     {
         m_strCreateTime = lpCreateTime;
     }
@@ -104,7 +105,8 @@ void CNotifyClass::SwitchVisiable()
         if (IsWindowVisible(m_hTargetWindow))
         {
             ShowWindow(m_hTargetWindow, SW_HIDE);
-        } else
+        }
+        else
         {
             ReleaseTargetWindow();
 
@@ -125,6 +127,17 @@ void CNotifyClass::DoContextMenu(int x, int y)
     AppendMenuW(hMenu, MF_STRING, CMD_ABOUT, L"关于SlxCom(&A)...");
     AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
     AppendMenuW(hMenu, MF_STRING, CMD_DETAIL, L"显示窗口信息(&D)");
+
+    if (g_bVistaLater)
+    {
+        AppendMenuW(hMenu, MF_STRING, CMD_UNGROUPING_WINDOW, L"在任务栏不分组此窗口(&G)\tAlt+Ctrl(Shift)+G");
+
+        if (HasWinAppID(m_hTargetWindow))
+        {
+            CheckMenuItemHelper(hPopupMenu, CMD_UNGROUPING_WINDOW, 0, TRUE);
+        }
+    }
+
     AppendMenuW(hMenu, MF_STRING, CMD_PINWINDOW, L"置顶窗口(&T)\tAlt+Ctrl(Shift)+T");
 
     if (m_bUseNotifyIcon)
@@ -141,7 +154,8 @@ void CNotifyClass::DoContextMenu(int x, int y)
         CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
         CheckMenuItemHelper(hPopupMenu, CMD_HIDEONMINIMAZE, MF_BYCOMMAND, ms_bHideOnMinimaze);
         SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
-    } else
+    }
+    else
     {
         AppendMenuW(hMenu, MF_STRING, CMD_ADD_WINDOW, L"收纳窗口(&C)\tAlt+Ctrl(Shift)+C");
         AppendMenuW(hMenu, MF_STRING, CMD_HIDE_WINDOW, L"收纳并隐藏窗口(&S)\tAlt+Ctrl(Shift)+H");
@@ -175,16 +189,6 @@ void CNotifyClass::DoContextMenu(int x, int y)
         AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"不透明度(&A)");
     }
 
-    if (g_bVistaLater)
-    {
-        AppendMenuW(hMenu, MF_STRING, CMD_UNGROUPING_WINDOW, L"在任务栏不分组此窗口(&G)");
-
-        if (HasWinAppID(m_hTargetWindow))
-        {
-            CheckMenuItemHelper(hPopupMenu, CMD_UNGROUPING_WINDOW, 0, TRUE);
-        }
-    }
-
     CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
 
     if (IsWindow(m_hTargetWindow))
@@ -193,7 +197,8 @@ void CNotifyClass::DoContextMenu(int x, int y)
         {
             ModifyMenuW(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND | MF_STRING, CMD_SWITCHVISIABLE, L"隐藏窗口(&H)\tAlt+Ctrl(Shift)+H");
         }
-    } else
+    }
+    else
     {
         EnableMenuItemHelper(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND, FALSE);
         EnableMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, FALSE);
@@ -351,14 +356,7 @@ void CNotifyClass::DoContextMenu(int x, int y)
         break;
 
     case CMD_UNGROUPING_WINDOW:
-        if (HasWinAppID(m_hTargetWindow))
-        {
-            UnsetWinAppID(m_hTargetWindow);
-        }
-        else
-        {
-            SetWinAppID(m_hTargetWindow);
-        }
+        ToggleWinAppID(m_hTargetWindow);
         break;
 
     default:
@@ -399,7 +397,8 @@ std::wstring CNotifyClass::GetTargetWindowFullInfo()
     if (!IsWindow(m_hTargetWindow))
     {
         ss << L"，无效";
-    } else
+    }
+    else
     {
         if (IsWindowTopMost(m_hTargetWindow))
         {
@@ -409,7 +408,8 @@ std::wstring CNotifyClass::GetTargetWindowFullInfo()
         if (IsWindowVisible(m_hTargetWindow))
         {
             ss << L"，可见";
-        } else
+        }
+        else
         {
             ss << L"，隐藏";
         }
@@ -481,11 +481,13 @@ std::wstring CNotifyClass::GetTargetWindowBaseInfo()
         if (bIsWindowVisiable)
         {
             lstrcpynW(szWindowStatus, L"可见", RTL_NUMBER_OF(szWindowStatus));
-        } else
+        }
+        else
         {
             lstrcpynW(szWindowStatus, L"隐藏", RTL_NUMBER_OF(szWindowStatus));
         }
-    } else
+    }
+    else
     {
         lstrcpynW(szWindowStatus, L"无效", RTL_NUMBER_OF(szWindowStatus));
     }
@@ -525,19 +527,22 @@ HWND CNotifyClass::GetCaptureableWindow()
         if (dwTargetProcessId != GetCurrentProcessId())
         {
             return hTargetWindow;
-        } else
+        }
+        else
         {
             LONG_PTR dwStype = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
 
             if (dwStype != 0 && (dwStype & WS_MINIMIZEBOX) != 0)
             {
                 return hTargetWindow;
-            } else
+            }
+            else
             {
                 return NULL;
             }
         }
-    } else
+    }
+    else
     {
         return NULL;
     }
@@ -604,7 +609,8 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
                             if (!IsWindow(hWnd))
                             {
                                 setToDelete.insert(szValueName);
-                            } else
+                            }
+                            else
                             {
                                 result.insert(make_pair(hWnd, (WCHAR *)szData));
                             }
@@ -705,7 +711,8 @@ DWORD CALLBACK CNotifyClass::PinWindowProc(LPVOID lpParam)
         {
             lpWindowText += wnsprintfW(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), L"已取消置顶<<<<");
             SetWindowPos(hTargetWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        } else
+        }
+        else
         {
             lpWindowText += wnsprintfW(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), L"已置顶>>>>");
             SetWindowPos(hTargetWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);

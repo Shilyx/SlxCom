@@ -3,6 +3,7 @@
 #include <WindowsX.h>
 #include <Shlwapi.h>
 #include "NotifyClass.h"
+#include "WindowAppID.h"
 
 using namespace std;
 
@@ -23,6 +24,8 @@ enum
     HK_PINWINDOW2,
     HK_ADDWINDOW,
     HK_ADDWINDOW2,
+    HK_UNGROUPWINDOW,
+    HK_UNGROUPWINDOW2,
 };
 
 class CWindowManager
@@ -66,6 +69,8 @@ public:
             RegisterHotKey(m_hWindow, HK_PINWINDOW2, MOD_ALT | MOD_SHIFT, L'T');
             RegisterHotKey(m_hWindow, HK_ADDWINDOW, MOD_ALT | MOD_CONTROL, L'C');
             RegisterHotKey(m_hWindow, HK_ADDWINDOW2, MOD_ALT | MOD_SHIFT, L'C');
+            RegisterHotKey(m_hWindow, HK_UNGROUPWINDOW, MOD_ALT | MOD_CONTROL, L'G');
+            RegisterHotKey(m_hWindow, HK_UNGROUPWINDOW2, MOD_ALT | MOD_SHIFT, L'G');
         }
     }
 
@@ -79,6 +84,8 @@ public:
             UnregisterHotKey(m_hWindow, HK_PINWINDOW2);
             UnregisterHotKey(m_hWindow, HK_ADDWINDOW);
             UnregisterHotKey(m_hWindow, HK_ADDWINDOW2);
+            UnregisterHotKey(m_hWindow, HK_UNGROUPWINDOW);
+            UnregisterHotKey(m_hWindow, HK_UNGROUPWINDOW2);
 
             DestroyWindow(m_hWindow);
         }
@@ -176,6 +183,12 @@ private:
     void DoPin()
     {
         CNotifyClass::DoPin(NULL);
+    }
+
+    void DoUngroup()
+    {
+        HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
+        ToggleWinAppID(hForegroundWindow);
     }
 
 private:
@@ -295,6 +308,11 @@ private:
             case HK_ADDWINDOW:
             case HK_ADDWINDOW2:
                 GetManagerClass(hWnd)->DoAdd();
+                break;
+
+            case HK_UNGROUPWINDOW:
+            case HK_UNGROUPWINDOW2:
+                GetManagerClass(hWnd)->DoUngroup();
                 break;
 
             default:
