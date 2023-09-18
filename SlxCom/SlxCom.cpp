@@ -490,15 +490,19 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
 // 以后，微软直接建立了三个skyDrive相关的图标覆盖标记，且都是以空格
 // 开头，为了争得先机，新的SlxCom也将以空格开头。基于兼容性考虑，会
 // 自动删除原有的99_SlxAddin标记。安装和卸载时都自动调用
-static void Ensure__99_SlxAddin__NotExists()
+static void Ensure__old_SlxAddin__NotExists()
 {
     WCHAR szRegPath[1024];
     int nSumValue = 0;
 
     wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
-        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s",
-        APPNAME);
+               L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\99_%s",
+               APPNAME);
+    SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 
+    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+               L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s",
+               APPNAME);
     SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 }
 
@@ -509,10 +513,10 @@ STDAPI DllRegisterServer(void)
     int nSumValue = 0;
 
     GetModuleFileNameW(g_hinstDll, szDllPath, MAX_PATH);
-    Ensure__99_SlxAddin__NotExists();
+    Ensure__old_SlxAddin__NotExists();
 
     wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
-        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s",
+        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\                              30_%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
@@ -603,10 +607,10 @@ STDAPI DllUnregisterServer(void)
     WCHAR szRegPath[1000];
     int nSumValue = 0;
 
-    Ensure__99_SlxAddin__NotExists();
+    Ensure__old_SlxAddin__NotExists();
 
     wnsprintfW(szRegPath, sizeof(szRegPath) / sizeof(WCHAR),
-        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\ 00_%s",
+        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\                              30_%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 
