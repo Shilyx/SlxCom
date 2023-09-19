@@ -835,10 +835,6 @@
 				RelativePath=".\WindowManager\WindowManagerProcess.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\WindowManager\WindowManagerProcess.h"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

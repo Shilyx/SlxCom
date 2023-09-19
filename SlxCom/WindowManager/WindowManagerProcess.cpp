@@ -1,4 +1,3 @@
-#include "WindowManagerProcess.h"
 #include "WindowManager.h"
 #include "../SlxComTools.h"
 #include <Windows.h>

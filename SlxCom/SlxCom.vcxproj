@@ -282,7 +282,6 @@
     <ClInclude Include="WindowManager\NotifyClass.h" />
     <ClInclude Include="WindowManager\WindowAppID.h" />
     <ClInclude Include="WindowManager\WindowManager.h" />
-    <ClInclude Include="WindowManager\WindowManagerProcess.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\AboutLogo.bmp" />

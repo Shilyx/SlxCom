@@ -253,9 +253,6 @@
     <ClInclude Include="WindowManager\WindowManager.h">
       <Filter>WindowManager</Filter>
     </ClInclude>
-    <ClInclude Include="WindowManager\WindowManagerProcess.h">
-      <Filter>WindowManager</Filter>
-    </ClInclude>
     <ClInclude Include="WindowManager\NotifyClass.h">
       <Filter>WindowManager</Filter>
     </ClInclude>
