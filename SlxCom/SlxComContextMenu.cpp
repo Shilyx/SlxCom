@@ -532,51 +532,52 @@ STDMETHODIMP CSlxComContextMenu::GetCommandString(UINT_PTR idCmd, UINT uFlags, U
         memset(pszName, 0, cchMax);
     }
 
-    return S_OK;
+    if (g_bVistaLater) {
+        return S_OK;
+    }
 
-
-    LPCSTR lpText = "";
+    LPCWSTR lpText = L"";
 
     if (idCmd == ID_REGISTER) {
-        lpText = "注册组件。";
+        lpText = L"注册组件。";
     } else if (idCmd == ID_UNREGISTER) {
-        lpText = "取消注册组件。";
+        lpText = L"取消注册组件。";
     } else if (idCmd == ID_COMBINE) {
         if (m_uFileCount == 1) {
-            lpText = "将选定的rar文件附加到默认jpg文件之后。";
+            lpText = L"将选定的rar文件附加到默认jpg文件之后。";
         } else {
-            lpText = "将选定的rar文件附加到选定的jpg文件之后。";
+            lpText = L"将选定的rar文件附加到选定的jpg文件之后。";
         }
     } else if (idCmd == ID_COPYFULLPATH) {
-        lpText = "复制选中的文件或文件夹的完整路径到剪贴板。";
+        lpText = L"复制选中的文件或文件夹的完整路径到剪贴板。";
     } else if (idCmd == ID_APPPATH) {
-        lpText = "维护在“运行”对话框中快速启动的条目。";
+        lpText = L"维护在“运行”对话框中快速启动的条目。";
     } else if (idCmd == ID_UNLOCKFILE) {
-        lpText = "查看文件夹或文件是否锁定和解除这些锁定。";
+        lpText = L"查看文件夹或文件是否锁定和解除这些锁定。";
     } else if (idCmd == ID_TRYRUN) {
-        lpText = "尝试将文件作为可执行文件运行。";
+        lpText = L"尝试将文件作为可执行文件运行。";
     } else if (idCmd == ID_TRYRUNWITHARGUMENTS) {
-        lpText = "尝试将文件作为可执行文件运行，并附带命令行参数。";
+        lpText = L"尝试将文件作为可执行文件运行，并附带命令行参数。";
     } else if (idCmd == ID_RUNCMDHERE) {
-        lpText = "在当前目录启动命令行。";
+        lpText = L"在当前目录启动命令行。";
     } else if (idCmd == ID_RUNBASHHERE) {
-        lpText = "在当前目录启动Win10 linux子系统bash。";
+        lpText = L"在当前目录启动Win10 linux子系统bash。";
     } else if (idCmd == ID_OPENWITHNOTEPAD) {
-        lpText = "在记事本打开当前文件。";
+        lpText = L"在记事本打开当前文件。";
     } else if (idCmd == ID_KILLEXPLORER) {
-        lpText = "结束Explorer，随后系统将自动重新启动Explorer。";
+        lpText = L"结束Explorer，随后系统将自动重新启动Explorer。";
     } else if (idCmd == ID_MANUALCHECKSIGNATURE) {
-        lpText = "手动校验选中的文件的数字签名。";
+        lpText = L"手动校验选中的文件的数字签名。";
     } else if (idCmd == ID_UNESCAPE) {
-        lpText = "转化文件名为较合适的形式。";
+        lpText = L"转化文件名为较合适的形式。";
     } else if (idCmd == ID_COPY_PICTURE_HTML) {
-        lpText = "将图片内容复制到剪贴板，支持在QQ上粘贴。";
+        lpText = L"将图片内容复制到剪贴板，支持在QQ上粘贴。";
     }
 
     if (uFlags & GCS_UNICODE) {
-        wnsprintfW((LPWSTR)pszName, cchMax, L"%hs", lpText);
+        wnsprintfW((LPWSTR)pszName, cchMax, L"%ls", lpText);
     } else {
-        wnsprintfA(pszName, cchMax, "%hs", lpText);
+        wnsprintfA(pszName, cchMax, "%ls", lpText);
     }
 
     return S_OK;
