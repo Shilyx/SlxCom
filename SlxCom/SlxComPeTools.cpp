@@ -3,8 +3,7 @@
 #define BETWEEN(i, a, b)            ((((i) <= (a)) && ((i) >= (b))) || (((i) >= (a)) && ((i) <= (b))))
 #define EQUALA(a, b)                ((a) && (b) && (0 == lstrcmpA(a, b)))
 
-typedef struct _FILE_MAPPING_STRUCT
-{
+typedef struct _FILE_MAPPING_STRUCT {
     HANDLE hFile;
     HANDLE hMap;
     LPVOID lpView;
@@ -12,41 +11,33 @@ typedef struct _FILE_MAPPING_STRUCT
     DWORD mappedSize;
 } FILE_MAPPING_STRUCT, *PFILE_MAPPING_STRUCT;
 
-static BOOL WINAPI _PeIsPeFile(LPVOID buffer, BOOL* b64)
-{
+static BOOL WINAPI _PeIsPeFile(LPVOID buffer, BOOL* b64) {
     BOOL bRet = FALSE;
 
-    do
-    {
-        if (!buffer)
-        {
+    do {
+        if (!buffer) {
             break;
         }
 
         IMAGE_DOS_HEADER* pDosHdr = (IMAGE_DOS_HEADER*)buffer;
-        if (IMAGE_DOS_SIGNATURE != pDosHdr->e_magic)
-        {
+        if (IMAGE_DOS_SIGNATURE != pDosHdr->e_magic) {
             break;
         }
-        if (pDosHdr->e_lfanew > 1024)
-        {
+        if (pDosHdr->e_lfanew > 1024) {
             break;
         }
 
         IMAGE_NT_HEADERS32* pNtHdr = (IMAGE_NT_HEADERS32*)((byte*)pDosHdr + pDosHdr->e_lfanew);
 
-        if (IsBadReadPtr(pNtHdr, sizeof(void*)))
-        {
+        if (IsBadReadPtr(pNtHdr, sizeof(void*))) {
             break;
         }
 
-        if (IMAGE_NT_SIGNATURE != pNtHdr->Signature)
-        {
+        if (IMAGE_NT_SIGNATURE != pNtHdr->Signature) {
             break;
         }
 
-        if (b64)
-        {
+        if (b64) {
             *b64 = (pNtHdr->FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER64));
         }
 
@@ -56,20 +47,16 @@ static BOOL WINAPI _PeIsPeFile(LPVOID buffer, BOOL* b64)
     return bRet;
 }
 
-PFILE_MAPPING_STRUCT WINAPI GdFileMappingFileW(LPCWSTR fileName, BOOL bWrite, DWORD maxViewSize)
-{
+PFILE_MAPPING_STRUCT WINAPI GdFileMappingFileW(LPCWSTR fileName, BOOL bWrite, DWORD maxViewSize) {
     PFILE_MAPPING_STRUCT pfms = NULL;
 
-    do
-    {
-        if (!fileName)
-        {
+    do {
+        if (!fileName) {
             break;
         }
 
         pfms = (PFILE_MAPPING_STRUCT)malloc(sizeof(FILE_MAPPING_STRUCT));
-        if (!pfms)
-        {
+        if (!pfms) {
             break;
         }
         memset(pfms, 0, sizeof(FILE_MAPPING_STRUCT));
@@ -83,39 +70,31 @@ PFILE_MAPPING_STRUCT WINAPI GdFileMappingFileW(LPCWSTR fileName, BOOL bWrite, DW
             FILE_ATTRIBUTE_NORMAL,
             NULL
             );
-        if (INVALID_HANDLE_VALUE == pfms->hFile)
-        {
+        if (INVALID_HANDLE_VALUE == pfms->hFile) {
             break;
         }
 
-        if (!GetFileSizeEx(pfms->hFile, &(pfms->fileSize)))
-        {
+        if (!GetFileSizeEx(pfms->hFile, &(pfms->fileSize))) {
             break;
         }
-        if (pfms->fileSize.QuadPart < (sizeof(IMAGE_DOS_HEADER) + sizeof(IMAGE_NT_HEADERS32)))
-        {
+        if (pfms->fileSize.QuadPart < (sizeof(IMAGE_DOS_HEADER) + sizeof(IMAGE_NT_HEADERS32))) {
             break;
         }
 
         // MAP的大小不能大于PE总大小
-        if (!maxViewSize)
-        {
+        if (!maxViewSize) {
             pfms->mappedSize= pfms->fileSize.QuadPart > 0xffffffff ? 0xffffffff : pfms->fileSize.LowPart;
-        }
-        else
-        {
+        } else {
             pfms->mappedSize = pfms->fileSize.QuadPart > maxViewSize ? maxViewSize : pfms->fileSize.LowPart;
         }
 
         pfms->hMap = CreateFileMapping(pfms->hFile, NULL, bWrite ? PAGE_READWRITE : PAGE_READONLY, 0, 0, NULL);
-        if (!pfms->hMap)
-        {
+        if (!pfms->hMap) {
             break;
         }
 
         pfms->lpView = MapViewOfFile(pfms->hMap, FILE_MAP_READ | (bWrite ? FILE_MAP_WRITE : 0), 0, 0, pfms->mappedSize);
-        if (!pfms->lpView)
-        {
+        if (!pfms->lpView) {
             break;
         }
     } while (FALSE);
@@ -123,22 +102,17 @@ PFILE_MAPPING_STRUCT WINAPI GdFileMappingFileW(LPCWSTR fileName, BOOL bWrite, DW
     return pfms;
 }
 
-void WINAPI GdFileCloseFileMapping(PFILE_MAPPING_STRUCT pfms)
-{
-    if (pfms)
-    {
-        if (pfms->lpView)
-        {
+void WINAPI GdFileCloseFileMapping(PFILE_MAPPING_STRUCT pfms) {
+    if (pfms) {
+        if (pfms->lpView) {
             UnmapViewOfFile(pfms->lpView);
         }
 
-        if (pfms->hMap)
-        {
+        if (pfms->hMap) {
             CloseHandle(pfms->hMap);
         }
 
-        if (INVALID_HANDLE_VALUE != pfms->hFile)
-        {
+        if (INVALID_HANDLE_VALUE != pfms->hFile) {
             CloseHandle(pfms->hFile);
         }
 
@@ -148,32 +122,25 @@ void WINAPI GdFileCloseFileMapping(PFILE_MAPPING_STRUCT pfms)
 
 #define _PE_MAX_MAP_SIZE    (1024 * 1024 * 1024)
 
-static BOOL WINAPI _PeCheckPeMapping(PFILE_MAPPING_STRUCT pfms, BOOL* b64)
-{
-    if (!pfms || !pfms->lpView || !pfms->fileSize.QuadPart)
-    {
+static BOOL WINAPI _PeCheckPeMapping(PFILE_MAPPING_STRUCT pfms, BOOL* b64) {
+    if (!pfms || !pfms->lpView || !pfms->fileSize.QuadPart) {
         return FALSE;
     }
 
-    if (pfms->fileSize.QuadPart < (sizeof(IMAGE_DOS_HEADER) + sizeof(IMAGE_NT_HEADERS32)))
-    {
+    if (pfms->fileSize.QuadPart < (sizeof(IMAGE_DOS_HEADER) + sizeof(IMAGE_NT_HEADERS32))) {
         return FALSE;
     }
 
-    if (!_PeIsPeFile(pfms->lpView, b64))
-    {
+    if (!_PeIsPeFile(pfms->lpView, b64)) {
         return FALSE;
     }
 
     return TRUE;
 }
 
-
-static PFILE_MAPPING_STRUCT WINAPI _PeMappingFile(LPCWSTR fileName, BOOL bWrite, BOOL *b64)
-{
+static PFILE_MAPPING_STRUCT WINAPI _PeMappingFile(LPCWSTR fileName, BOOL bWrite, BOOL *b64) {
     PFILE_MAPPING_STRUCT pfms = GdFileMappingFileW(fileName, bWrite, _PE_MAX_MAP_SIZE);
-    if (!_PeCheckPeMapping(pfms, b64))
-    {
+    if (!_PeCheckPeMapping(pfms, b64)) {
         GdFileCloseFileMapping(pfms);
         return NULL;
     }
@@ -181,19 +148,15 @@ static PFILE_MAPPING_STRUCT WINAPI _PeMappingFile(LPCWSTR fileName, BOOL bWrite,
     return pfms;
 }
 
-static UINT WINAPI _PeRVAToFileOffset(void* lpMem, UINT rva, LPSTR sectionName, UINT bufSize)
-{
+static UINT WINAPI _PeRVAToFileOffset(void* lpMem, UINT rva, LPSTR sectionName, UINT bufSize) {
     UINT offset = 0xffffffff;
 
-    do
-    {
-        if (!lpMem || !rva || (rva > 0x7fffffff))
-        {
+    do {
+        if (!lpMem || !rva || (rva > 0x7fffffff)) {
             break;
         }
 
-        if (!_PeIsPeFile(lpMem, NULL))
-        {
+        if (!_PeIsPeFile(lpMem, NULL)) {
             break;
         }
 
@@ -201,8 +164,7 @@ static UINT WINAPI _PeRVAToFileOffset(void* lpMem, UINT rva, LPSTR sectionName, 
         IMAGE_NT_HEADERS32* pNtHdr = (IMAGE_NT_HEADERS32*)((byte*)pDosHdr + pDosHdr->e_lfanew);
 
         int sectionCounts = pNtHdr->FileHeader.NumberOfSections;
-        if (!sectionCounts || (sectionCounts > 4096))
-        {
+        if (!sectionCounts || (sectionCounts > 4096)) {
             break;
         }
 
@@ -210,15 +172,12 @@ static UINT WINAPI _PeRVAToFileOffset(void* lpMem, UINT rva, LPSTR sectionName, 
         IMAGE_SECTION_HEADER* pSecHdr = (IMAGE_SECTION_HEADER*)((byte*)pNtHdr + secHdrOffset);
 
         int i;
-        for (i = 0; i < pNtHdr->FileHeader.NumberOfSections; ++i)
-        {
+        for (i = 0; i < pNtHdr->FileHeader.NumberOfSections; ++i) {
             // 这里是严格按照某本教程上的实现，为什么节起始RVA要加 SizeOfRawData ？
             // 感觉上加映射后的大小更合理，不过应该是无所谓的，因为 RawData 和 VirtualData 大小不同的部分
             // 要么是不映射进内存，要么是不存在于原始文件上，不在此函数的考虑范围内
-            if (BETWEEN(rva, pSecHdr[i].VirtualAddress, pSecHdr[i].VirtualAddress + pSecHdr[i].SizeOfRawData))
-            {
-                if (sectionName)
-                {
+            if (BETWEEN(rva, pSecHdr[i].VirtualAddress, pSecHdr[i].VirtualAddress + pSecHdr[i].SizeOfRawData)) {
+                if (sectionName) {
                     lstrcpynA(sectionName, (LPCSTR)pSecHdr[i].Name, bufSize > 8 ? 8 : bufSize);
                 }
 
@@ -232,17 +191,14 @@ static UINT WINAPI _PeRVAToFileOffset(void* lpMem, UINT rva, LPSTR sectionName, 
     return offset;
 }
 
-BOOL PeIsCOMModule(LPCWSTR fileName)
-{
+BOOL PeIsCOMModule(LPCWSTR fileName) {
     BOOL bRet = FALSE;
     PFILE_MAPPING_STRUCT pfms = NULL;
 
-    do
-    {
+    do {
         BOOL b64 = FALSE;
         pfms = _PeMappingFile(fileName, FALSE, &b64);
-        if (!pfms)
-        {
+        if (!pfms) {
             break;
         }
 
@@ -251,38 +207,33 @@ BOOL PeIsCOMModule(LPCWSTR fileName)
         PIMAGE_NT_HEADERS32 pNtHdr32 = (PIMAGE_NT_HEADERS32)((byte*)pfms->lpView + pDosHdr->e_lfanew);
         PIMAGE_NT_HEADERS64 pNtHdr64 = (PIMAGE_NT_HEADERS64)((byte*)pfms->lpView + pDosHdr->e_lfanew);
 
-        UINT rva = b64 ? 
+        UINT rva = b64 ?
             pNtHdr64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress :
         pNtHdr32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
 
-        if (!rva)
-        {
+        if (!rva) {
             // 说明没有导出表
             break;
         }
 
         UINT expDirRva = _PeRVAToFileOffset(pfms->lpView, rva, NULL, 0);
-        if (0xffffffff == expDirRva)
-        {
+        if (0xffffffff == expDirRva) {
             break;
         }
 
         IMAGE_EXPORT_DIRECTORY* pExpDir = (IMAGE_EXPORT_DIRECTORY*)((byte*)pDosHdr + expDirRva);
 
         UINT namesRva = _PeRVAToFileOffset(pfms->lpView, pExpDir->AddressOfNames, NULL, 0);
-        if (0xffffffff == namesRva)
-        {
+        if (0xffffffff == namesRva) {
             break;
         }
 
         DWORD* offsetNames = (DWORD*)((byte*)pDosHdr + namesRva);
         UINT i;
         int score = 0;
-        for (i = 0; i < pExpDir->NumberOfNames; ++i)
-        {
+        for (i = 0; i < pExpDir->NumberOfNames; ++i) {
             UINT funcNameRva = _PeRVAToFileOffset(pfms->lpView, offsetNames[i], NULL, 0);
-            if (0xffffffff == funcNameRva)
-            {
+            if (0xffffffff == funcNameRva) {
                 continue;
             }
             char* funcName = (char*)((byte*)pDosHdr + funcNameRva);
@@ -300,8 +251,7 @@ BOOL PeIsCOMModule(LPCWSTR fileName)
             // _HADDSCORE("DllInstall");
 #undef _HADDSCORE
 
-            if (score >= 4)
-            {
+            if (score >= 4) {
                 break;
             }
         }

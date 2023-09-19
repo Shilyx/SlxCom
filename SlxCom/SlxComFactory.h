@@ -4,8 +4,7 @@
 #include <unknwn.h>
 #include <shlobj.h>
 
-class CSlxComFactory : public IClassFactory
-{
+class CSlxComFactory : public IClassFactory {
 public:
     CSlxComFactory();
 

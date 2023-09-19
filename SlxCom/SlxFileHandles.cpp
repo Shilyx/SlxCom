@@ -89,8 +89,8 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
 } SYSTEM_INFORMATION_CLASS;
 
 typedef LONG NTSTATUS;
-#define NT_SUCCESS(Status)				((LONG)(Status) >= 0) 
-#define NT_ERROR(Status)				((ULONG)(Status) >> 30 == 3) 
+#define NT_SUCCESS(Status)				((LONG)(Status) >= 0)
+#define NT_ERROR(Status)				((ULONG)(Status) >> 30 == 3)
 
 //  The specified information record length does not match the length required for the specified information class.
 #define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
@@ -102,8 +102,7 @@ typedef NTSTATUS (__stdcall *NTQUERYSYSTEMINFORMATION)(
     OUT PULONG ReturnLength OPTIONAL
     );
 
-typedef struct system_handle_entry
-{
+typedef struct system_handle_entry {
     ULONG		uIdProcess;		//进程ID
     UCHAR		ObjectType;		//句柄类型
     UCHAR		Flags;			//标志
@@ -112,26 +111,22 @@ typedef struct system_handle_entry
     ACCESS_MASK	GrantedAccess;	//访问权限
 } SYSTEM_HANDLE_ENTRY, *LPSYSTEM_HANDLE_ENTRY;
 
-typedef struct system_handle_info
-{
+typedef struct system_handle_info {
     ULONG		uCount;			//系统句柄数
     SYSTEM_HANDLE_ENTRY aSH[1];	//句柄信息
 }SYSTEM_HANDLE_INFORMATION, *PSYSTEM_HANDLE_INFORMATION;
 
-typedef struct _UNICODE_STRING
-{
+typedef struct _UNICODE_STRING {
     USHORT Length;
     USHORT MaximumLength;
     PWSTR Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
 
-typedef struct _OBJECT_NAME_INFORMATION
-{
+typedef struct _OBJECT_NAME_INFORMATION {
     UNICODE_STRING ObjectName;
 } OBJECT_NAME_INFORMATION, *POBJECT_NAME_INFORMATION;
 
-typedef enum _OBJECT_INFORMATION_CLASS
-{
+typedef enum _OBJECT_INFORMATION_CLASS {
     ObjectBasicInformation,	// Result is OBJECT_BASIC_INFORMATION structure
     ObjectNameInformation,	// Result is OBJECT_NAME_INFORMATION structure
     ObjectTypeInformation,	// Result is OBJECT_TYPE_INFORMATION structure
@@ -160,7 +155,7 @@ typedef struct _FILE_NAME_INFORMATION {
     WCHAR  FileName[1];
 } FILE_NAME_INFORMATION, *PFILE_NAME_INFORMATION;
 
-typedef enum _FILE_INFORMATION_CLASS { 
+typedef enum _FILE_INFORMATION_CLASS {
     FileDirectoryInformation                 = 1,
     FileFullDirectoryInformation,
     FileBothDirectoryInformation,
@@ -230,19 +225,16 @@ typedef NTSTATUS (__stdcall *NTQUERYINFORMATIONFILE)(
 static NTQUERYINFORMATIONFILE NtQueryInformationFile = NULL;
 static NTQUERYSYSTEMINFORMATION NtQuerySystemInformation = NULL;
 
-PVOID GetInfoTable(IN ULONG uTableType)
-{
+PVOID GetInfoTable(IN ULONG uTableType) {
     ULONG mSize = 0x8000;
     PVOID mPtr;
     NTSTATUS status;
 
-    if (NtQuerySystemInformation == NULL)
-    {
+    if (NtQuerySystemInformation == NULL) {
         (PROC &)NtQuerySystemInformation = GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation");
     }
 
-    do
-    {
+    do {
         mPtr = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, mSize);
 
         if (!mPtr)
@@ -250,12 +242,10 @@ PVOID GetInfoTable(IN ULONG uTableType)
 
         status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)uTableType, mPtr, mSize, NULL);
 
-        if (status == STATUS_INFO_LENGTH_MISMATCH)
-        {
+        if (status == STATUS_INFO_LENGTH_MISMATCH) {
             HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, mPtr);
             mSize = mSize * 2;
         }
-
     } while (status == STATUS_INFO_LENGTH_MISMATCH);
 
     if (NT_SUCCESS(status))
@@ -266,12 +256,10 @@ PVOID GetInfoTable(IN ULONG uTableType)
     return NULL;
 }
 
-HANDLE DuplicateHandleHelp(DWORD dwProcessId, HANDLE hObject)
-{
+HANDLE DuplicateHandleHelp(DWORD dwProcessId, HANDLE hObject) {
     HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessId);
 
-    if (hProcess == NULL)
-    {
+    if (hProcess == NULL) {
         return NULL;
     }
 
@@ -286,30 +274,24 @@ HANDLE DuplicateHandleHelp(DWORD dwProcessId, HANDLE hObject)
 
 #define FILE_NAME_INFORMATION_BUFFER_LENGTH 2000
 
-struct QueryFileNameThreadParam
-{
+struct QueryFileNameThreadParam {
     DWORD dwSerials['Z' - 'A' + 1];
     HANDLE hDubHandle;
     WCHAR szFilePath[MAX_PATH];
 };
 
-DWORD CALLBACK QueryFileNameProc(LPVOID lpParam)
-{
+DWORD CALLBACK QueryFileNameProc(LPVOID lpParam) {
     QueryFileNameThreadParam *pThreadParam = (QueryFileNameThreadParam *)lpParam;
     BOOL bDriveLetterSucceed = FALSE;
     WCHAR chDriveLetter = L'A';
     BY_HANDLE_FILE_INFORMATION bhfi;
 
-    if (GetFileInformationByHandle(pThreadParam->hDubHandle, &bhfi))
-    {
-        if (bhfi.dwVolumeSerialNumber != 0 && bhfi.dwVolumeSerialNumber != -1)
-        {
+    if (GetFileInformationByHandle(pThreadParam->hDubHandle, &bhfi)) {
+        if (bhfi.dwVolumeSerialNumber != 0 && bhfi.dwVolumeSerialNumber != -1) {
             unsigned char ucDriveIndex = 0;
 
-            for (; ucDriveIndex < sizeof(pThreadParam->dwSerials) / sizeof(DWORD); ucDriveIndex += 1)
-            {
-                if (bhfi.dwVolumeSerialNumber == pThreadParam->dwSerials[ucDriveIndex])
-                {
+            for (; ucDriveIndex < sizeof(pThreadParam->dwSerials) / sizeof(DWORD); ucDriveIndex += 1) {
+                if (bhfi.dwVolumeSerialNumber == pThreadParam->dwSerials[ucDriveIndex]) {
                     chDriveLetter += ucDriveIndex;
                     bDriveLetterSucceed = TRUE;
                     break;
@@ -318,25 +300,21 @@ DWORD CALLBACK QueryFileNameProc(LPVOID lpParam)
         }
     }
 
-    if (bDriveLetterSucceed)
-    {
+    if (bDriveLetterSucceed) {
         DWORD dwRet = 0;
         char szBuffer[3000] = "";
         PFILE_NAME_INFORMATION pFni = (PFILE_NAME_INFORMATION)szBuffer;
         IO_STATUS_BLOCK iob;
 
-        if (NtQueryInformationFile == NULL)
-        {
+        if (NtQueryInformationFile == NULL) {
             (PROC &)NtQueryInformationFile = GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationFile");
         }
 
-        if (NtQueryInformationFile != NULL)
-        {
+        if (NtQueryInformationFile != NULL) {
             NtQueryInformationFile(pThreadParam->hDubHandle, &iob, pFni, sizeof(szBuffer), FileNameInformation);
         }
 
-        if (pFni->FileNameLength > 0)
-        {
+        if (pFni->FileNameLength > 0) {
             wnsprintfW(
                 pThreadParam->szFilePath,
                 sizeof(pThreadParam->szFilePath) / sizeof(WCHAR),
@@ -350,16 +328,13 @@ DWORD CALLBACK QueryFileNameProc(LPVOID lpParam)
     return 0;
 }
 
-VOID InitDriveSerials(DWORD dwSerials[])
-{
+VOID InitDriveSerials(DWORD dwSerials[]) {
     DWORD dwDrives = GetLogicalDrives();
     DWORD dwDriveIndex = 0;
     WCHAR szDriveRoot[] = L"1:\\";
 
-    for (; dwDriveIndex < 'Z' - 'A' + 1; dwDriveIndex += 1)
-    {
-        if ((1 << dwDriveIndex) & dwDrives)
-        {
+    for (; dwDriveIndex < 'Z' - 'A' + 1; dwDriveIndex += 1) {
+        if ((1 << dwDriveIndex) & dwDrives) {
             szDriveRoot[0] = L'A' + (unsigned char)dwDriveIndex;
 
             if (!GetVolumeInformationW(
@@ -371,36 +346,29 @@ VOID InitDriveSerials(DWORD dwSerials[])
                 NULL,
                 NULL,
                 NULL
-                ))
-            {
+                )) {
                 dwSerials[dwDriveIndex] = -1;
             }
         }
     }
 }
 
-BOOL QueryProcessNameFromSnapshot(HANDLE hSnapshot, DWORD dwProcessId, WCHAR szProcessName[], DWORD dwSize)
-{
+BOOL QueryProcessNameFromSnapshot(HANDLE hSnapshot, DWORD dwProcessId, WCHAR szProcessName[], DWORD dwSize) {
     PROCESSENTRY32W pe32 = {sizeof(pe32)};
 
-    if (Process32FirstW(hSnapshot, &pe32))
-    {
-        do 
-        {
-            if (pe32.th32ProcessID == dwProcessId)
-            {
+    if (Process32FirstW(hSnapshot, &pe32)) {
+        do {
+            if (pe32.th32ProcessID == dwProcessId) {
                 lstrcpynW(szProcessName, pe32.szExeFile, dwSize);
                 return TRUE;
             }
-
         } while (Process32NextW(hSnapshot, &pe32));
     }
 
     return FALSE;
 }
 
-FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
-{
+FileHandleInfo *GetFileHandleInfos(DWORD *pCount) {
     WCHAR szTempFile[MAX_PATH];
     WCHAR szTempPath[MAX_PATH];
     HANDLE hTempFile = INVALID_HANDLE_VALUE;
@@ -413,8 +381,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
     lstrcpynW(szTempFile, szTempPath, sizeof(szTempFile) / sizeof(WCHAR));
     StrCatBuffW(szTempFile, L"__SlxComTestTempFile.txt", sizeof(szTempFile) / sizeof(WCHAR));
 
-    while (TRUE)
-    {
+    while (TRUE) {
         hTempFile = CreateFileW(
             szTempFile,
             GENERIC_WRITE | GENERIC_READ,
@@ -425,8 +392,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
             NULL
             );
 
-        if (hTempFile != INVALID_HANDLE_VALUE)
-        {
+        if (hTempFile != INVALID_HANDLE_VALUE) {
             break;
         }
 
@@ -438,8 +404,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
             );
     }
 
-    if (hTempFile == INVALID_HANDLE_VALUE)
-    {
+    if (hTempFile == INVALID_HANDLE_VALUE) {
         return NULL;
     }
 
@@ -449,50 +414,37 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
 
     PSYSTEM_HANDLE_INFORMATION pHandles = (PSYSTEM_HANDLE_INFORMATION)GetInfoTable(SystemHandleInformation);
 
-    if (pHandles != NULL)
-    {
+    if (pHandles != NULL) {
         UINT uIndex = 0;
         UCHAR uFileType = -1;
         DWORD dwCurrentProcessId = GetCurrentProcessId();
 
-        for (uIndex = 0; uIndex < pHandles->uCount; uIndex++)
-        {
-            if (pHandles->aSH[uIndex].uIdProcess == dwCurrentProcessId && (HANDLE)pHandles->aSH[uIndex].Handle == hTempFile)
-            {
+        for (uIndex = 0; uIndex < pHandles->uCount; uIndex++) {
+            if (pHandles->aSH[uIndex].uIdProcess == dwCurrentProcessId && (HANDLE)pHandles->aSH[uIndex].Handle == hTempFile) {
                 uFileType = pHandles->aSH[uIndex].ObjectType;
                 break;
             }
         }
 
-        for (uIndex = 0; uIndex < pHandles->uCount; uIndex++)
-        {
-            if (pHandles->aSH[uIndex].uIdProcess != dwCurrentProcessId)
-            {
-                if (pHandles->aSH[uIndex].ObjectType == uFileType)
-                {
+        for (uIndex = 0; uIndex < pHandles->uCount; uIndex++) {
+            if (pHandles->aSH[uIndex].uIdProcess != dwCurrentProcessId) {
+                if (pHandles->aSH[uIndex].ObjectType == uFileType) {
                     HANDLE hDubHandle = DuplicateHandleHelp(pHandles->aSH[uIndex].uIdProcess, (HANDLE)pHandles->aSH[uIndex].Handle);
 
-                    if (hDubHandle != NULL)
-                    {
+                    if (hDubHandle != NULL) {
                         threadParam.hDubHandle = hDubHandle;
                         lstrcpynW(threadParam.szFilePath, L"", sizeof(threadParam.szFilePath) / sizeof(WCHAR));
 
                         HANDLE hThread = CreateThread(NULL, 0, QueryFileNameProc, &threadParam, 0, NULL);
 
-                        if (hThread != NULL)
-                        {
-                            if (WAIT_OBJECT_0 == WaitForSingleObject(hThread, 500))
-                            {
-                                if (lstrlenW(threadParam.szFilePath) > 0)
-                                {
+                        if (hThread != NULL) {
+                            if (WAIT_OBJECT_0 == WaitForSingleObject(hThread, 500)) {
+                                if (lstrlenW(threadParam.szFilePath) > 0) {
                                     *pCount += 1;
 
-                                    if (pResult == NULL)
-                                    {
+                                    if (pResult == NULL) {
                                         pResult = (FileHandleInfo *)HeapAlloc(GetProcessHeap(), 0, *pCount * sizeof(FileHandleInfo));
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         pResult = (FileHandleInfo *)HeapReAlloc(GetProcessHeap(), 0, pResult, *pCount * sizeof(FileHandleInfo));
                                     }
 
@@ -505,8 +457,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
                                         pResult[*pCount - 1].dwProcessId,
                                         pResult[*pCount - 1].szProcessName,
                                         sizeof(pResult[*pCount - 1].szProcessName) / sizeof(WCHAR)
-                                        ))
-                                    {
+                                        )) {
                                         lstrcpynW(
                                             pResult[*pCount - 1].szProcessName,
                                             L"",
@@ -514,9 +465,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
                                             );
                                     }
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 TerminateThread(hThread, 0);
                             }
 
@@ -530,8 +479,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
         }
     }
 
-    if (hSnapshot != INVALID_HANDLE_VALUE)
-    {
+    if (hSnapshot != INVALID_HANDLE_VALUE) {
         CloseHandle(hSnapshot);
     }
 
@@ -540,7 +488,6 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount)
     return pResult;
 }
 
-VOID FreeFileHandleInfos(FileHandleInfo *pInfos)
-{
+VOID FreeFileHandleInfos(FileHandleInfo *pInfos) {
     HeapFree(GetProcessHeap(), 0, pInfos);
 }

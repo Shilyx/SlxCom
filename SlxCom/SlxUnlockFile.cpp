@@ -14,8 +14,7 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 #define LVH_HANDLEVALUE     3
 #define LVH_FILEPATH        4
 
-enum
-{
+enum {
     CMD_REFRESH = 101,
     CMD_CLOSE,
     CMD_FILTER,
@@ -26,8 +25,7 @@ enum
 
 #define DLGWND_CAPTION      L"文件锁定情况"
 
-static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
-{
+static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {
     ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;
     WCHAR szText1[1000] = L"";
     WCHAR szText2[1000] = L"";
@@ -35,68 +33,51 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(WCHAR));
     ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(WCHAR));
 
-    if (lstrcmpW(szText1, szText2) == 0)
-    {
+    if (lstrcmpW(szText1, szText2) == 0) {
         return 0;
     }
 
-    if (pLcss->nSubItem == LVH_INDEX || pLcss->nSubItem == LVH_PROCESSID)
-    {
+    if (pLcss->nSubItem == LVH_INDEX || pLcss->nSubItem == LVH_PROCESSID) {
         int n1 = StrToIntW(szText1);
         int n2 = StrToIntW(szText2);
 
-        if (n1 > n2)
-        {
+        if (n1 > n2) {
             return pLcss->nRet;
-        }
-        else
-        {
+        } else {
             return -pLcss->nRet;
         }
-    }
-    else if (pLcss->nSubItem == LVH_HANDLEVALUE)
-    {
+    } else if (pLcss->nSubItem == LVH_HANDLEVALUE) {
         int n1, n2;
 
         StrToIntExW(szText1, STIF_SUPPORT_HEX, &n1);
         StrToIntExW(szText2, STIF_SUPPORT_HEX, &n2);
 
-        if (n1 > n2)
-        {
+        if (n1 > n2) {
             return pLcss->nRet;
-        }
-        else
-        {
+        } else {
             return -pLcss->nRet;
         }
-    }
-    else if (pLcss->nSubItem == LVH_PROCESSNAME || pLcss->nSubItem == LVH_FILEPATH)
-    {
+    } else if (pLcss->nSubItem == LVH_PROCESSNAME || pLcss->nSubItem == LVH_FILEPATH) {
         return lstrcmpiW(szText1, szText2) * pLcss->nRet;
-    }
-    else
-    {
+    } else {
         return pLcss->nRet;
     }
 }
 
-static DWORD CALLBACK RefreshThread(LPVOID lpParam)
-{
+static DWORD CALLBACK RefreshThread(LPVOID lpParam) {
     HWND hwndDlg = (HWND)lpParam;
 
     DWORD dwCount = 0;
     FileHandleInfo *pHandles = GetFileHandleInfos(&dwCount);
 
-    if (IsWindow(hwndDlg))
-    {
+    if (IsWindow(hwndDlg)) {
         PostMessageW(hwndDlg, WM_REFRESH_COMPLETE, dwCount, (LPARAM)pHandles);
     }
 
     return 0;
 }
 
-INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     static HICON hIcon = NULL;
     static BOOL bFilter = TRUE;
     static BOOL bRefreshing = FALSE;
@@ -104,12 +85,9 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     LPCWSTR lpPropHandles = L"Handles";
     LPCWSTR lpPropCount = L"Count";
 
-    if (uMsg == WM_TIMER)
-    {
-        if (wParam == 1)
-        {
-            if (bRefreshing)
-            {
+    if (uMsg == WM_TIMER) {
+        if (wParam == 1) {
+            if (bRefreshing) {
                 static DWORD dwTimerIndex = 0;
                 WCHAR szCaption[1000] = DLGWND_CAPTION L" - 正在刷新....";
 
@@ -119,17 +97,13 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                 SetWindowTextW(hwndDlg, szCaption);
             }
         }
-    }
-    else if (uMsg == WM_INITDIALOG)
-    {
+    } else if (uMsg == WM_INITDIALOG) {
         //设定对话框图标
-        if (hIcon == NULL)
-        {
+        if (hIcon == NULL) {
             hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
-        if (hIcon != NULL)
-        {
+        if (hIcon != NULL) {
             SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
             SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
@@ -175,16 +149,11 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
         PostMessageW(hwndDlg, WM_COMMAND, MAKELONG(CMD_REFRESH, 0), 0);
 
         return TRUE;
-    }
-    else if (uMsg == WM_SYSCOMMAND)
-    {
-        if (wParam == SC_CLOSE)
-        {
+    } else if (uMsg == WM_SYSCOMMAND) {
+        if (wParam == SC_CLOSE) {
             EndDialog(hwndDlg, 0);
         }
-    }
-    else if (uMsg == WM_REFRESH_COMPLETE)
-    {
+    } else if (uMsg == WM_REFRESH_COMPLETE) {
         bRefreshing = FALSE;
         SetWindowTextW(hwndDlg, DLGWND_CAPTION);
 
@@ -193,8 +162,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
         FileHandleInfo *pLastHandles = (FileHandleInfo *)GetPropW(hwndDlg, lpPropHandles);
         DWORD dwLastCount = (DWORD)(DWORD_PTR)GetPropW(hwndDlg, lpPropCount);
 
-        if (pLastHandles != NULL)
-        {
+        if (pLastHandles != NULL) {
             FreeFileHandleInfos(pLastHandles);
         }
 
@@ -202,39 +170,28 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
         SetPropW(hwndDlg, lpPropCount, (HANDLE)(DWORD_PTR)dwCount);
 
         PostMessageW(hwndDlg, WM_REVIEW, 0, 0);
-    }
-    else if (uMsg == WM_COMMAND)
-    {
+    } else if (uMsg == WM_COMMAND) {
         HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
-        if (LOWORD(wParam) == IDCANCEL)
-        {
+        if (LOWORD(wParam) == IDCANCEL) {
             SendMessageW(hwndDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
-        }
-        else if (LOWORD(wParam) == CMD_REFRESH)
-        {
+        } else if (LOWORD(wParam) == CMD_REFRESH) {
             bRefreshing = TRUE;
 
             HANDLE hThread = CreateThread(NULL, 0, RefreshThread, (LPVOID)hwndDlg, 0, NULL);
             CloseHandle(hThread);
-        }
-        else if (LOWORD(wParam) == CMD_FILTER)
-        {
+        } else if (LOWORD(wParam) == CMD_FILTER) {
             bFilter = !bFilter;
             PostMessageW(hwndDlg, WM_REVIEW, 0, 0);
-        }
-        else if (LOWORD(wParam) == CMD_CLOSE)
-        {
+        } else if (LOWORD(wParam) == CMD_CLOSE) {
             DWORD dwSelectCount = ListView_GetSelectedCount(hHandleList);
             DWORD dwSucceedCount = 0;
             WCHAR *szErrorInfo = (WCHAR *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwSelectCount * 100 * sizeof(WCHAR));
 
-            if (szErrorInfo != NULL)
-            {
+            if (szErrorInfo != NULL) {
                 LRESULT lResult = ListView_GetNextItem(hHandleList, -1, LVNI_SELECTED);
 
-                while (lResult != -1)
-                {
+                while (lResult != -1) {
                     WCHAR szText[100] = L"";
                     DWORD dwProcessId = 0;
                     HANDLE hHandle = NULL;
@@ -245,12 +202,9 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                     ListView_GetItemText(hHandleList, lResult, LVH_HANDLEVALUE, szText, sizeof(szText) / sizeof(WCHAR));
                     StrToIntExW(szText, STIF_SUPPORT_HEX, (int *)&hHandle);
 
-                    if (CloseRemoteHandle(dwProcessId, hHandle))
-                    {
+                    if (CloseRemoteHandle(dwProcessId, hHandle)) {
                         dwSucceedCount += 1;
-                    }
-                    else
-                    {
+                    } else {
                         wnsprintfW(
                             szErrorInfo + lstrlenW(szErrorInfo),
                             dwSelectCount * 100 - lstrlenW(szErrorInfo),
@@ -263,8 +217,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                     lResult = ListView_GetNextItem(hHandleList, lResult, LVNI_SELECTED);
                 }
 
-                if (dwSucceedCount == dwSelectCount)
-                {
+                if (dwSucceedCount == dwSelectCount) {
                     MessageBoxFormat(
                         hwndDlg,
                         L"信息",
@@ -274,9 +227,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                         );
 
                     PostMessageW(hwndDlg, WM_COMMAND, MAKELONG(CMD_REFRESH, 0), 0);
-                }
-                else
-                {
+                } else {
                     MessageBoxFormat(
                         hwndDlg,
                         L"信息",
@@ -290,9 +241,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                 HeapFree(GetProcessHeap(), 0, szErrorInfo);
             }
         }
-    }
-    else if (uMsg == WM_REVIEW)
-    {
+    } else if (uMsg == WM_REVIEW) {
         HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
         ListView_DeleteAllItems(hHandleList);
@@ -300,17 +249,14 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
         FileHandleInfo *pHandles = (FileHandleInfo *)GetPropW(hwndDlg, lpPropHandles);
         DWORD dwCount = (DWORD)(DWORD_PTR)GetPropW(hwndDlg, lpPropCount);
 
-        if (pHandles != NULL)
-        {
+        if (pHandles != NULL) {
             DWORD dwHandleIndex = 0;
             WCHAR szTargetFilePath[MAX_PATH] = L"";
 
             GetDlgItemTextW(hwndDlg, IDC_FILEPATH, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(WCHAR));
 
-            for (; dwHandleIndex < dwCount; dwHandleIndex += 1)
-            {
-                if (!bFilter || bFilter && IsSameFilePath(szTargetFilePath, pHandles[dwHandleIndex].szFilePath))
-                {
+            for (; dwHandleIndex < dwCount; dwHandleIndex += 1) {
+                if (!bFilter || bFilter && IsSameFilePath(szTargetFilePath, pHandles[dwHandleIndex].szFilePath)) {
                     DWORD dwItemIndex = ListView_GetItemCount(hHandleList);
                     WCHAR szText[1000];
                     LV_ITEM item = {LVIF_TEXT};
@@ -333,19 +279,14 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                 }
             }
         }
-    }
-    else if (uMsg == WM_NOTIFY)
-    {
+    } else if (uMsg == WM_NOTIFY) {
         LPNMHDR lpNmHdr = (LPNMHDR)lParam;
 
-        if (lpNmHdr != NULL)
-        {
-            if (lpNmHdr->idFrom = IDC_HANDLELIST)
-            {
+        if (lpNmHdr != NULL) {
+            if (lpNmHdr->idFrom = IDC_HANDLELIST) {
                 HWND hHandleList = GetDlgItem(hwndDlg, IDC_HANDLELIST);
 
-                if (lpNmHdr->code == LVN_COLUMNCLICK)
-                {
+                if (lpNmHdr->code == LVN_COLUMNCLICK) {
                     static int nRet = 1;
                     LPNMLISTVIEW lpNmListView = (LPNMLISTVIEW)lpNmHdr;
 
@@ -359,8 +300,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
 
                     LVITEMW item = {LVIF_PARAM};
 
-                    for (int nIndex = 0; nIndex < ListView_GetItemCount(hHandleList); nIndex += 1)
-                    {
+                    for (int nIndex = 0; nIndex < ListView_GetItemCount(hHandleList); nIndex += 1) {
                         item.iItem = nIndex;
                         item.lParam = nIndex;
 
@@ -368,27 +308,21 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                     }
 
                     ListView_SortItems(hHandleList, ListCtrlCompareProc, &lcss);
-                }
-                else if (lpNmHdr->code == NM_DBLCLK)
-                {
+                } else if (lpNmHdr->code == NM_DBLCLK) {
                     LPNMITEMACTIVATE lpNmItemAct = (LPNMITEMACTIVATE)lParam;
                     int nIndex = ListView_GetSelectionMark(hHandleList);
 
-                    if (nIndex != -1)
-                    {
+                    if (nIndex != -1) {
                         WCHAR szFilePath[MAX_PATH] = L"";
 
                         ListView_GetItemText(hHandleList, lpNmItemAct->iItem, LVH_FILEPATH, szFilePath, sizeof(szFilePath) / sizeof(WCHAR));
 
                         BrowseForFile(szFilePath);
                     }
-                }
-                else if (lpNmHdr->code == NM_RCLICK)
-                {
+                } else if (lpNmHdr->code == NM_RCLICK) {
                     HMENU hPopMenu = CreatePopupMenu();
 
-                    if (hPopMenu != NULL)
-                    {
+                    if (hPopMenu != NULL) {
                         LPNMITEMACTIVATE lpNmItemAct = (LPNMITEMACTIVATE)lParam;
                         POINT pt;
 
@@ -396,20 +330,17 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
 
                         AppendMenuW(hPopMenu, MF_STRING, CMD_FILTER, L"只显示匹配的文件句柄");
 
-                        if (bFilter)
-                        {
+                        if (bFilter) {
                             CheckMenuItem(hPopMenu, CMD_FILTER, MF_CHECKED | MF_BYCOMMAND);
                         }
 
-                        if (lpNmItemAct->iItem != -1)
-                        {
+                        if (lpNmItemAct->iItem != -1) {
                             AppendMenuW(hPopMenu, MF_STRING, CMD_CLOSE, L"关闭选中的句柄");
                         }
 
                         AppendMenuW(hPopMenu, MF_STRING, CMD_REFRESH, L"刷新句柄列表");
 
-                        if (bRefreshing)
-                        {
+                        if (bRefreshing) {
                             EnableMenuItem(hPopMenu, CMD_REFRESH, MF_GRAYED | MF_BYCOMMAND);
                         }
 
@@ -419,39 +350,27 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                 }
             }
         }
-    }
-    else if (uMsg == WM_SIZING)
-    {
+    } else if (uMsg == WM_SIZING) {
         LPRECT pRect = (LPRECT)lParam;
         const LONG lWidthLimit = 561;
         const LONG lHeightLimit = 311;
 
-        if (pRect->right - pRect->left < lWidthLimit)
-        {
-            if (wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT)
-            {
+        if (pRect->right - pRect->left < lWidthLimit) {
+            if (wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT) {
                 pRect->left = pRect->right - lWidthLimit;
-            }
-            else
-            {
+            } else {
                 pRect->right = pRect->left + lWidthLimit;
             }
         }
 
-        if (pRect->bottom - pRect->top < lHeightLimit)
-        {
-            if (wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP)
-            {
+        if (pRect->bottom - pRect->top < lHeightLimit) {
+            if (wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP) {
                 pRect->top = pRect->bottom - lHeightLimit;
-            }
-            else
-            {
+            } else {
                 pRect->bottom = pRect->top + lHeightLimit;
             }
         }
-    }
-    else if (uMsg == WM_SIZE)
-    {
+    } else if (uMsg == WM_SIZE) {
         RECT rectClient;
         RECT rectEdit;
 
@@ -486,8 +405,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
     return FALSE;
 }
 
-void UnlockFileFromPathInternal(HWND hwndStub, LPCWSTR lpFilePath)
-{
+void UnlockFileFromPathInternal(HWND hwndStub, LPCWSTR lpFilePath) {
     DialogBoxParamW(
         g_hinstDll,
         MAKEINTRESOURCEW(IDD_UNLOCKFILE_DIALOG),
@@ -497,8 +415,7 @@ void UnlockFileFromPathInternal(HWND hwndStub, LPCWSTR lpFilePath)
         );
 }
 
-void WINAPI UnlockFileFromPathW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
-{
+void WINAPI UnlockFileFromPathW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow) {
     WCHAR szFilePath[MAX_PATH] = L"";
 
     wnsprintfW(szFilePath, sizeof(szFilePath) / sizeof(WCHAR), L"%ls", lpszCmdLine);

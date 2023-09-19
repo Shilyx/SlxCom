@@ -4,14 +4,12 @@
 #include <map>
 #include <string>
 
-enum
-{
+enum {
     WM_CALLBACK = WM_USER + 12,     // 托盘图标的回调消息
     WM_REMOVE_NOTIFY,               // 通知主窗口销毁某托盘，wparam为id，lparam为hwnd
 };
 
-enum
-{
+enum {
     CMD_ABOUT = 1,          // 关于
     CMD_DESTROYONSHOW,      // 控制是否在窗口显示时销毁托盘图标
     CMD_SHOWBALLOON,        // 控制是否显示气球
@@ -41,8 +39,7 @@ enum
     CMD_UNGROUPING_WINDOW,  // 禁用任务栏分组，针对窗口
 };
 
-class CNotifyClass
-{
+class CNotifyClass {
 public:
     CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCWSTR lpCreateTime, BOOL bShowBalloonThisTime);
     ~CNotifyClass();

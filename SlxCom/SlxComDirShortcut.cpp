@@ -63,7 +63,7 @@ int ShowDirShotcutMgr(HWND hwndParent)
     {
         DialogBoxW(g_hinstDll, MAKEINTRESOURCEW(IDD_DIRSHORTCUTMGR), hwndParent, DirShotcutMgrDlgProc);
     }
-    
+
     return 0;
 }
 

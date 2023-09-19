@@ -7,8 +7,7 @@
 #include "WindowManager/WindowManager.h"
 #include "DesktopIconManager.h"
 
-BOOL SlxWork(HINSTANCE hinstDll)
-{
+BOOL SlxWork(HINSTANCE hinstDll) {
     OSVERSIONINFO osi = {sizeof(osi)};
 
     GetVersionEx(&osi);
@@ -17,18 +16,15 @@ BOOL SlxWork(HINSTANCE hinstDll)
     StartNotifyIconManager(hinstDll);
     StartWindowManager(hinstDll);
 
-    if (IsExplorer())
-    {
+    if (IsExplorer()) {
         StartDesktopIconManager();
     }
 
-    if (osi.dwMajorVersion == 5 && osi.dwMinorVersion > 0)
-    {
+    if (osi.dwMajorVersion == 5 && osi.dwMinorVersion > 0) {
         StartHookShowDesktop();
     }
 
-    if (osi.dwMajorVersion >= 6 && !IsAdminMode())
-    {
+    if (osi.dwMajorVersion >= 6 && !IsAdminMode()) {
         StartRunDlgPlusMonitor();
     }
 

@@ -3,8 +3,7 @@
 
 #include <Windows.h>
 
-class CSlxQuickPopupMenu
-{
+class CSlxQuickPopupMenu {
 public:
     CSlxQuickPopupMenu();
     ~CSlxQuickPopupMenu();

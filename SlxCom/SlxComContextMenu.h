@@ -5,8 +5,7 @@
 #include <vector>
 #include <string>
 
-class FileInfo
-{
+class FileInfo {
 public:
     BOOL bIsFile;
     BOOL bIsDll;
@@ -15,8 +14,7 @@ public:
     BOOL bIsRar;
     WCHAR szPath[MAX_PATH];
 
-    FileInfo()
-    {
+    FileInfo() {
         bIsFile = FALSE;
         bIsDll = FALSE;
         bIsJpg = FALSE;
@@ -26,15 +24,13 @@ public:
     }
 };
 
-enum ShellExtType
-{
+enum ShellExtType {
     SET_FILE,           // 在文件、文件夹或驱动器上右击
     SET_BACKGROUND,     // 在文件夹空白处右击
     SET_DRAGDROP,       // 右键拖动
 };
 
-class CSlxComContextMenu : public IContextMenu, public IShellExtInit, public IShellPropSheetExt
-{
+class CSlxComContextMenu : public IContextMenu, public IShellExtInit, public IShellPropSheetExt {
 public:
     CSlxComContextMenu();
     ~CSlxComContextMenu();

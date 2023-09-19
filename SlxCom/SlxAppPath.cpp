@@ -16,9 +16,9 @@ extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 // BOOL ModifyAppPath_GetCommandFilePath(LPCWSTR lpCommand, WCHAR szFilePath[], DWORD dwSize)
 // {
 //     DWORD dwRegType = 0;
-// 
+//
 //     dwSize *= sizeof(WCHAR);
-// 
+//
 //     SHGetValueW(
 //         HKEY_LOCAL_MACHINE,
 //         APPPATH_PATH,
@@ -27,12 +27,11 @@ extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 //         szCommand,
 //         &dwSize
 //         );
-// 
+//
 //     return dwRegType == REG_SZ;
 // }
 
-BOOL ModifyAppPath_GetFileCommand(LPCWSTR lpFilePath, WCHAR szCommand[], DWORD dwSize)
-{
+BOOL ModifyAppPath_GetFileCommand(LPCWSTR lpFilePath, WCHAR szCommand[], DWORD dwSize) {
     DWORD dwRegType = 0;
 
     dwSize *= sizeof(WCHAR);
@@ -49,21 +48,17 @@ BOOL ModifyAppPath_GetFileCommand(LPCWSTR lpFilePath, WCHAR szCommand[], DWORD d
     return dwRegType == REG_SZ;
 }
 
-INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     static HICON hIcon = NULL;
     WCHAR szCommandInReg[MAX_PATH] = L"";
 
-    switch(uMsg)
-    {
+    switch(uMsg) {
     case WM_INITDIALOG:
-        if (hIcon == NULL)
-        {
+        if (hIcon == NULL) {
             hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
-        if (hIcon != NULL)
-        {
+        if (hIcon != NULL) {
             SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
             SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
@@ -76,8 +71,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
         SetDlgItemTextW(hwndDlg, IDC_FILE, (LPCWSTR)lParam);
         SetDlgItemTextW(hwndDlg, IDC_KEY, szCommandInReg);
 
-        if (lstrlenW(szCommandInReg) == 0)
-        {
+        if (lstrlenW(szCommandInReg) == 0) {
             SetDlgItemTextW(hwndDlg, IDC_KEY, PathFindFileNameW((LPCWSTR)lParam));
         }
 
@@ -90,8 +84,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
         break;
 
     case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK)
-        {
+        if (LOWORD(wParam) == IDOK) {
             WCHAR szRegPath[1000];
             WCHAR szFilePath[MAX_PATH] = L"";
             WCHAR szCommand[MAX_PATH] = L"";
@@ -100,8 +93,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
             GetDlgItemTextW(hwndDlg, IDC_KEY, szCommand, sizeof(szCommand) / sizeof(WCHAR));
             ModifyAppPath_GetFileCommand(szFilePath, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
 
-            if (lstrlenW(szCommandInReg) > 0)
-            {
+            if (lstrlenW(szCommandInReg) > 0) {
                 wnsprintfW(
                     szRegPath,
                     sizeof(szRegPath) / sizeof(WCHAR),
@@ -113,21 +105,16 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                 SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
             }
 
-            if (lstrlenW(szCommand) <= 0)
-            {
+            if (lstrlenW(szCommand) <= 0) {
                 SHDeleteValueW(HKEY_LOCAL_MACHINE, APPPATH_PATH, szFilePath);
-            }
-            else
-            {
-                if (lstrcmpiW(szCommand + lstrlenW(szCommand) - 4, L".exe") != 0)
-                {
+            } else {
+                if (lstrcmpiW(szCommand + lstrlenW(szCommand) - 4, L".exe") != 0) {
                     if (IDYES == MessageBoxW(
                         hwndDlg,
                         L"您提供的快捷短语未以“.exe”结尾，是否自动添加？",
                         L"请确认",
                         MB_ICONQUESTION | MB_YESNO
-                        ))
-                    {
+                        )) {
                         StrCatBuffW(szCommand, L".exe", sizeof(szCommand) / sizeof(WCHAR));
                         SetDlgItemTextW(hwndDlg, IDC_KEY, szCommand);
                     }
@@ -150,9 +137,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
             }
 
             EndDialog(hwndDlg, IDOK);
-        }
-        else if (LOWORD(wParam) == IDCANCEL)
-        {
+        } else if (LOWORD(wParam) == IDCANCEL) {
             EndDialog(hwndDlg, IDCANCEL);
         }
         break;
@@ -169,26 +154,22 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     return FALSE;
 }
 
-BOOL ModifyAppPath(LPCWSTR lpFilePath)
-{
+BOOL ModifyAppPath(LPCWSTR lpFilePath) {
     return 0 != DialogBoxParamW(g_hinstDll, MAKEINTRESOURCEW(IDD_APPPATH), NULL, ModifyAppPathProc, (LPARAM)lpFilePath);
 }
 
-std::wstring GetExistingAppPathCommand(LPCWSTR lpFilePath)
-{
+std::wstring GetExistingAppPathCommand(LPCWSTR lpFilePath) {
     wstring strCommand = RegGetString(HKEY_LOCAL_MACHINE, APPPATH_PATH, lpFilePath, L"");
 
-    if (strCommand.empty())
-    {
+    if (strCommand.empty()) {
         return L"";
     }
 
     wstring strFilePath = RegGetString(HKEY_LOCAL_MACHINE, (APPPATH_PATH + strCommand).c_str(), NULL, L"");
 
-    if (lstrcmpiW(lpFilePath, strFilePath.c_str()) == 0)
-    {
+    if (lstrcmpiW(lpFilePath, strFilePath.c_str()) == 0) {
         return strCommand;
     }
-    
+
     return L"";
 }

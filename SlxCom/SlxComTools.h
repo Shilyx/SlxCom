@@ -10,16 +10,14 @@
 #include <string>
 #include <vector>
 
-enum DRIVER_ACTION
-{
+enum DRIVER_ACTION {
     DA_INSTALL,
     DA_START,
     DA_STOP,
     DA_UNINSTALL,
 };
 
-struct ListCtrlSortStruct
-{
+struct ListCtrlSortStruct {
     int nRet;
     HWND hListCtrl;
     int nSubItem;
@@ -86,8 +84,7 @@ bool CreateSoftLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 void AutoCloseMessageBoxForThreadInSeconds(DWORD dwThreadId, int nSeconds);
 HRESULT SHGetNameFromIDListHelper(PCIDLIST_ABSOLUTE pidl, SIGDN sigdnName, PWSTR* ppszName);
 
-enum WindowUnalphaValue
-{
+enum WindowUnalphaValue {
     WUV100 = 255,
     WUV80 = 204,
     WUV60 = 153,
@@ -109,8 +106,7 @@ LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt);
 HRESULT SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv);
 
 template <class T>
-std::wstring AnyTypeToString(const T &value)
-{
+std::wstring AnyTypeToString(const T &value) {
     std::wstringstream ss;
 
     ss<<value;
@@ -119,8 +115,7 @@ std::wstring AnyTypeToString(const T &value)
 }
 
 template <>
-inline std::wstring AnyTypeToString(const std::wstring &value)
-{
+inline std::wstring AnyTypeToString(const std::wstring &value) {
     return value;
 }
 
@@ -129,29 +124,22 @@ inline std::wstring AnyTypeToString(const std::wstring &value)
 // 注意：原始字符串首尾的空白始终不被置入result中
 // 例如：以*分隔“a*b”和“*a*b”和“a*b*”和“*a*b*”时无论ignore_blank为何得到的结果总是两部分
 template <class T>
-size_t SplitString(const std::basic_string<T> &str, const std::basic_string<T> &patten, std::vector<std::basic_string<T> > &result, bool ignore_blank = true)
-{
+size_t SplitString(const std::basic_string<T> &str, const std::basic_string<T> &patten, std::vector<std::basic_string<T> > &result, bool ignore_blank = true) {
     std::basic_string<T>::size_type pos = str.find(patten);
     std::basic_string<T>::size_type begin = 0;
     bool first = true;
 
     result.clear();
 
-    while (true)
-    {
-        if (pos == str.npos)
-        {
-            if (begin < str.size())
-            {
+    while (true) {
+        if (pos == str.npos) {
+            if (begin < str.size()) {
                 result.push_back(str.substr(begin));
             }
 
             return result.size();
-        }
-        else
-        {
-            if (pos > begin || (!first && !ignore_blank))
-            {
+        } else {
+            if (pos > begin || (!first && !ignore_blank)) {
                 result.push_back(str.substr(begin, pos - begin));
             }
 
@@ -164,12 +152,10 @@ size_t SplitString(const std::basic_string<T> &str, const std::basic_string<T> &
 }
 
 template <class T>
-void Replace(std::basic_string<T> &str, const std::basic_string<T> &old_str, const std::basic_string<T> &new_str)
-{
+void Replace(std::basic_string<T> &str, const std::basic_string<T> &old_str, const std::basic_string<T> &new_str) {
     std::basic_string<T>::size_type offset = str.find(old_str);
 
-    while (offset != str.npos)
-    {
+    while (offset != str.npos) {
         str.replace(offset, old_str.length(), new_str);
 
         offset = str.find(old_str, offset + new_str.length());

@@ -11,28 +11,23 @@ static DWORD gs_dwSlxComWindowManagerWindowProcessId = 0;
 static HWND gs_hSlxComWindowManagerWindow = NULL;
 static HWND gs_hMainWindow = NULL;
 
-enum
-{
+enum {
     WM_TASK = WM_USER + 112,
 };
 
-static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
+static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION &&
         (wParam == WM_RBUTTONUP || wParam == WM_RBUTTONDOWN) &&
         lParam != 0 &&
         GetKeyState(VK_CONTROL) < 0 &&
         IsWindow(gs_hSlxComWindowManagerWindow) &&
         gs_dwSlxComWindowManagerWindowProcessId != 0 &&
-        IsWindow(gs_hMainWindow))
-    {
+        IsWindow(gs_hMainWindow)) {
         LPMSLLHOOKSTRUCT lpMhs = (LPMSLLHOOKSTRUCT)lParam;
         HWND hTargetWindow = WindowFromPoint(lpMhs->pt);
 
-        if (IsWindow(hTargetWindow) && gs_hMainWindow != hTargetWindow)
-        {
-            if (wParam == WM_RBUTTONUP)
-            {
+        if (IsWindow(hTargetWindow) && gs_hMainWindow != hTargetWindow) {
+            if (wParam == WM_RBUTTONUP) {
                 PostMessageW(gs_hMainWindow, WM_TASK, (WPARAM)hTargetWindow, MAKELONG(lpMhs->pt.x, lpMhs->pt.y));
             }
 
@@ -43,8 +38,7 @@ static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-static void DoTask(HWND hTargetWindow, int x, int y)
-{
+static void DoTask(HWND hTargetWindow, int x, int y) {
     WCHAR szClassName[1024] = L"";
     WCHAR szWindowText[1024] = L"";
 
@@ -54,16 +48,12 @@ static void DoTask(HWND hTargetWindow, int x, int y)
     SafeDebugMessage(L"%x[%s][%s], %d,%d\r\n", hTargetWindow, szClassName, szWindowText, x, y);
 
     if (!IsWindow(FindWindowW(L"#32768", NULL)) &&
-        !IsWindowFullScreen(hTargetWindow))
-    {
+        !IsWindowFullScreen(hTargetWindow)) {
         LONG_PTR dwStyle = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
 
-        if ((dwStyle & WS_CHILDWINDOW) == 0)
-        {
-            if (AdvancedSetForegroundWindow(gs_hMainWindow))
-            {
-                if (AllowSetForegroundWindow(gs_dwSlxComWindowManagerWindowProcessId))
-                {
+        if ((dwStyle & WS_CHILDWINDOW) == 0) {
+            if (AdvancedSetForegroundWindow(gs_hMainWindow)) {
+                if (AllowSetForegroundWindow(gs_dwSlxComWindowManagerWindowProcessId)) {
                     PostMessageW(gs_hSlxComWindowManagerWindow, WM_SCREEN_CONTEXT_MENU, (WPARAM)hTargetWindow, MAKELONG(x, y));
                 }
             }
@@ -71,10 +61,8 @@ static void DoTask(HWND hTargetWindow, int x, int y)
     }
 }
 
-static LRESULT CALLBACK HookWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
+static LRESULT CALLBACK HookWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
     case WM_CREATE:
         break;
 
@@ -97,8 +85,7 @@ static LRESULT CALLBACK HookWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-static HWND CreateOneWindow(LPCWSTR lpWindowText)
-{
+static HWND CreateOneWindow(LPCWSTR lpWindowText) {
     HWND hMainWnd = CreateWindowExW(
         0,
         CLASS_NAME,
@@ -122,21 +109,18 @@ static HWND CreateOneWindow(LPCWSTR lpWindowText)
     return hMainWnd;
 }
 
-void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
-{
+void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow) {
     int nArgCount = 0;
     LPWSTR *lpArgValue = CommandLineToArgvW(lpszCmdLine, &nArgCount);
 
-    if (nArgCount < 2)
-    {
+    if (nArgCount < 2) {
         return;
     }
 
     gs_hSlxComWindowManagerWindow = (HWND)StrToInt64Def(lpArgValue[1], 0);
 
 #ifndef _DEBUG
-    if (!IsWindow(gs_hSlxComWindowManagerWindow))
-    {
+    if (!IsWindow(gs_hSlxComWindowManagerWindow)) {
         return;
     }
 #endif
@@ -147,14 +131,12 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
     HANDLE hProcess = OpenProcess(SYNCHRONIZE, FALSE, dwProcessId);
 
 #ifdef _DEBUG
-    if (hProcess == NULL)
-    {
+    if (hProcess == NULL) {
         hProcess = CreateEventW(NULL, FALSE, FALSE, NULL);
     }
 #endif
 
-    if (hProcess == NULL)
-    {
+    if (hProcess == NULL) {
         return;
     }
 
@@ -173,19 +155,15 @@ void WINAPI SlxWindowManagerProcessW(HWND hwndStub, HINSTANCE hAppInstance, LPCW
     UINT_PTR nTimerId = SetTimer(NULL, 0, 345, NULL);
     MSG msg;
 
-    while (TRUE)
-    {
+    while (TRUE) {
         int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-        if (nRet <= 0)
-        {
+        if (nRet <= 0) {
             break;
         }
 
-        if (msg.message == WM_TIMER)
-        {
-            if (WAIT_OBJECT_0 == WaitForSingleObject(hProcess, 0))
-            {
+        if (msg.message == WM_TIMER) {
+            if (WAIT_OBJECT_0 == WaitForSingleObject(hProcess, 0)) {
                 break;
             }
         }

@@ -5,17 +5,14 @@
 #include <ShlObj.h>
 #include <ShlGuid.h>
 
-class CSlxComIconHandler : public IExtractIconW, public IPersistFile
-{
+class CSlxComIconHandler : public IExtractIconW, public IPersistFile {
 public:
-    CSlxComIconHandler(void)
-    {
+    CSlxComIconHandler(void) {
         *m_szFilePath = 0;
         m_nRefCount = 0;
     }
 
-    virtual ~CSlxComIconHandler(void)
-    {
+    virtual ~CSlxComIconHandler(void) {
 
     }
 
@@ -45,38 +42,33 @@ public:
                        UINT    nIconSize);
 
     // IPersistFile Method
-    virtual HRESULT STDMETHODCALLTYPE GetClassID( 
-        /* [out] */ __RPC__out CLSID *pClassID)
-    {
+    virtual HRESULT STDMETHODCALLTYPE GetClassID(
+        /* [out] */ __RPC__out CLSID *pClassID) {
         return E_NOTIMPL;
     }
 
     // IPersistFile Method
-    virtual HRESULT STDMETHODCALLTYPE IsDirty( void)
-    {
+    virtual HRESULT STDMETHODCALLTYPE IsDirty( void) {
         return E_NOTIMPL;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE Load( 
+    virtual HRESULT STDMETHODCALLTYPE Load(
         /* [in] */ __RPC__in LPCOLESTR pszFileName,
         /* [in] */ DWORD dwMode);
 
-    virtual HRESULT STDMETHODCALLTYPE Save( 
+    virtual HRESULT STDMETHODCALLTYPE Save(
         /* [unique][in] */ __RPC__in_opt LPCOLESTR pszFileName,
-        /* [in] */ BOOL fRemember)
-    {
+        /* [in] */ BOOL fRemember) {
         return E_NOTIMPL;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE SaveCompleted( 
-        /* [unique][in] */ __RPC__in_opt LPCOLESTR pszFileName)
-    {
+    virtual HRESULT STDMETHODCALLTYPE SaveCompleted(
+        /* [unique][in] */ __RPC__in_opt LPCOLESTR pszFileName) {
         return E_NOTIMPL;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE GetCurFile( 
-        /* [out] */ __RPC__deref_out_opt LPOLESTR *ppszFileName)
-    {
+    virtual HRESULT STDMETHODCALLTYPE GetCurFile(
+        /* [out] */ __RPC__deref_out_opt LPOLESTR *ppszFileName) {
         return E_NOTIMPL;
     }
 };

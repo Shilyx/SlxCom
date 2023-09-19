@@ -3,8 +3,7 @@
 
 #include <Windows.h>
 
-struct FileHandleInfo
-{
+struct FileHandleInfo {
     DWORD               dwProcessId;
     HANDLE              hFile;
     WCHAR               szFilePath[MAX_PATH];

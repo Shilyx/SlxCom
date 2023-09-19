@@ -5,8 +5,7 @@
 #include <shlobj.h>
 #include "SlxStringStatusCache.h"
 
-class CSlxComOverlay : public IShellIconOverlayIdentifier
-{
+class CSlxComOverlay : public IShellIconOverlayIdentifier {
     friend class CSlxComContextMenu;
     friend DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam);
 

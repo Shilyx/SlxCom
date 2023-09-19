@@ -5,8 +5,7 @@
 
 #define SS_MASK     0xf
 
-enum StringStatus
-{
+enum StringStatus {
     SS_0,
     SS_1,
     SS_2,
@@ -25,8 +24,7 @@ enum StringStatus
     SS_15,
 };
 
-class SlxStringStatusCache
-{
+class SlxStringStatusCache {
 protected:
     HANDLE m_hThreadClean;
     BOOL m_bAutoClean;

@@ -15,24 +15,19 @@ BOOL CNotifyClass::ms_bDestroyOnShow = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_P
 BOOL CNotifyClass::ms_bShowBalloon = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"ShowBalloon", TRUE);
 BOOL CNotifyClass::ms_bHideOnMinimaze = RegGetDWORD(HKEY_CURRENT_USER, BASE_REG_PATH, L"HideOnMinimaze", FALSE);
 
-CNotifyClass::CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCWSTR lpCreateTime, BOOL bShowBalloonThisTime)
-{
+CNotifyClass::CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LPCWSTR lpCreateTime, BOOL bShowBalloonThisTime) {
     m_bUseNotifyIcon = uId > 0;
 
-    if (lpCreateTime == NULL)
-    {
+    if (lpCreateTime == NULL) {
         m_strCreateTime = GetCurrentTimeString();
-    }
-    else
-    {
+    } else {
         m_strCreateTime = lpCreateTime;
     }
 
     m_hManagerWindow = hManagerWindow;
     m_hTargetWindow = hTargetWindow;
 
-    if (m_bUseNotifyIcon)
-    {
+    if (m_bUseNotifyIcon) {
         ZeroMemory(&m_nid, sizeof(m_nid));
         m_nid.cbSize = sizeof(m_nid);
         m_nid.hWnd = hManagerWindow;
@@ -44,21 +39,18 @@ CNotifyClass::CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LP
         m_hIcon = GetWindowIcon(m_hTargetWindow);
         m_hIconSm = GetWindowIconSmall(m_hTargetWindow);
 
-        if (m_hIcon == NULL)
-        {
+        if (m_hIcon == NULL) {
             m_hIcon = LoadIconW(NULL, IDI_INFORMATION);
         }
 
-        if (m_hIconSm == NULL)
-        {
+        if (m_hIconSm == NULL) {
             m_hIconSm = m_hIcon;
         }
 
         m_nid.hIcon = m_hIconSm;
         m_nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
 
-        if (ms_bShowBalloon && bShowBalloonThisTime)
-        {
+        if (ms_bShowBalloon && bShowBalloonThisTime) {
             lstrcpynW(m_nid.szInfoTitle, L"SlxCom WindowManager", RTL_NUMBER_OF(m_nid.szInfoTitle));
             wnsprintfW(
                 m_nid.szInfo,
@@ -78,48 +70,37 @@ CNotifyClass::CNotifyClass(HWND hManagerWindow, HWND hTargetWindow, UINT uId, LP
     }
 }
 
-CNotifyClass::~CNotifyClass()
-{
-    if (m_bUseNotifyIcon)
-    {
+CNotifyClass::~CNotifyClass() {
+    if (m_bUseNotifyIcon) {
         Shell_NotifyIconW(NIM_DELETE, &m_nid);
         ReleaseTargetWindow();
         RemoveFromRegistry();
     }
 }
 
-UINT CNotifyClass::GetId() const
-{
+UINT CNotifyClass::GetId() const {
     return m_nid.uID;
 }
 
-HWND CNotifyClass::GetTargetWindow() const
-{
+HWND CNotifyClass::GetTargetWindow() const {
     return m_hTargetWindow;
 }
 
-void CNotifyClass::SwitchVisiable()
-{
-    if (IsWindow(m_hTargetWindow))
-    {
-        if (IsWindowVisible(m_hTargetWindow))
-        {
+void CNotifyClass::SwitchVisiable() {
+    if (IsWindow(m_hTargetWindow)) {
+        if (IsWindowVisible(m_hTargetWindow)) {
             ShowWindow(m_hTargetWindow, SW_HIDE);
-        }
-        else
-        {
+        } else {
             ReleaseTargetWindow();
 
-            if (ms_bDestroyOnShow)
-            {
+            if (ms_bDestroyOnShow) {
                 PostMessageW(m_hManagerWindow, WM_REMOVE_NOTIFY, m_nid.uID, (LPARAM)m_hTargetWindow);
             }
         }
     }
 }
 
-void CNotifyClass::DoContextMenu(int x, int y)
-{
+void CNotifyClass::DoContextMenu(int x, int y) {
     WCHAR szSimpleText[8192] = L"";
     HMENU hMenu = CreatePopupMenu();
     HMENU hPopupMenu = CreatePopupMenu();
@@ -128,20 +109,17 @@ void CNotifyClass::DoContextMenu(int x, int y)
     AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
     AppendMenuW(hMenu, MF_STRING, CMD_DETAIL, L"显示窗口信息(&D)");
 
-    if (g_bVistaLater)
-    {
+    if (g_bVistaLater) {
         AppendMenuW(hMenu, MF_STRING, CMD_UNGROUPING_WINDOW, L"在任务栏不分组此窗口(&G)\tAlt+Ctrl(Shift)+G");
 
-        if (HasWinAppID(m_hTargetWindow))
-        {
+        if (HasWinAppID(m_hTargetWindow)) {
             CheckMenuItemHelper(hPopupMenu, CMD_UNGROUPING_WINDOW, 0, TRUE);
         }
     }
 
     AppendMenuW(hMenu, MF_STRING, CMD_PINWINDOW, L"置顶窗口(&T)\tAlt+Ctrl(Shift)+T");
 
-    if (m_bUseNotifyIcon)
-    {
+    if (m_bUseNotifyIcon) {
         AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(hMenu, MF_STRING, CMD_SWITCHVISIABLE, L"显示窗口(&S)\tAlt+Ctrl(Shift)+H");
         AppendMenuW(hMenu, MF_STRING, CMD_DESTROYICON, L"移除托盘图标(&Y)");
@@ -154,17 +132,14 @@ void CNotifyClass::DoContextMenu(int x, int y)
         CheckMenuItemHelper(hPopupMenu, CMD_SHOWBALLOON, MF_BYCOMMAND, ms_bShowBalloon);
         CheckMenuItemHelper(hPopupMenu, CMD_HIDEONMINIMAZE, MF_BYCOMMAND, ms_bHideOnMinimaze);
         SetMenuDefaultItem(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND);
-    }
-    else
-    {
+    } else {
         AppendMenuW(hMenu, MF_STRING, CMD_ADD_WINDOW, L"收纳窗口(&C)\tAlt+Ctrl(Shift)+C");
         AppendMenuW(hMenu, MF_STRING, CMD_HIDE_WINDOW, L"收纳并隐藏窗口(&S)\tAlt+Ctrl(Shift)+H");
     }
 
     AppendMenuW(hMenu, MF_STRING, CMD_OPEN_IMAGE_PATH, L"打开窗口进程所在的目录");
     AppendMenuW(hMenu, MF_STRING, CMD_KILL_WINDOW_PROCESS, L"结束窗口所属的进程");
-
-    {
+ {
         HMENU hPopupMenu = CreatePopupMenu();
 
         AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_HWNDVALUE, L"窗口句柄值");
@@ -177,8 +152,7 @@ void CNotifyClass::DoContextMenu(int x, int y)
         AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_THREADID, L"线程id");
         AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"复制到剪贴板(&C)");
     }
-
-    {
+ {
         HMENU hPopupMenu = CreatePopupMenu();
 
         AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_100, L"100%");
@@ -191,15 +165,11 @@ void CNotifyClass::DoContextMenu(int x, int y)
 
     CheckMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, IsWindowTopMost(m_hTargetWindow));
 
-    if (IsWindow(m_hTargetWindow))
-    {
-        if (IsWindowVisible(m_hTargetWindow))
-        {
+    if (IsWindow(m_hTargetWindow)) {
+        if (IsWindowVisible(m_hTargetWindow)) {
             ModifyMenuW(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND | MF_STRING, CMD_SWITCHVISIABLE, L"隐藏窗口(&H)\tAlt+Ctrl(Shift)+H");
         }
-    }
-    else
-    {
+    } else {
         EnableMenuItemHelper(hMenu, CMD_SWITCHVISIABLE, MF_BYCOMMAND, FALSE);
         EnableMenuItemHelper(hMenu, CMD_PINWINDOW, MF_BYCOMMAND, FALSE);
     }
@@ -216,8 +186,7 @@ void CNotifyClass::DoContextMenu(int x, int y)
         NULL
         );
 
-    switch (nCmd)
-    {
+    switch (nCmd) {
     case CMD_ABOUT:
         SlxComAbout(m_hManagerWindow);
         break;
@@ -276,8 +245,7 @@ void CNotifyClass::DoContextMenu(int x, int y)
     case CMD_COPY_CHILDTREE:
         break;
 
-    case CMD_COPY_PROCESSID:
-        {
+    case CMD_COPY_PROCESSID: {
             DWORD dwProcessId = 0;
 
             GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
@@ -320,23 +288,19 @@ void CNotifyClass::DoContextMenu(int x, int y)
         break;
 
     case CMD_OPEN_IMAGE_PATH:
-        if (GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText)) > 0)
-        {
-            if (PathFileExistsW(szSimpleText))
-            {
+        if (GetWindowImageFileName(m_hTargetWindow, szSimpleText, RTL_NUMBER_OF(szSimpleText)) > 0) {
+            if (PathFileExistsW(szSimpleText)) {
                 BrowseForFile(szSimpleText);
             }
         }
         break;
 
-    case CMD_KILL_WINDOW_PROCESS:
-        {
+    case CMD_KILL_WINDOW_PROCESS: {
             DWORD dwProcessId = 0;
 
             GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
 
-            if (dwProcessId != 0)
-            {
+            if (dwProcessId != 0) {
                 WCHAR szProcessName[MAX_PATH] = L"null";
 
                 GetProcessNameById(dwProcessId, szProcessName, RTL_NUMBER_OF(szProcessName));
@@ -347,8 +311,7 @@ void CNotifyClass::DoContextMenu(int x, int y)
                     MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3,
                     L"要结束进程（%s，%lu）吗？",
                     szProcessName,
-                    dwProcessId))
-                {
+                    dwProcessId)) {
                     KillProcess(dwProcessId);
                 }
             }
@@ -363,16 +326,14 @@ void CNotifyClass::DoContextMenu(int x, int y)
         break;
     }
 
-    if (!IsWindow(m_hTargetWindow))
-    {
+    if (!IsWindow(m_hTargetWindow)) {
         DestroyMenu(hPopupMenu);
     }
 
     DestroyMenu(hMenu);
 }
 
-std::wstring CNotifyClass::GetTargetWindowFullInfo()
-{
+std::wstring CNotifyClass::GetTargetWindowFullInfo() {
     LPCWSTR lpCrLf = L"\r\n";
     wstringstream ss;
     DWORD dwProcessId = 0;
@@ -383,8 +344,7 @@ std::wstring CNotifyClass::GetTargetWindowFullInfo()
     DWORD dwStyle = 0;
     DWORD dwExStyle = 0;
 
-    if (IsWindow(m_hTargetWindow))
-    {
+    if (IsWindow(m_hTargetWindow)) {
         dwThreadId = GetWindowThreadProcessId(m_hTargetWindow, &dwProcessId);
         GetClassNameW(m_hTargetWindow, szClassName, RTL_NUMBER_OF(szClassName));
         GetWindowTextW(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
@@ -394,33 +354,24 @@ std::wstring CNotifyClass::GetTargetWindowFullInfo()
     }
 
     ss << L"窗口句柄：0x" << hex << m_hTargetWindow;
-    if (!IsWindow(m_hTargetWindow))
-    {
+    if (!IsWindow(m_hTargetWindow)) {
         ss << L"，无效";
-    }
-    else
-    {
-        if (IsWindowTopMost(m_hTargetWindow))
-        {
+    } else {
+        if (IsWindowTopMost(m_hTargetWindow)) {
             ss << L"，置顶";
         }
 
-        if (IsWindowVisible(m_hTargetWindow))
-        {
+        if (IsWindowVisible(m_hTargetWindow)) {
             ss << L"，可见";
-        }
-        else
-        {
+        } else {
             ss << L"，隐藏";
         }
 
-        if (IsZoomed(m_hTargetWindow))
-        {
+        if (IsZoomed(m_hTargetWindow)) {
             ss << L"，最大化";
         }
 
-        if (IsIconic(m_hTargetWindow))
-        {
+        if (IsIconic(m_hTargetWindow)) {
             ss << L"，最小化";
         }
     }
@@ -438,61 +389,50 @@ std::wstring CNotifyClass::GetTargetWindowFullInfo()
     return ss.str();
 }
 
-void CNotifyClass::RefreshInfo()
-{
+void CNotifyClass::RefreshInfo() {
     wstring strNewTip = GetTargetWindowBaseInfo();
 
-    // 
-    if (StrCmpNIW(strNewTip.c_str(), m_nid.szTip, RTL_NUMBER_OF(m_nid.szTip)) != 0)
-    {
+    //
+    if (StrCmpNIW(strNewTip.c_str(), m_nid.szTip, RTL_NUMBER_OF(m_nid.szTip)) != 0) {
         lstrcpynW(m_nid.szTip, strNewTip.c_str(), RTL_NUMBER_OF(m_nid.szTip));
         Shell_NotifyIconW(NIM_MODIFY, &m_nid);
     }
 }
 
-std::wstring CNotifyClass::GetTargetWindowCaption()
-{
+std::wstring CNotifyClass::GetTargetWindowCaption() {
     wstring result;
     WCHAR szWindowText[32] = L"";
 
     GetWindowTextW(m_hTargetWindow, szWindowText, RTL_NUMBER_OF(szWindowText));
     result = szWindowText;
 
-    if (GetWindowTextLength(m_hTargetWindow) >= RTL_NUMBER_OF(szWindowText))
-    {
+    if (GetWindowTextLength(m_hTargetWindow) >= RTL_NUMBER_OF(szWindowText)) {
         result += L"...";
     }
 
     return result;
 }
 
-std::wstring CNotifyClass::GetTargetWindowBaseInfo()
-{
+std::wstring CNotifyClass::GetTargetWindowBaseInfo() {
     WCHAR szTip[128];
     WCHAR szWindowStatus[32] = L"";
     BOOL bIsWindow = IsWindow(m_hTargetWindow);
     BOOL bIsWindowVisiable = FALSE;
     LPCWSTR lpCrLf = L"\r\n";
 
-    if (bIsWindow)
-    {
+    if (bIsWindow) {
         bIsWindowVisiable = IsWindowVisible(m_hTargetWindow);
 
-        if (bIsWindowVisiable)
-        {
+        if (bIsWindowVisiable) {
             lstrcpynW(szWindowStatus, L"可见", RTL_NUMBER_OF(szWindowStatus));
-        }
-        else
-        {
+        } else {
             lstrcpynW(szWindowStatus, L"隐藏", RTL_NUMBER_OF(szWindowStatus));
         }
-    }
-    else
-    {
+    } else {
         lstrcpynW(szWindowStatus, L"无效", RTL_NUMBER_OF(szWindowStatus));
     }
 
-    // 
+    //
     wnsprintfW(
         szTip,
         RTL_NUMBER_OF(szTip),
@@ -508,48 +448,36 @@ std::wstring CNotifyClass::GetTargetWindowBaseInfo()
     return szTip;
 }
 
-void CNotifyClass::DoPin(HWND hTargetWindow)
-{
+void CNotifyClass::DoPin(HWND hTargetWindow) {
     CloseHandle(CreateThread(NULL, 0, PinWindowProc, (LPVOID)hTargetWindow, 0, NULL));
 }
 
-HWND CNotifyClass::GetCaptureableWindow()
-{
+HWND CNotifyClass::GetCaptureableWindow() {
     HWND hTargetWindow = GetForegroundWindow();
 
-    if (IsWindow(hTargetWindow) && IsWindowVisible(hTargetWindow))
-    {
+    if (IsWindow(hTargetWindow) && IsWindowVisible(hTargetWindow)) {
         DWORD dwTargetProcessId = GetCurrentProcessId();
         HWND hDesktopWindow = GetDesktopWindow();
 
         GetWindowThreadProcessId(hTargetWindow, &dwTargetProcessId);
 
-        if (dwTargetProcessId != GetCurrentProcessId())
-        {
+        if (dwTargetProcessId != GetCurrentProcessId()) {
             return hTargetWindow;
-        }
-        else
-        {
+        } else {
             LONG_PTR dwStype = GetWindowLongPtr(hTargetWindow, GWL_STYLE);
 
-            if (dwStype != 0 && (dwStype & WS_MINIMIZEBOX) != 0)
-            {
+            if (dwStype != 0 && (dwStype & WS_MINIMIZEBOX) != 0) {
                 return hTargetWindow;
-            }
-            else
-            {
+            } else {
                 return NULL;
             }
         }
-    }
-    else
-    {
+    } else {
         return NULL;
     }
 }
 
-map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
-{
+map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys() {
     map<HWND, wstring> result;
     set<wstring> setToDelete;
     wstring strRegPath = RECORD_REG_PATH;
@@ -559,8 +487,7 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
     strRegPath += L"\\";
     strRegPath += GetDesktopName(GetThreadDesktop(GetCurrentThreadId()));
 
-    if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, strRegPath.c_str(), 0, KEY_QUERY_VALUE, &hKey))
-    {
+    if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, strRegPath.c_str(), 0, KEY_QUERY_VALUE, &hKey)) {
         DWORD dwValueCount = 0;
         DWORD dwMaxValueNameLen = 0;
         DWORD dwMaxDataLen = 0;
@@ -571,8 +498,7 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
             &dwMaxValueNameLen,
             &dwMaxDataLen,
             NULL, NULL
-            ))
-        {
+            )) {
             dwMaxValueNameLen += 1;
             dwMaxValueNameLen *= 2;
             dwMaxDataLen += 1;
@@ -580,10 +506,8 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
             WCHAR *szValueName = (WCHAR *)malloc(dwMaxValueNameLen);
             unsigned char *szData = (unsigned char *)malloc(dwMaxDataLen);
 
-            if (szValueName != NULL && szData != NULL)
-            {
-                for (DWORD dwIndex = 0; dwIndex < dwValueCount; dwIndex += 1)
-                {
+            if (szValueName != NULL && szData != NULL) {
+                for (DWORD dwIndex = 0; dwIndex < dwValueCount; dwIndex += 1) {
                     DWORD dwRegType = REG_NONE;
                     DWORD dwValueSize = dwMaxValueNameLen;
                     DWORD dwDataSize = dwMaxDataLen;
@@ -600,18 +524,13 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
                         &dwRegType,
                         szData,
                         &dwDataSize
-                        ))
-                    {
-                        if (dwRegType == REG_SZ)
-                        {
+                        )) {
+                        if (dwRegType == REG_SZ) {
                             HWND hWnd = (HWND)(INT_PTR)StrToInt64Def(szValueName, 0);
 
-                            if (!IsWindow(hWnd))
-                            {
+                            if (!IsWindow(hWnd)) {
                                 setToDelete.insert(szValueName);
-                            }
-                            else
-                            {
+                            } else {
                                 result.insert(make_pair(hWnd, (WCHAR *)szData));
                             }
                         }
@@ -619,13 +538,11 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
                 }
             }
 
-            if (szValueName != NULL)
-            {
+            if (szValueName != NULL) {
                 free((void *)szValueName);
             }
 
-            if (szData != NULL)
-            {
+            if (szData != NULL) {
                 free((void *)szData);
             }
         }
@@ -634,21 +551,18 @@ map<HWND, wstring> CNotifyClass::GetAndClearLastNotifys()
     }
 
     set<wstring>::iterator it = setToDelete.begin();
-    for (; it != setToDelete.end(); ++it)
-    {
+    for (; it != setToDelete.end(); ++it) {
         SHDeleteValueW(HKEY_CURRENT_USER, strRegPath.c_str(), it->c_str());
     }
 
     return result;
 }
 
-BOOL CNotifyClass::IsOptionHideOnMinimaze()
-{
+BOOL CNotifyClass::IsOptionHideOnMinimaze() {
     return ms_bHideOnMinimaze;
 }
 
-void CNotifyClass::RecordToRegistry()
-{
+void CNotifyClass::RecordToRegistry() {
     WCHAR szNull[] = L"";
     wstring strRegPath = RECORD_REG_PATH;
     WCHAR szHwnd[32] = L"";
@@ -662,8 +576,7 @@ void CNotifyClass::RecordToRegistry()
     SHSetTempValue(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd, REG_SZ, m_strCreateTime.c_str(), (DWORD)(m_strCreateTime.length() + 1) * sizeof(WCHAR));
 }
 
-void CNotifyClass::RemoveFromRegistry()
-{
+void CNotifyClass::RemoveFromRegistry() {
     wstring strRegPath = RECORD_REG_PATH;
     WCHAR szHwnd[32] = L"";
 
@@ -674,17 +587,13 @@ void CNotifyClass::RemoveFromRegistry()
     SHDeleteValueW(HKEY_CURRENT_USER, strRegPath.c_str(), szHwnd);
 }
 
-void CNotifyClass::ReleaseTargetWindow()
-{
-    if (IsWindow(m_hTargetWindow))
-    {
-        if (!IsWindowVisible(m_hTargetWindow))
-        {
+void CNotifyClass::ReleaseTargetWindow() {
+    if (IsWindow(m_hTargetWindow)) {
+        if (!IsWindowVisible(m_hTargetWindow)) {
             ShowWindow(m_hTargetWindow, SW_SHOW);
         }
 
-        if (IsIconic(m_hTargetWindow))
-        {
+        if (IsIconic(m_hTargetWindow)) {
             ShowWindow(m_hTargetWindow, SW_RESTORE);
         }
 
@@ -692,39 +601,31 @@ void CNotifyClass::ReleaseTargetWindow()
     }
 }
 
-DWORD CALLBACK CNotifyClass::PinWindowProc(LPVOID lpParam)
-{
+DWORD CALLBACK CNotifyClass::PinWindowProc(LPVOID lpParam) {
     HWND hTargetWindow = (HWND)lpParam;
 
-    if (hTargetWindow == NULL)
-    {
+    if (hTargetWindow == NULL) {
         hTargetWindow = GetCaptureableWindow();
     }
 
-    if (IsWindow(hTargetWindow))
-    {
+    if (IsWindow(hTargetWindow)) {
         LONG_PTR nExStyle = GetWindowLongPtr(hTargetWindow, GWL_EXSTYLE);
         WCHAR szNewWindowText[4096];
         LPWSTR lpWindowText = szNewWindowText;
 
-        if (nExStyle & WS_EX_TOPMOST)
-        {
+        if (nExStyle & WS_EX_TOPMOST) {
             lpWindowText += wnsprintfW(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), L"已取消置顶<<<<");
             SetWindowPos(hTargetWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        }
-        else
-        {
+        } else {
             lpWindowText += wnsprintfW(szNewWindowText, RTL_NUMBER_OF(szNewWindowText), L"已置顶>>>>");
             SetWindowPos(hTargetWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
 
-        if (GetWindowTextLength(hTargetWindow) < RTL_NUMBER_OF(szNewWindowText) - 100)
-        {
+        if (GetWindowTextLength(hTargetWindow) < RTL_NUMBER_OF(szNewWindowText) - 100) {
             GetWindowTextW(hTargetWindow, lpWindowText, RTL_NUMBER_OF(szNewWindowText) - 100);
             SetWindowTextW(hTargetWindow, szNewWindowText);
 
-            for (int i = 0; i < 3; i += 1)
-            {
+            for (int i = 0; i < 3; i += 1) {
                 FlashWindow(hTargetWindow, TRUE);
                 Sleep(300);
                 FlashWindow(hTargetWindow, TRUE);

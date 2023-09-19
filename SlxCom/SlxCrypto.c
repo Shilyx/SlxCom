@@ -54,12 +54,10 @@ static const uint8_t padding[64] = {
     (a) += (b); \
 }
 
-static void md5_encode(uint8_t *output, const uint32_t *input, uint32_t len)
-{
+static void md5_encode(uint8_t *output, const uint32_t *input, uint32_t len) {
     uint32_t i, j;
 
-    for (i = 0, j = 0; i < len; i++, j += 4)
-    {
+    for (i = 0, j = 0; i < len; i++, j += 4) {
         output[j] = (uint8_t)(input[i] & 0xff);
         output[j + 1] = (uint8_t)((input[i] >> 8) & 0xff);
         output[j + 2] = (uint8_t)((input[i] >> 16) & 0xff);
@@ -67,18 +65,15 @@ static void md5_encode(uint8_t *output, const uint32_t *input, uint32_t len)
     }
 }
 
-static void md5_decode(uint32_t *output, const uint8_t *input, uint32_t len)
-{
+static void md5_decode(uint32_t *output, const uint8_t *input, uint32_t len) {
     uint32_t i, j;
 
-    for (i = 0, j = 0; i < len; i++, j += 4)
-    {
+    for (i = 0, j = 0; i < len; i++, j += 4) {
         output[i] = ((uint32_t)input[j]) | (((uint32_t)input[j + 1]) << 8) | (((uint32_t)input[j + 2]) << 16) | (((uint32_t)input[j + 3]) << 24);
     }
 }
 
-static void md5_transform(uint32_t state[4], const uint8_t block[64])
-{
+static void md5_transform(uint32_t state[4], const uint8_t block[64]) {
     uint32_t a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
     md5_decode(x, block, 16);
@@ -159,8 +154,7 @@ static void md5_transform(uint32_t state[4], const uint8_t block[64])
     memset((char*)x, 0, sizeof(x));
 }
 
-void md5_init(md5_ctx *ctx)
-{
+void md5_init(md5_ctx *ctx) {
     ctx->count[0] = ctx->count[1] = 0;
     ctx->state[0] = 0x67452301U;
     ctx->state[1] = 0xefcdab89U;
@@ -168,41 +162,34 @@ void md5_init(md5_ctx *ctx)
     ctx->state[3] = 0x10325476U;
 }
 
-void md5_update(md5_ctx *ctx, const uint8_t *buff, uint32_t leng)
-{
+void md5_update(md5_ctx *ctx, const uint8_t *buff, uint32_t leng) {
     uint32_t i, indx, partleng;
 
     indx = (uint32_t)((ctx->count[0] >> 3) & 0x3F);
 
-    if ((ctx->count[0] += ((uint32_t)leng << 3)) < ((uint32_t)leng << 3))
-    {
+    if ((ctx->count[0] += ((uint32_t)leng << 3)) < ((uint32_t)leng << 3)) {
         ctx->count[1]++;
     }
     ctx->count[1] += ((uint32_t)leng >> 29);
 
     partleng = 64 - indx;
 
-    if (leng >= partleng)
-    {
+    if (leng >= partleng) {
         memcpy((char*)(ctx->buffer + indx),(const char*)buff, partleng);
         md5_transform(ctx->state, ctx->buffer);
 
-        for (i = partleng; i + 63 < leng; i += 64)
-        {
+        for (i = partleng; i + 63 < leng; i += 64) {
             md5_transform(ctx->state, buff + i);
         }
         indx = 0;
-    }
-    else
-    {
+    } else {
         i = 0;
     }
 
     memcpy((char*)(ctx->buffer + indx), (const char*)(buff + i), leng - i);
 }
 
-void md5_final(uint8_t digest[16], md5_ctx *ctx)
-{
+void md5_final(uint8_t digest[16], md5_ctx *ctx) {
     uint8_t bits[8];
     uint32_t indx, padleng;
 
@@ -233,12 +220,10 @@ void md5_final(uint8_t digest[16], md5_ctx *ctx)
 #define R4(v, w, x, y, z, i) z += (w ^ x ^ y) + blk(i) + 0xCA62C1D6 + rol(v, 5) ;w = rol(w, 30);
 
 /** Hash a single 512-bit block. This is the core of the algorithm. */
-void SHA1Transform(uint32_t state[5], const unsigned char buffer[64])
-{
+void SHA1Transform(uint32_t state[5], const unsigned char buffer[64]) {
     unsigned char buffer_copy[64];
     uint32_t a, b, c, d, e;
-    typedef union
-    {
+    typedef union {
         unsigned char c[64];
         uint32_t l[16];
     } CHAR64LONG16;
@@ -286,8 +271,7 @@ void SHA1Transform(uint32_t state[5], const unsigned char buffer[64])
 }
 
 /** sha1_init - Initialize new ctx */
-void sha1_init(sha1_ctx *ctx)
-{
+void sha1_init(sha1_ctx *ctx) {
     /** SHA1 initialization constants */
     ctx->state[0] = 0x67452301;
     ctx->state[1] = 0xEFCDAB89;
@@ -298,59 +282,49 @@ void sha1_init(sha1_ctx *ctx)
 }
 
 /** Run your buff through this. */
-void sha1_update(sha1_ctx *ctx, const uint8_t *buff, uint32_t leng)
-{
+void sha1_update(sha1_ctx *ctx, const uint8_t *buff, uint32_t leng) {
     uint32_t i;
     uint32_t j;
 
     j = ctx->count[0];
-    if ((ctx->count[0] += leng << 3) < j)
-    {
+    if ((ctx->count[0] += leng << 3) < j) {
         ctx->count[1]++;
     }
 
     ctx->count[1] += (leng >> 29);
     j = (j >> 3) & 63;
-    if ((j + leng) > 63)
-    {
+    if ((j + leng) > 63) {
         memcpy(&ctx->buffer[j], buff, (i = 64 - j));
         SHA1Transform(ctx->state, ctx->buffer);
-        for (; i + 63 < leng; i += 64)
-        {
+        for (; i + 63 < leng; i += 64) {
             SHA1Transform(ctx->state, &buff[i]);
         }
         j = 0;
-    }
-    else
-    {
+    } else {
         i = 0;
     }
     memcpy(&ctx->buffer[j], &buff[i], leng - i);
 }
 
 /** Add padding and return the message digest. */
-void sha1_final(uint8_t digest[20], sha1_ctx *ctx)
-{
+void sha1_final(uint8_t digest[20], sha1_ctx *ctx) {
     unsigned i;
     unsigned char finalcount[8];
     unsigned char c;
 
-    for (i = 0; i < 8; i++)
-    {
+    for (i = 0; i < 8; i++) {
         finalcount[i] = (unsigned char)((ctx->count[(i >= 4 ? 0 : 1)]
             >> ((3 - (i & 3)) * 8) ) & 255);  /** Endian independent */
     }
 
     c = 0200;
     sha1_update(ctx, &c, 1);
-    while ((ctx->count[0] & 504) != 448)
-    {
+    while ((ctx->count[0] & 504) != 448) {
         c = 0000;
         sha1_update(ctx, &c, 1);
     }
     sha1_update(ctx, finalcount, 8);  /** Should cause a SHA1Transform() */
-    for (i = 0; i < 20; i++)
-    {
+    for (i = 0; i < 20; i++) {
         digest[i] = (unsigned char)((ctx->state[i >> 2] >> ((3 - (i & 3)) * 8) ) & 255);
     }
     /** Wipe variables */
@@ -361,8 +335,7 @@ void sha1_final(uint8_t digest[20], sha1_ctx *ctx)
 //////////////////////////////////////////////////////////////////////////
 // Crc32
 /* CRC polynomial 0x04c11db7 */
-uint32_t crc_32_tab[] =
-{
+uint32_t crc_32_tab[] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
     0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
     0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
@@ -397,20 +370,16 @@ uint32_t crc_32_tab[] =
     0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-void crc32_init(crc32_ctx *ctx)
-{
+void crc32_init(crc32_ctx *ctx) {
     ctx->crc = 0xffffffff;
 }
 
-void crc32_update(crc32_ctx *ctx, const uint8_t *buff, uint32_t leng)
-{
-    while (leng--)
-    {
+void crc32_update(crc32_ctx *ctx, const uint8_t *buff, uint32_t leng) {
+    while (leng--) {
         ctx->crc = (ctx->crc >> 8) ^ crc_32_tab[(ctx->crc ^ *buff++) & 0xFF];
     }
 }
 
-void crc32_final(uint32_t *digest, crc32_ctx *ctx)
-{
+void crc32_final(uint32_t *digest, crc32_ctx *ctx) {
     *digest = ctx->crc ^ 0xffffffff;
 }

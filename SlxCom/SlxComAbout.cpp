@@ -5,14 +5,11 @@
 
 extern HINSTANCE g_hinstDll; // SlxCom.cpp
 
-static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     static BOOL s_bInLinkArea = FALSE;
 
-    switch (uMsg)
-    {
-    case WM_INITDIALOG:
-    {
+    switch (uMsg) {
+    case WM_INITDIALOG: {
         WCHAR szBaseInfo[1000];
         WCHAR szVersion[100] = L"";
 
@@ -42,40 +39,32 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
     }
 
     case WM_SYSCOMMAND:
-        if (wParam == SC_CLOSE)
-        {
+        if (wParam == SC_CLOSE) {
             EndDialog(hwndDlg, 0);
         }
         break;
 
     case WM_LBUTTONDOWN:
-        if (s_bInLinkArea)
-        {
+        if (s_bInLinkArea) {
             WCHAR szHtmFile[MAX_PATH];
 
             GetTempPathW(RTL_NUMBER_OF(szHtmFile), szHtmFile);
             PathAppendW(szHtmFile, L"\\AboutSlxCom.htm");
 
-            if (SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_ABOUT), szHtmFile))
-            {
+            if (SaveResourceToFile(L"RT_FILE", MAKEINTRESOURCEW(IDR_ABOUT), szHtmFile)) {
                 ShellExecuteW(hwndDlg, L"open", szHtmFile, NULL, NULL, SW_SHOW);
             }
         }
         break;
 
-    case WM_CTLCOLORSTATIC:
-    {
+    case WM_CTLCOLORSTATIC: {
         HDC hDc = (HDC)wParam;
         HWND hControl = (HWND)lParam;
 
-        if (GetDlgCtrlID(hControl) == IDC_LINK)
-        {
-            if (s_bInLinkArea)
-            {
+        if (GetDlgCtrlID(hControl) == IDC_LINK) {
+            if (s_bInLinkArea) {
                 SetTextColor(hDc, RGB(245, 0, 0));
-            }
-            else
-            {
+            } else {
                 SetTextColor(hDc, RGB(0, 0, 245));
             }
 
@@ -86,8 +75,7 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
         break;
     }
 
-    case WM_MOUSEMOVE:
-    {
+    case WM_MOUSEMOVE: {
         POINT pt = {LOWORD(lParam), HIWORD(lParam)};
         RECT rect;
 
@@ -96,14 +84,12 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
         BOOL bInLinkArea = PtInRect(&rect, pt);
 
-        if (!!(!!bInLinkArea ^ !!s_bInLinkArea))
-        {
+        if (!!(!!bInLinkArea ^ !!s_bInLinkArea)) {
             s_bInLinkArea = bInLinkArea;
             InvalidateRect(GetDlgItem(hwndDlg, IDC_LINK), NULL, TRUE);
         }
 
-        if (s_bInLinkArea)
-        {
+        if (s_bInLinkArea) {
             SetCursor(LoadCursorW(NULL, IDC_HAND));
         }
 
@@ -117,7 +103,6 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
     return FALSE;
 }
 
-void SlxComAbout(HWND hParentWindow)
-{
+void SlxComAbout(HWND hParentWindow) {
     DialogBoxW(g_hinstDll, MAKEINTRESOURCEW(IDD_ABOUT), hParentWindow, DlgProc);
 }

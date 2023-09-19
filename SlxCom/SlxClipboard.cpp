@@ -8,8 +8,7 @@ extern HINSTANCE g_hinstDll; // SlxCom.cpp
 static HACCEL g_hAccel = NULL;
 static HWND g_hwndDlg = NULL;
 
-static void On_WM_INITDIALOG(HWND hwndDlg)
-{
+static void On_WM_INITDIALOG(HWND hwndDlg) {
     g_hwndDlg = hwndDlg;
 
     HICON hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
@@ -20,10 +19,8 @@ static void On_WM_INITDIALOG(HWND hwndDlg)
     SetWindowTextW(hwndDlg, DLG_CAPTION);
 }
 
-static void On_WM_COMMAND(int id)
-{
-    switch (id)
-    {
+static void On_WM_COMMAND(int id) {
+    switch (id) {
     case ID_REFRESH:
         MessageBoxW(g_hwndDlg, NULL, NULL, MB_ICONEXCLAMATION);
         break;
@@ -33,10 +30,8 @@ static void On_WM_COMMAND(int id)
     }
 }
 
-static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
+static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
     case WM_INITDIALOG:
         On_WM_INITDIALOG(hwndDlg);
         return TRUE;
@@ -60,18 +55,14 @@ static INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
     return FALSE;
 }
 
-void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int nCmdShow)
-{
-    if (IsWindow(FindWindowW(L"#32770", DLG_CAPTION)))
-    {
-        if (IDYES != MessageBoxW(hwndStub, DLG_CAPTION L"已在运行，是否要打开新实例？", L"信息", MB_ICONQUESTION | MB_DEFBUTTON2))
-        {
+void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int nCmdShow) {
+    if (IsWindow(FindWindowW(L"#32770", DLG_CAPTION))) {
+        if (IDYES != MessageBoxW(hwndStub, DLG_CAPTION L"已在运行，是否要打开新实例？", L"信息", MB_ICONQUESTION | MB_DEFBUTTON2)) {
             return;
         }
     }
 
-    ACCEL accel[] =
-    {
+    ACCEL accel[] = {
         { FVIRTKEY | FCONTROL, 'S',     ID_SAVE         },
         { FVIRTKEY,            VK_F5,   ID_REFRESH      },
         { FVIRTKEY | FCONTROL, 'H',     ID_HEXMODE      },
@@ -80,29 +71,24 @@ void CALLBACK SlxClipboard(HWND hwndStub, HINSTANCE hInstance, LPSTR lpCmd, int 
 
     HACCEL hAccel = CreateAcceleratorTable(accel, RTL_NUMBER_OF(accel));
 
-    if (hAccel != NULL)
-    {
+    if (hAccel != NULL) {
         HWND hDialog = CreateDialogW(g_hinstDll, MAKEINTRESOURCEW(IDD_CLIPBOARD_DIALOG), NULL, DlgProc);
 
-        if (IsWindow(hDialog))
-        {
+        if (IsWindow(hDialog)) {
             ShowWindow(hDialog, SW_SHOW);
 
             MSG msg;
 
-            while (TRUE)
-            {
+            while (TRUE) {
                 int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-                if (nRet <= 0)
-                {
+                if (nRet <= 0) {
                     break;
                 }
 
                 TranslateAccelerator(hDialog, hAccel, &msg);
 
-                if (!IsDialogMessageW(hDialog, &msg))
-                {
+                if (!IsDialogMessageW(hDialog, &msg)) {
                     TranslateMessage(&msg);
                     DispatchMessageW(&msg);
                 }

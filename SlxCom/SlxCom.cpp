@@ -59,8 +59,7 @@ BOOL g_bElevated = FALSE;
 BOOL g_bHasWin10Bash = FALSE;
 BOOL g_bDebugMode = FALSE;                                  // 调试模式，dll文件名中含有DEBUG字样后启用
 
-DWORD CALLBACK OpenLastPathProc(LPVOID lpParam)
-{
+DWORD CALLBACK OpenLastPathProc(LPVOID lpParam) {
     WCHAR szLastPath[MAX_PATH];
     DWORD dwType = REG_NONE;
     DWORD dwSize = sizeof(szLastPath);
@@ -69,12 +68,10 @@ DWORD CALLBACK OpenLastPathProc(LPVOID lpParam)
         L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"SlxLastPath",
         &dwType, szLastPath, &dwSize);
 
-    if (dwType == REG_SZ)
-    {
+    if (dwType == REG_SZ) {
         WaitForInputIdle(GetCurrentProcess(), INFINITE);
 
-        if (PathFileExistsW(szLastPath))
-        {
+        if (PathFileExistsW(szLastPath)) {
             BrowseForFile(szLastPath);
         }
     }
@@ -82,15 +79,12 @@ DWORD CALLBACK OpenLastPathProc(LPVOID lpParam)
     return 0;
 }
 
-std::set<HWND> GetAllWnds()
-{
+std::set<HWND> GetAllWnds() {
     set<HWND> setWnds;
     HWND hWindow = FindWindowExW(NULL, NULL, NULL, NULL);
 
-    while (IsWindow(hWindow))
-    {
-        if (IsWindowVisible(hWindow))
-        {
+    while (IsWindow(hWindow)) {
+        if (IsWindowVisible(hWindow)) {
             setWnds.insert(hWindow);
         }
 
@@ -100,33 +94,28 @@ std::set<HWND> GetAllWnds()
     return setWnds;
 }
 
-HWND GetShellDllDefViewWnd()
-{
+HWND GetShellDllDefViewWnd() {
     HWND hShellDllDefView = NULL;
     vector<HWND> vectorDesktopWnds;
     HWND hWindow = FindWindowExW(NULL, NULL, L"Progman", L"Program Manager");
 
-    while (IsWindow(hWindow))
-    {
+    while (IsWindow(hWindow)) {
         vectorDesktopWnds.push_back(hWindow);
         hWindow = FindWindowExW(NULL, hWindow, L"Progman", L"Program Manager");
     }
 
     hWindow = FindWindowExW(NULL, NULL, L"WorkerW", L"");
 
-    while (IsWindow(hWindow))
-    {
+    while (IsWindow(hWindow)) {
         vectorDesktopWnds.push_back(hWindow);
         hWindow = FindWindowExW(NULL, hWindow, L"WorkerW", L"");
     }
 
-    for (vector<HWND>::const_iterator it = vectorDesktopWnds.begin(); it != vectorDesktopWnds.end(); ++it)
-    {
+    for (vector<HWND>::const_iterator it = vectorDesktopWnds.begin(); it != vectorDesktopWnds.end(); ++it) {
         HWND hWindow = *it;
         hShellDllDefView = FindWindowExW(hWindow, NULL, L"SHELLDLL_DefView", NULL);
 
-        if (IsWindow(hShellDllDefView))
-        {
+        if (IsWindow(hShellDllDefView)) {
             break;
         }
     }
@@ -134,21 +123,18 @@ HWND GetShellDllDefViewWnd()
     return hShellDllDefView;
 }
 
-HWND GetDesktopListViewWnd()
-{
+HWND GetDesktopListViewWnd() {
     HWND hShellDllDefView = GetShellDllDefViewWnd();
     HWND hSysListView32 = FindWindowExW(hShellDllDefView, NULL, L"SysListView32", L"FolderView");
 
-    if (!IsWindow(hSysListView32))
-    {
+    if (!IsWindow(hSysListView32)) {
         hSysListView32 = FindWindowExW(hShellDllDefView, NULL, L"SysListView32", NULL);
     }
 
     return hSysListView32;
 }
 
-void ModifyStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
-{
+void ModifyStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove) {
     DWORD dwStyle = GetWindowLong(hWindow, GWL_STYLE);
 
     dwStyle |= dwAdd;
@@ -157,8 +143,7 @@ void ModifyStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
     SetWindowLong(hWindow, GWL_STYLE, dwStyle);
 }
 
-void ModifyExStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
-{
+void ModifyExStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove) {
     DWORD dwStyle = GetWindowLong(hWindow, GWL_EXSTYLE);
 
     dwStyle |= dwAdd;
@@ -167,13 +152,11 @@ void ModifyExStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove)
     SetWindowLong(hWindow, GWL_EXSTYLE, dwStyle);
 }
 
-vector<POINT> GetAllIconPositions(HWND hListView)
-{
+vector<POINT> GetAllIconPositions(HWND hListView) {
     vector<POINT> vectorPositions;
     int nCount = (int)SendMessageW(hListView, LVM_GETITEMCOUNT, 0, 0);
 
-    for (int i = 0; i < nCount; ++i)
-    {
+    for (int i = 0; i < nCount; ++i) {
         POINT pt = {-1, -1};
         SendMessageW(hListView, LVM_GETITEMPOSITION, i, (LPARAM)&pt);
         vectorPositions.push_back(pt);
@@ -182,8 +165,7 @@ vector<POINT> GetAllIconPositions(HWND hListView)
     return vectorPositions;
 }
 
-vector<POINT> GetAllIconShouldBePositions(HWND hListView, int nCellSize, int nTaskBarSize, int nIconCount)
-{
+vector<POINT> GetAllIconShouldBePositions(HWND hListView, int nCellSize, int nTaskBarSize, int nIconCount) {
     RECT rect;
     vector<POINT> vectorPositions;
 
@@ -191,8 +173,7 @@ vector<POINT> GetAllIconShouldBePositions(HWND hListView, int nCellSize, int nTa
 
     int nRowCount = (rect.bottom - rect.top - nTaskBarSize) / nCellSize;
 
-    for (int i = 0; i < nIconCount; ++i)
-    {
+    for (int i = 0; i < nIconCount; ++i) {
         POINT pt;
 
         pt.x = (i / nRowCount) * nCellSize;
@@ -203,36 +184,29 @@ vector<POINT> GetAllIconShouldBePositions(HWND hListView, int nCellSize, int nTa
     return vectorPositions;
 }
 
-void SetListViewIconPositions(HWND hListView, const vector<POINT> &vectorPositions)
-{
+void SetListViewIconPositions(HWND hListView, const vector<POINT> &vectorPositions) {
     LVITEMW li = {LVIF_PARAM};
     int nCount = (int)SendMessageW(hListView, LVM_GETITEMCOUNT, 0, 0);
 
-    for (int i = 0; i < nCount; ++i)
-    {
+    for (int i = 0; i < nCount; ++i) {
         li.iItem = i;
         li.lParam = i;
 
         SendMessageW(hListView, LVM_SETITEM, 0, (LPARAM)&li);
     }
-
 }
 
-bool operator==(const POINT &pt1, const POINT &pt2)
-{
+bool operator==(const POINT &pt1, const POINT &pt2) {
     return pt1.x == pt2.x && pt1.y == pt2.y;
 }
 
-DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
-{
+DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam) {
 //     MessageBoxW(NULL, NULL, NULL, MB_ICONERROR | MB_TOPMOST);
-    while (true)
-    {
+    while (true) {
         HWND hListView = GetDesktopListViewWnd();
         HWND hSddv = GetParent(hListView);
 
-        if (!IsWindow(hListView) || !IsWindow(hSddv) || !IsWindowVisible(hSddv))
-        {
+        if (!IsWindow(hListView) || !IsWindow(hSddv) || !IsWindowVisible(hSddv)) {
             Sleep(1000);
             continue;
         }
@@ -241,8 +215,7 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
 
         GetWindowThreadProcessId(hSddv, &dwProcessId);
 
-        if (dwProcessId != GetCurrentProcessId())
-        {
+        if (dwProcessId != GetCurrentProcessId()) {
             Sleep(1000);
             continue;
         }
@@ -256,12 +229,10 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
         vector<POINT> vectorPositions = GetAllIconPositions(hListView);
         int nCellSize = 100;
 
-        if (vectorPositions.size() > 1)
-        {
+        if (vectorPositions.size() > 1) {
             nCellSize = vectorPositions.at(1).y - vectorPositions.at(0).y;
 
-            if (nCellSize < 0)
-            {
+            if (nCellSize < 0) {
                 nCellSize = -nCellSize;
             }
         }
@@ -277,19 +248,16 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
         GetWindowRect(hSddv, &rect);
         SetWindowPos(hSddv, NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top - 300, SWP_NOZORDER);
 
-        do 
-        {
+        do {
             bool bChanged = false;
             vector<POINT> vectorPositions = GetAllIconPositions(hListView);
             vector<POINT> vectorShouldBePositions = GetAllIconShouldBePositions(hListView, nCellSize, 40, (int)vectorPositions.size());
 
-            if (vectorPositions != vectorShouldBePositions)
-            {
+            if (vectorPositions != vectorShouldBePositions) {
                 SetListViewIconPositions(hListView, vectorShouldBePositions);
             }
 
-            if (IsDebuggerPresent() && MessageBoxW(NULL, NULL, NULL, MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
-            {
+            if (IsDebuggerPresent() && MessageBoxW(NULL, NULL, NULL, MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
                 DebugBreak();
             }
             Sleep(3000);
@@ -300,19 +268,16 @@ DWORD CALLBACK ReorderDesktopIcons(LPVOID lpParam)
     return 0;
 }
 
-DWORD CALLBACK CheckWin10BashProc(LPVOID)
-{
+DWORD CALLBACK CheckWin10BashProc(LPVOID) {
     WCHAR szBashPath[MAX_PATH];
 
     GetSystemDirectoryW(szBashPath, RTL_NUMBER_OF(szBashPath));
     PathAppendW(szBashPath, L"\\bash.exe");
 
-    if (PathFileExistsW(szBashPath))
-    {
+    if (PathFileExistsW(szBashPath)) {
         g_bHasWin10Bash = TRUE;
 
-        if (IsExplorer())
-        {
+        if (IsExplorer()) {
             OutputDebugStringW(L"SlxCom检测到系统中安装了ubuntu子系统");
         }
     }
@@ -320,23 +285,19 @@ DWORD CALLBACK CheckWin10BashProc(LPVOID)
     return 0;
 }
 
-BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-{
-    if (dwReason == DLL_PROCESS_ATTACH)
-    {
+BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
+    if (dwReason == DLL_PROCESS_ATTACH) {
         GetVersionEx(&g_osi);
 
         g_bVistaLater = g_osi.dwMajorVersion >= 6;
         g_bXPLater = g_bVistaLater || (g_osi.dwMajorVersion == 5 && g_osi.dwMinorVersion >= 1);
         g_bElevated = IsAdminMode();
 
-        if (g_osi.dwMajorVersion >= 10)
-        {
+        if (g_osi.dwMajorVersion >= 10) {
             CloseHandle(CreateThread(NULL, 0, CheckWin10BashProc, NULL, 0, NULL));
         }
 
-        if (IsExplorer())
-        {
+        if (IsExplorer()) {
             //CloseHandle(CreateThread(NULL, 0, ReorderDesktopIcons, NULL, 0, NULL));
 
             FILETIME ftExit, ftKernel, ftUser;
@@ -352,8 +313,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
             SystemTimeToFileTime(&st, &ftNowLocal);
             LocalFileTimeToFileTime(&ftNowLocal, &ftNow);
 
-            if ((*(unsigned __int64 *)&ftNow - *(unsigned __int64 *)&ftCreation) / 10 / 1000 / 1000 < 10)    //如果是启动时执行DllMain
-            {
+            if ((*(unsigned __int64 *)&ftNow - *(unsigned __int64 *)&ftCreation) / 10 / 1000 / 1000 < 10) {    //如果是启动时执行DllMain
                 DWORD dwLastPathTime = 0;
                 DWORD dwSize = sizeof(dwLastPathTime);
                 DWORD dwType = REG_NONE;
@@ -363,8 +323,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
                     L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer", L"SlxLastPathTime",
                     &dwType, &dwLastPathTime, &dwSize);
 
-                if (dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000)
-                {
+                if (dwType == REG_DWORD && dwTickCount > dwLastPathTime && dwTickCount - dwLastPathTime < 10000) {
                     SHDeleteValueW(HKEY_CURRENT_USER,
                         L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
                         L"SlxLastPathTime");
@@ -387,8 +346,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         g_bDebugMode = StrStrW(PathFindFileNameW(g_szSlxComDllFullPath), L"debug") != NULL ||
             StrStrW(PathFindFileNameW(g_szSlxComDllFullPath), L"dbg") != NULL ;
 
-        if (g_bDebugMode && IsExplorer())
-        {
+        if (g_bDebugMode && IsExplorer()) {
             SafeDebugMessage(L"SlxCom 启用Debug模式\n");
         }
 
@@ -415,9 +373,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);
-    }
-    else if (dwReason == DLL_PROCESS_DETACH)
-    {
+    } else if (dwReason == DLL_PROCESS_DETACH) {
         DisableCtrlCopyInSameDir_StopAll();
         return FALSE;
     }
@@ -425,21 +381,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
     return TRUE;
 }
 
-STDAPI DllCanUnloadNow(void)
-{
+STDAPI DllCanUnloadNow(void) {
     return S_FALSE;
 }
 
-STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
-{
+STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv) {
     *ppv = NULL;
 
-    if (rclsid == GUID_SLXCOM)
-    {
+    if (rclsid == GUID_SLXCOM) {
         CSlxComFactory *pFactory = new CSlxComFactory;
 
-        if (pFactory == NULL)
-        {
+        if (pFactory == NULL) {
             return E_OUTOFMEMORY;
         }
 
@@ -449,12 +401,9 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
-{
-    if (g_osi.dwMajorVersion <= 5)
-    {
-        if (bInstall)
-        {
+LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall) {
+    if (g_osi.dwMajorVersion <= 5) {
+        if (bInstall) {
             WCHAR szCommand[MAX_PATH + 100];
             WCHAR szDllPath[MAX_PATH];
 
@@ -475,9 +424,7 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
                 szCommand,
                 (lstrlenW(szCommand) + 1) * sizeof(WCHAR)
                 );
-        }
-        else
-        {
+        } else {
             return SHDeleteKeyW(HKEY_CLASSES_ROOT, L"lnkfile\\shell\\打开文件位置(&B)");
         }
     }
@@ -490,8 +437,7 @@ LRESULT ConfigBrowserLinkFilePosition(BOOL bInstall)
 // 以后，微软直接建立了三个skyDrive相关的图标覆盖标记，且都是以空格
 // 开头，为了争得先机，新的SlxCom也将以空格开头。基于兼容性考虑，会
 // 自动删除原有的99_SlxAddin标记。安装和卸载时都自动调用
-static void Ensure__old_SlxAddin__NotExists()
-{
+static void Ensure__old_SlxAddin__NotExists() {
     WCHAR szRegPath[1024];
     int nSumValue = 0;
 
@@ -506,8 +452,7 @@ static void Ensure__old_SlxAddin__NotExists()
     SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 }
 
-STDAPI DllRegisterServer(void)
-{
+STDAPI DllRegisterServer(void) {
     WCHAR szRegPath[1000];
     WCHAR szDllPath[MAX_PATH];
     int nSumValue = 0;
@@ -565,10 +510,8 @@ STDAPI DllRegisterServer(void)
 
     nSumValue += !!ConfigBrowserLinkFilePosition(TRUE);
 
-    if (nSumValue > 2)
-    {
-        if (g_osi.dwMajorVersion >= 6 && !g_bElevated)
-        {
+    if (nSumValue > 2) {
+        if (g_osi.dwMajorVersion >= 6 && !g_bElevated) {
             if (IDYES == MessageBoxW(
                 NULL,
                 L"注册未完全成功，是否尝试以管理员方式注册？\r\n\r\n"
@@ -580,8 +523,7 @@ STDAPI DllRegisterServer(void)
                 L"注册SlxCom 32位",
 #endif
                 MB_YESNOCANCEL | MB_ICONQUESTION
-                ))
-            {
+                )) {
                 WCHAR szRegSvr32[MAX_PATH];
 
                 GetSystemDirectoryW(szRegSvr32, RTL_NUMBER_OF(szRegSvr32));
@@ -592,9 +534,7 @@ STDAPI DllRegisterServer(void)
             }
 
             ExitProcess(0);
-        }
-        else
-        {
+        } else {
             return S_FALSE;
         }
     }
@@ -602,8 +542,7 @@ STDAPI DllRegisterServer(void)
     return S_OK;
 }
 
-STDAPI DllUnregisterServer(void)
-{
+STDAPI DllUnregisterServer(void) {
     WCHAR szRegPath[1000];
     int nSumValue = 0;
 
@@ -658,10 +597,8 @@ STDAPI DllUnregisterServer(void)
 
     nSumValue += !!ConfigBrowserLinkFilePosition(FALSE);
 
-    if (nSumValue != ERROR_SUCCESS)
-    {
-        if (g_osi.dwMajorVersion >= 6 && !g_bElevated)
-        {
+    if (nSumValue != ERROR_SUCCESS) {
+        if (g_osi.dwMajorVersion >= 6 && !g_bElevated) {
             if (IDYES == MessageBoxW(
                 NULL,
                 L"卸载未完全成功，是否尝试以管理员方式卸载？\r\n\r\n"
@@ -673,8 +610,7 @@ STDAPI DllUnregisterServer(void)
                 L"卸载SlxCom 32位",
 #endif
                 MB_YESNOCANCEL | MB_ICONQUESTION
-                ))
-            {
+                )) {
                 WCHAR szRegSvr32[MAX_PATH];
                 WCHAR szDllPath[MAX_PATH + 20];
 
@@ -689,9 +625,7 @@ STDAPI DllUnregisterServer(void)
             }
 
             ExitProcess(0);
-        }
-        else
-        {
+        } else {
             return S_FALSE;
         }
     }

@@ -11,10 +11,8 @@ using namespace tr1;
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 
-class CRunDlgPlus
-{
-    enum
-    {
+class CRunDlgPlus {
+    enum {
         ID_ADMIN = 0xf3,
         ID_ADMIN_BRIDGE,
     };
@@ -23,20 +21,16 @@ public:
         : m_hDlg(hDlg)
         , m_procOldDlgProc(NULL)
         , m_hRunAdminMode(NULL)
-        , m_hRunAdminModeByBridge(NULL)
-    {
-        if (IsWindow(m_hDlg))
-        {
+        , m_hRunAdminModeByBridge(NULL) {
+        if (IsWindow(m_hDlg)) {
             SetWindowLongPtr(m_hDlg, GWLP_USERDATA, (LONG_PTR)this);
             m_procOldDlgProc = (WNDPROC)SetWindowLongPtr(m_hDlg, GWLP_WNDPROC, (LONG_PTR)newRunDlgProcPublic);
             PostMessageW(m_hDlg, WM_USER, WM_USER + 1, WM_USER + 2);
         }
     }
 
-    ~CRunDlgPlus()
-    {
-        if (IsWindow(m_hDlg))
-        {
+    ~CRunDlgPlus() {
+        if (IsWindow(m_hDlg)) {
             SetWindowLongPtr(m_hDlg, GWLP_WNDPROC, (LONG_PTR)m_procOldDlgProc);
             SetWindowLongPtr(m_hDlg, GWLP_USERDATA, 0);
             m_procOldDlgProc = NULL;
@@ -44,10 +38,8 @@ public:
     }
 
 public:
-    static BOOL IsRunDlgWindow(HWND hWindow)
-    {
-        if (!IsWindow(hWindow))
-        {
+    static BOOL IsRunDlgWindow(HWND hWindow) {
+        if (!IsWindow(hWindow)) {
             return FALSE;
         }
 
@@ -55,8 +47,7 @@ public:
 
         GetWindowThreadProcessId(hWindow, &dwWindowProcessId);
 
-        if (dwWindowProcessId != GetCurrentProcessId())
-        {
+        if (dwWindowProcessId != GetCurrentProcessId()) {
             return FALSE;
         }
 
@@ -64,22 +55,19 @@ public:
 
         GetClassNameW(hWindow, szClassName, RTL_NUMBER_OF(szClassName));
 
-        if (lstrcmpW(szClassName, L"#32770") != 0)
-        {
+        if (lstrcmpW(szClassName, L"#32770") != 0) {
             return FALSE;
         }
 
         vector<HWND> vectorButtons = GetButtonsInWindow(hWindow);
 
-        if (vectorButtons.size() < 3)
-        {
+        if (vectorButtons.size() < 3) {
             return FALSE;
         }
 
         RECT rectButtons[3];
         vector<HWND>::const_reverse_iterator it = vectorButtons.rbegin();
-        for (int i = 0; i < 3; ++i, ++it)
-        {
+        for (int i = 0; i < 3; ++i, ++it) {
             GetWindowRect(*it, rectButtons + i);
         }
 
@@ -87,15 +75,13 @@ public:
             rectButtons[0].top != rectButtons[2].top ||
             rectButtons[0].bottom != rectButtons[1].bottom ||
             rectButtons[0].bottom != rectButtons[2].bottom ||
-            abs(rectButtons[0].left + rectButtons[2].left - rectButtons[1].left * 2) > 4)
-        {
+            abs(rectButtons[0].left + rectButtons[2].left - rectButtons[1].left * 2) > 4) {
             return FALSE;
         }
 
         HWND hComboBox = FindWindowExW(hWindow, NULL, L"ComboBox", NULL);
 
-        if (!IsWindow(hComboBox) || !IsWindow(FindWindowExW(hComboBox, NULL, NULL, NULL)))
-        {
+        if (!IsWindow(hComboBox) || !IsWindow(FindWindowExW(hComboBox, NULL, NULL, NULL))) {
             return FALSE;
         }
 
@@ -103,8 +89,7 @@ public:
         HWND hFirstStatic = FindWindowExW(hWindow, NULL, L"Static", NULL);
         HWND hSecondStatic = FindWindowExW(hWindow, hFirstStatic, L"Static", NULL);
 
-        if (hFirstStatic != hFirstStatic || !IsWindow(hSecondStatic))
-        {
+        if (hFirstStatic != hFirstStatic || !IsWindow(hSecondStatic)) {
             return FALSE;
         }
 
@@ -112,27 +97,21 @@ public:
     }
 
 private:
-    LRESULT newRunDlgProcPrivate(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        if (hDlg == m_hDlg)
-        {
-            switch (uMsg)
-            {
+    LRESULT newRunDlgProcPrivate(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        if (hDlg == m_hDlg) {
+            switch (uMsg) {
             case WM_USER:
-                if (wParam == WM_USER + 1 && lParam == WM_USER + 2)
-                {
+                if (wParam == WM_USER + 1 && lParam == WM_USER + 2) {
                     vector<HWND> vectorButtons = GetButtonsInWindow(m_hDlg);
 
-                    if (vectorButtons.size() >= 3)
-                    {
+                    if (vectorButtons.size() >= 3) {
                         RECT rectButtons[3];
                         RECT rectNewButton;
                         vector<HWND>::const_reverse_iterator it = vectorButtons.rbegin();
                         HWND hCommit = NULL;
                         m_hComboBox = FindWindowExW(m_hDlg, NULL, L"ComboBox", NULL);
 
-                        for (int i = 0; i < 3; ++i, ++it)
-                        {
+                        for (int i = 0; i < 3; ++i, ++it) {
                             GetWindowRect(*it, rectButtons + i);
                             hCommit = *it;
                         }
@@ -172,8 +151,7 @@ private:
                             g_hinstDll,
                             NULL);
 
-                        if (IsWindow(m_hRunAdminMode))
-                        {
+                        if (IsWindow(m_hRunAdminMode)) {
                             SendMessageW(m_hRunAdminMode, BCM_SETSHIELD, 0, TRUE);
                             SetWindowPos(m_hRunAdminMode, GetWindow(hCommit, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
                             SendMessageW(m_hRunAdminMode, WM_SETFONT, SendMessageW(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
@@ -188,8 +166,7 @@ private:
             case WM_COMMAND:
                 if ((LOWORD(wParam) == ID_ADMIN || LOWORD(wParam) == ID_ADMIN_BRIDGE) &&
                     HIWORD(wParam) == BN_CLICKED &&
-                    IsWindow(m_hComboBox))
-                {
+                    IsWindow(m_hComboBox)) {
                     WCHAR szText[8192] = L"/c start ";
                     int nLength = lstrlenW(szText);
                     SHELLEXECUTEINFOW si = {sizeof(si)};
@@ -197,8 +174,7 @@ private:
 
                     GetWindowTextW(m_hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
 
-                    if (LOWORD(wParam) == ID_ADMIN)
-                    {
+                    if (LOWORD(wParam) == ID_ADMIN) {
                         si.hwnd = m_hDlg;
                         si.lpVerb = L"runas";
                         si.lpFile = L"cmd.exe";
@@ -206,25 +182,18 @@ private:
                         si.nShow = SW_HIDE;
 
                         bSucceed = ShellExecuteExW(&si);
-                    }
-                    else if (LOWORD(wParam) == ID_ADMIN_BRIDGE)
-                    {
+                    } else if (LOWORD(wParam) == ID_ADMIN_BRIDGE) {
                         bSucceed = ElevateAndRunW(L"cmd.exe", szText, NULL, SW_HIDE) > 32;
                     }
 
-                    if (bSucceed)
-                    {
+                    if (bSucceed) {
                         PostMessageW(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
 
                         // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
-                    }
-                    else
-                    {
+                    } else {
                         SetFocus(m_hComboBox);
                     }
-                }
-                else if (HIWORD(wParam) == CBN_EDITCHANGE && m_hComboBox == (HWND)lParam)
-                {
+                } else if (HIWORD(wParam) == CBN_EDITCHANGE && m_hComboBox == (HWND)lParam) {
                     BOOL bShouldEnabled = GetWindowTextLength(m_hComboBox) > 0;
 
                     EnableWindow(m_hRunAdminMode, bShouldEnabled);
@@ -240,32 +209,25 @@ private:
         return CallWindowProc(m_procOldDlgProc, hDlg, uMsg, wParam, lParam);
     }
 
-    static LRESULT CALLBACK newRunDlgProcPublic(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
+    static LRESULT CALLBACK newRunDlgProcPublic(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         CRunDlgPlus *pRunDlgPlusObject = GetRunDlgPlusObject(hDlg);
 
-        if (pRunDlgPlusObject != NULL)
-        {
+        if (pRunDlgPlusObject != NULL) {
             return pRunDlgPlusObject->newRunDlgProcPrivate(hDlg, uMsg, wParam, lParam);
-        }
-        else
-        {
+        } else {
             return DefWindowProc(hDlg, uMsg, wParam, lParam);
         }
     }
 
-    static CRunDlgPlus *GetRunDlgPlusObject(HWND hDlg)
-    {
+    static CRunDlgPlus *GetRunDlgPlusObject(HWND hDlg) {
         return (CRunDlgPlus *)GetWindowLongPtr(hDlg, GWLP_USERDATA);
     }
 
-    static vector<HWND> GetButtonsInWindow(HWND hWindow)
-    {
+    static vector<HWND> GetButtonsInWindow(HWND hWindow) {
         vector<HWND> vectorButtons;
         HWND hButton = FindWindowExW(hWindow, NULL, L"BUTTON", NULL);
 
-        while (IsWindow(hButton))
-        {
+        while (IsWindow(hButton)) {
             vectorButtons.push_back(hButton);
             hButton = FindWindowExW(hWindow, hButton, L"BUTTON", NULL);
         }
@@ -281,39 +243,30 @@ private:
     HWND m_hComboBox;
 };
 
-static DWORD CALLBACK RunDlgPlusMonitorProc(LPVOID lpParam)
-{
+static DWORD CALLBACK RunDlgPlusMonitorProc(LPVOID lpParam) {
     HWND hLastWindow = NULL;
     DWORD dwTimerIndex = 0;
     map<HWND, shared_ptr<CRunDlgPlus> > mapManagedDlgs;
 
-    while (true)
-    {
+    while (true) {
         HWND hWindow = GetForegroundWindow();
 
-        if (hWindow != hLastWindow)
-        {
+        if (hWindow != hLastWindow) {
             hLastWindow = hWindow;
 
-            if (mapManagedDlgs.count(hWindow) == 0 && CRunDlgPlus::IsRunDlgWindow(hWindow))
-            {
+            if (mapManagedDlgs.count(hWindow) == 0 && CRunDlgPlus::IsRunDlgWindow(hWindow)) {
                 mapManagedDlgs.insert(make_pair(hWindow, new CRunDlgPlus(hWindow)));
             }
         }
 
         // 清理旧窗口
-        if (dwTimerIndex % (10 * 30) == 0)
-        {
+        if (dwTimerIndex % (10 * 30) == 0) {
             map<HWND, shared_ptr<CRunDlgPlus> >::iterator it = mapManagedDlgs.begin();
 
-            while (it != mapManagedDlgs.end())
-            {
-                if (!IsWindow(it->first))
-                {
+            while (it != mapManagedDlgs.end()) {
+                if (!IsWindow(it->first)) {
                     it = mapManagedDlgs.erase(it);
-                }
-                else
-                {
+                } else {
                     ++it;
                 }
             }
@@ -326,7 +279,6 @@ static DWORD CALLBACK RunDlgPlusMonitorProc(LPVOID lpParam)
     return 0;
 }
 
-void StartRunDlgPlusMonitor()
-{
+void StartRunDlgPlusMonitor() {
     CloseHandle(CreateThread(NULL, 0, RunDlgPlusMonitorProc, NULL, 0, NULL));
 }

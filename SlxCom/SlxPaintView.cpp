@@ -6,28 +6,24 @@ using namespace std;
 
 #define PAINTVIEWWND_CLASS      L"__slx_paintViewWnd_20131122"
 
-enum PaintMethod
-{
+enum PaintMethod {
     PM_LINE,
     PM_ECLIPSE,
     PM_RECTANGLE,
     PM_TEXT,
 };
 
-enum PaintStatus
-{
+enum PaintStatus {
     PS_LINE,
     PS_ECLIPSE,
     PS_RECTANGLE,
     PS_TEXT,
 };
 
-class CFullScreenEnhFile
-{
+class CFullScreenEnhFile {
 private:
     CFullScreenEnhFile(HDC hSrcDc, int nWidth, int nHeight, int nWidthMM, int nHeightMM)
-        : m_nWidth(nWidth), m_nHeight(nHeight)
-    {
+        : m_nWidth(nWidth), m_nHeight(nHeight) {
         RECT rect;
 
         rect.left = 0;
@@ -39,43 +35,35 @@ private:
     }
 
 public:
-    static CFullScreenEnhFile *Create(HDC hSrcDc, int nWidth, int nHeight, int nWidthMM, int nHeightMM)
-    {
+    static CFullScreenEnhFile *Create(HDC hSrcDc, int nWidth, int nHeight, int nWidthMM, int nHeightMM) {
         return new CFullScreenEnhFile(hSrcDc, nWidth, nHeight, nWidthMM, nHeightMM);
     }
 
-    ~CFullScreenEnhFile()
-    {
-        if (m_hEnhDc != NULL)
-        {
+    ~CFullScreenEnhFile() {
+        if (m_hEnhDc != NULL) {
             Save();
         }
 
         DeleteEnhMetaFile(m_hEnhFile);
     }
 
-    HDC GetDc() const
-    {
+    HDC GetDc() const {
         return m_hEnhDc;
     }
 
-    HENHMETAFILE Save()
-    {
+    HENHMETAFILE Save() {
         m_hEnhFile = CloseEnhMetaFile(m_hEnhDc);
         m_hEnhDc = NULL;
 
         return GetFile();
     }
 
-    HENHMETAFILE GetFile() const
-    {
+    HENHMETAFILE GetFile() const {
         return m_hEnhFile;
     }
 
-    BOOL Play(HDC hDestDc) const
-    {
-        if (m_hEnhFile != NULL)
-        {
+    BOOL Play(HDC hDestDc) const {
+        if (m_hEnhFile != NULL) {
             RECT rect;
 
             rect.left = 0;
@@ -96,18 +84,15 @@ private:
     int m_nHeight;
 };
 
-class CPaintViewWnd
-{
+class CPaintViewWnd {
 public:
-    static void Run(HDC hStartupDc, int nWidth, int nHeight, int nWidthMM, int nHeightMM)
-    {
+    static void Run(HDC hStartupDc, int nWidth, int nHeight, int nWidthMM, int nHeightMM) {
         CPaintViewWnd(hStartupDc, nWidth, nHeight, nWidthMM, nHeightMM);
     }
 
 private:
     CPaintViewWnd(HDC hStartupDc, int nWidth, int nHeight, int nWidthMM, int nHeightMM)
-        : m_hStartupDc(hStartupDc), m_nWidth(nWidth), m_nHeight(nHeight), m_nWidthMM(nWidthMM), m_nHeightMM(nHeightMM)
-    {
+        : m_hStartupDc(hStartupDc), m_nWidth(nWidth), m_nHeight(nHeight), m_nWidthMM(nWidthMM), m_nHeightMM(nHeightMM) {
         m_hBkDc = CreateCompatibleDC(hStartupDc);
         m_hBkBmp = CreateCompatibleBitmap(hStartupDc, nWidth, nHeight);
         m_hBkOldObj = SelectObject(m_hBkDc, (HGDIOBJ)m_hBkBmp);
@@ -119,12 +104,10 @@ private:
         m_hWindowDc = NULL;
         m_pCurrentEnhFile = NULL;
 
-
         NewEnhFile();
         HPEN hPen = CreatePen(PS_SOLID, 3, RGB(255, 255, 199));
         HGDIOBJ hOldPen = SelectObject(m_pCurrentEnhFile->GetDc(), (HGDIOBJ)hPen);
-        for (int i = 0; i < 100; i += 1)
-        {
+        for (int i = 0; i < 100; i += 1) {
             MoveToEx(m_pCurrentEnhFile->GetDc(), i * 9, 0, NULL);
             LineTo(m_pCurrentEnhFile->GetDc(), 900, 900);
         }
@@ -139,27 +122,23 @@ private:
         Show();
     }
 
-    ~CPaintViewWnd()
-    {
+    ~CPaintViewWnd() {
         SelectObject(m_hBkDc, m_hBkOldObj);
         DeleteObject(m_hBkBmp);
         DeleteDC(m_hBkDc);
 
         list<CFullScreenEnhFile *>::const_iterator it = m_listEnhs.begin();
-        for (; it != m_listEnhs.end(); ++it)
-        {
+        for (; it != m_listEnhs.end(); ++it) {
             delete *it;
         }
     }
 
-    void Show() const
-    {
+    void Show() const {
         extern HINSTANCE g_hinstDll; //SlxCom.cpp
         WNDCLASSEXW wcex = {sizeof(wcex)};
         HWND hSameWnd = FindWindowW(PAINTVIEWWND_CLASS, PAINTVIEWWND_CLASS);
 
-        if (IsWindow(hSameWnd))
-        {
+        if (IsWindow(hSameWnd)) {
             return;
         }
 
@@ -191,12 +170,10 @@ private:
 
         MSG msg;
 
-        while (TRUE)
-        {
+        while (TRUE) {
             int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-            if (nRet <= 0)
-            {
+            if (nRet <= 0) {
                 break;
             }
 
@@ -205,17 +182,13 @@ private:
         }
     }
 
-    static CPaintViewWnd *GetClass(HWND hWnd)
-    {
+    static CPaintViewWnd *GetClass(HWND hWnd) {
         return (CPaintViewWnd *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
     }
 
-    static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        switch (uMsg)
-        {
-        case WM_CREATE:
-        {
+    static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        switch (uMsg) {
+        case WM_CREATE: {
             CPaintViewWnd *pClass = (CPaintViewWnd *)((LPCREATESTRUCT)lParam)->lpCreateParams;
 
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pClass);
@@ -261,13 +234,11 @@ private:
         return DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
 
-    void WndProc_LBUTTONDOWN(WPARAM wParam, LPARAM lParam)
-    {
-        int xPos = LOWORD(lParam); 
-        int yPos = HIWORD(lParam); 
+    void WndProc_LBUTTONDOWN(WPARAM wParam, LPARAM lParam) {
+        int xPos = LOWORD(lParam);
+        int yPos = HIWORD(lParam);
 
-        switch (m_pmValue)
-        {
+        switch (m_pmValue) {
         case PM_LINE:
             m_bPainting = TRUE;
             SetCapture(m_hWindow);
@@ -281,15 +252,12 @@ private:
         }
     }
 
-    void WndProc_MOUSEMOVE(WPARAM wParam, LPARAM lParam)
-    {
+    void WndProc_MOUSEMOVE(WPARAM wParam, LPARAM lParam) {
         int xPos = LOWORD(lParam);
         int yPos = HIWORD(lParam);
 
-        if (m_bPainting)
-        {
-            switch (m_pmValue)
-            {
+        if (m_bPainting) {
+            switch (m_pmValue) {
             case PM_LINE:
                 LineTo(m_hWindowDc, xPos, yPos);
                 LineTo(m_pCurrentEnhFile->GetDc(), xPos, yPos);
@@ -301,13 +269,11 @@ private:
         }
     }
 
-    void WndProc_LBUTTONUP(WPARAM wParam, LPARAM lParam)
-    {
+    void WndProc_LBUTTONUP(WPARAM wParam, LPARAM lParam) {
         int xPos = LOWORD(lParam);
         int yPos = HIWORD(lParam);
 
-        switch (m_pmValue)
-        {
+        switch (m_pmValue) {
         case PM_LINE:
             LineTo(m_hWindowDc, xPos, yPos);
             LineTo(m_pCurrentEnhFile->GetDc(), xPos, yPos);
@@ -326,8 +292,7 @@ private:
         }
     }
 
-    void WndProc_PAINT(HWND hWnd) const
-    {
+    void WndProc_PAINT(HWND hWnd) const {
         PAINTSTRUCT ps;
         HDC hPaintDc = BeginPaint(hWnd, &ps);
 
@@ -336,19 +301,16 @@ private:
         EndPaint(hWnd, &ps);
     }
 
-    void BuildMainDc()
-    {
+    void BuildMainDc() {
         BitBlt(m_hBkDc, 0, 0, m_nWidth, m_nHeight, m_hStartupDc, 0, 0, SRCCOPY);
 
         list<CFullScreenEnhFile *>::const_iterator it = m_listEnhs.begin();
-        for (; it != m_listEnhs.end(); ++it)
-        {
+        for (; it != m_listEnhs.end(); ++it) {
             (*it)->Play(m_hBkDc);
         }
     }
 
-    void NewEnhFile()
-    {
+    void NewEnhFile() {
         m_pCurrentEnhFile = CFullScreenEnhFile::Create(m_hBkDc, m_nWidth, m_nHeight, m_nWidthMM * 100, m_nHeightMM * 100);
     }
 
@@ -373,8 +335,7 @@ private:
     CFullScreenEnhFile *m_pCurrentEnhFile;  //当前CEnhFile
 };
 
-void WINAPI SlxPaintView(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow)
-{
+void WINAPI SlxPaintView(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow) {
     HDC hMemDc = NULL;
     HBITMAP hScreenBmp = NULL;
     HGDIOBJ hOldBmp = NULL;
@@ -382,12 +343,10 @@ void WINAPI SlxPaintView(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdL
     int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
     int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    if (nScreenWidth > 0 && nScreenHeight > 0)
-    {
+    if (nScreenWidth > 0 && nScreenHeight > 0) {
         HDC hScreenDc = GetDC(NULL);
 
-        if (hScreenDc != NULL)
-        {
+        if (hScreenDc != NULL) {
             hScreenBmp = CreateCompatibleBitmap(hScreenDc, nScreenWidth, nScreenHeight);
             hMemDc = CreateCompatibleDC(hScreenDc);
             hOldBmp = SelectObject(hMemDc, (HGDIOBJ)hScreenBmp);
@@ -398,8 +357,7 @@ void WINAPI SlxPaintView(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdL
         }
     }
 
-    if (hMemDc != NULL)
-    {
+    if (hMemDc != NULL) {
         CPaintViewWnd::Run(
             hMemDc,
             nScreenWidth,
@@ -407,9 +365,7 @@ void WINAPI SlxPaintView(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdL
             GetDeviceCaps(hMemDc, HORZSIZE),
             GetDeviceCaps(hMemDc, VERTSIZE)
             );
-    }
-    else
-    {
+    } else {
         MessageBoxW(hwndStub, L"截取桌面背景失败", NULL, MB_ICONERROR | MB_SYSTEMMODAL);
     }
 

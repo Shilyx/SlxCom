@@ -8,8 +8,7 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
 #define SC_REGPATH  L"Software\\Shilyx Studio\\SlxCom\\Config"
 
-BOOL RefreshControls(HWND hwndDlg)
-{
+BOOL RefreshControls(HWND hwndDlg) {
     BOOL bEnableOverlayIcon = SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
     EnableWindow(GetDlgItem(hwndDlg, IDC_ASYNC_OVERLAYICON), bEnableOverlayIcon);
@@ -17,8 +16,7 @@ BOOL RefreshControls(HWND hwndDlg)
     return TRUE;
 }
 
-BOOL LoadOption(HWND hwndDlg)
-{
+BOOL LoadOption(HWND hwndDlg) {
     BOOL bEnableOverlayIcon = FALSE;
     BOOL bAsyncOverlayIcon = FALSE;
     DWORD dwSize;
@@ -26,24 +24,21 @@ BOOL LoadOption(HWND hwndDlg)
     dwSize = sizeof(bEnableOverlayIcon);
     SHGetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ENABLE_OVERLAYICON", NULL, &bEnableOverlayIcon, &dwSize);
 
-    if (bEnableOverlayIcon)
-    {
+    if (bEnableOverlayIcon) {
         SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
     }
 
     dwSize = sizeof(bAsyncOverlayIcon);
     SHGetValueW(HKEY_CURRENT_USER, SC_REGPATH, L"IDC_ASYNC_OVERLAYICON", NULL, &bAsyncOverlayIcon, &dwSize);
 
-    if (bAsyncOverlayIcon)
-    {
+    if (bAsyncOverlayIcon) {
         SendDlgItemMessageW(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_SETCHECK, BST_CHECKED, 0);
     }
 
     return RefreshControls(hwndDlg);
 }
 
-BOOL SaveOption(HWND hwndDlg)
-{
+BOOL SaveOption(HWND hwndDlg) {
     BOOL bEnableOverlayIcon = SendDlgItemMessageW(hwndDlg, IDC_ENABLE_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
     BOOL bAsyncOverlayIcon = SendDlgItemMessageW(hwndDlg, IDC_ASYNC_OVERLAYICON, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
@@ -53,13 +48,10 @@ BOOL SaveOption(HWND hwndDlg)
     return FALSE;
 }
 
-BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, LPARAM lParam)
-{
-    switch(uMessage)
-    {
+BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, LPARAM lParam) {
+    switch(uMessage) {
     case WM_COMMAND:
-        switch(LOWORD(wParam))
-        {
+        switch(LOWORD(wParam)) {
         case IDC_ENABLE_OVERLAYICON:
             RefreshControls(hwndDlg);
             break;
@@ -83,8 +75,7 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
         break;
 
     case WM_SYSCOMMAND:
-        if (wParam == SC_CLOSE)
-        {
+        if (wParam == SC_CLOSE) {
             EndDialog(hwndDlg, 0);
         }
 
@@ -104,7 +95,6 @@ BOOL __stdcall SlxComConfigDlgProc(HWND hwndDlg, UINT uMessage, WPARAM wParam, L
     return FALSE;
 }
 
-void WINAPI SlxComConfig(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow)
-{
+void WINAPI SlxComConfig(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow) {
     DialogBoxParamW(g_hinstDll, MAKEINTRESOURCEW(IDD_CONFIG_DIALOG), hwndStub, (DLGPROC)SlxComConfigDlgProc, NULL);
 }

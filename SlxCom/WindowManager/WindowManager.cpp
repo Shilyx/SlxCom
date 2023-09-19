@@ -11,13 +11,11 @@ extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
 #define NOTIFYWNDCLASS  L"__slx_WindowManager_20140629"
 
-enum
-{
+enum {
     TIMERID_CHECK = 12,
 };
 
-enum
-{
+enum {
     HK_HIDEWINDOW = 12,
     HK_HIDEWINDOW2,
     HK_PINWINDOW,
@@ -28,11 +26,9 @@ enum
     HK_UNGROUPWINDOW2,
 };
 
-class CWindowManager
-{
+class CWindowManager {
 public:
-    CWindowManager(HINSTANCE hInstance)
-    {
+    CWindowManager(HINSTANCE hInstance) {
         m_hInstance = hInstance;
         RegisterWindowClass(m_hInstance);
         m_hWindow = CreateWindowExW(
@@ -47,15 +43,12 @@ public:
             this
             );
 
-        if (m_hWindow)
-        {
+        if (m_hWindow) {
             map<HWND, wstring> mapLastNotifys = CNotifyClass::GetAndClearLastNotifys();
 
             map<HWND, wstring>::iterator it = mapLastNotifys.begin();
-            for (; it != mapLastNotifys.end(); ++it)
-            {
-                if (IsWindow(it->first))
-                {
+            for (; it != mapLastNotifys.end(); ++it) {
+                if (IsWindow(it->first)) {
                     AddWindow(it->first, it->second.c_str(), FALSE);
                 }
             }
@@ -74,10 +67,8 @@ public:
         }
     }
 
-    ~CWindowManager()
-    {
-        if (IsWindow(m_hWindow))
-        {
+    ~CWindowManager() {
+        if (IsWindow(m_hWindow)) {
             UnregisterHotKey(m_hWindow, HK_HIDEWINDOW);
             UnregisterHotKey(m_hWindow, HK_HIDEWINDOW2);
             UnregisterHotKey(m_hWindow, HK_PINWINDOW);
@@ -91,14 +82,12 @@ public:
         }
 
         map<UINT, CNotifyClass *>::iterator it = m_mapNotifyClassesById.begin();
-        for (; it != m_mapNotifyClassesById.end(); ++it)
-        {
+        for (; it != m_mapNotifyClassesById.end(); ++it) {
             delete it->second;
         }
     }
 
-    void Run()
-    {
+    void Run() {
         // 启动钩子进程
         WCHAR szCmd[MAX_PATH * 2 + 1024] = L"";
         WCHAR szDllPath[MAX_PATH] = L"";
@@ -111,12 +100,10 @@ public:
         // 消息循环
         MSG msg;
 
-        while (TRUE)
-        {
+        while (TRUE) {
             int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-            if (nRet <= 0)
-            {
+            if (nRet <= 0) {
                 break;
             }
 
@@ -126,20 +113,15 @@ public:
     }
 
 private:
-    UINT GetNewId() const
-    {
-        if (m_mapNotifyClassesById.empty())
-        {
+    UINT GetNewId() const {
+        if (m_mapNotifyClassesById.empty()) {
             return 1;
-        }
-        else
-        {
+        } else {
             return m_mapNotifyClassesById.rbegin()->first + 1;
         }
     }
 
-    BOOL AddWindow(HWND hWindow, LPCWSTR lpCreateTime = NULL, BOOL bShowBalloonThisTime = TRUE)
-    {
+    BOOL AddWindow(HWND hWindow, LPCWSTR lpCreateTime = NULL, BOOL bShowBalloonThisTime = TRUE) {
         UINT uId = GetNewId();
         CNotifyClass *pNotifyClass = new CNotifyClass(m_hWindow, hWindow, uId, lpCreateTime, bShowBalloonThisTime);
 
@@ -149,51 +131,41 @@ private:
         return TRUE;
     }
 
-    void DoHide()
-    {
+    void DoHide() {
         HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
 
-        if (IsWindow(hForegroundWindow))
-        {
-            if (IsWindowVisible(hForegroundWindow))
-            {
+        if (IsWindow(hForegroundWindow)) {
+            if (IsWindowVisible(hForegroundWindow)) {
                 ShowWindow(hForegroundWindow, SW_HIDE);
             }
 
-            if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
-            {
+            if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end()) {
                 AddWindow(hForegroundWindow);
             }
         }
     }
 
-    void DoAdd()
-    {
+    void DoAdd() {
         HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
 
-        if (IsWindow(hForegroundWindow))
-        {
-            if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end())
-            {
+        if (IsWindow(hForegroundWindow)) {
+            if (m_mapNotifyClassesByWindow.find(hForegroundWindow) == m_mapNotifyClassesByWindow.end()) {
                 AddWindow(hForegroundWindow);
             }
         }
     }
 
-    void DoPin()
-    {
+    void DoPin() {
         CNotifyClass::DoPin(NULL);
     }
 
-    void DoUngroup()
-    {
+    void DoUngroup() {
         HWND hForegroundWindow = CNotifyClass::GetCaptureableWindow();
         ToggleWinAppID(hForegroundWindow);
     }
 
 private:
-    static void RegisterWindowClass(HINSTANCE hInstance)
-    {
+    static void RegisterWindowClass(HINSTANCE hInstance) {
         WNDCLASSEXW wcex = {sizeof(wcex)};
         wcex.lpfnWndProc = WindowManagerWindowProc;
         wcex.lpszClassName = NOTIFYWNDCLASS;
@@ -203,62 +175,49 @@ private:
         RegisterClassExW(&wcex);
     }
 
-    static CWindowManager *GetManagerClass(HWND hWnd)
-    {
+    static CWindowManager *GetManagerClass(HWND hWnd) {
         return (CWindowManager *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
     }
 
-    static LRESULT WINAPI WindowManagerWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        switch (uMsg)
-        {
+    static LRESULT WINAPI WindowManagerWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        switch (uMsg) {
         case WM_CREATE:
             SetTimer(hWnd, TIMERID_CHECK, 1888, NULL);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)((LPCREATESTRUCT)lParam)->lpCreateParams);
             return 0;
 
         case WM_SCREEN_CONTEXT_MENU:
-            if (wParam != 0)
-            {
+            if (wParam != 0) {
                 HWND hTargetWindow = (HWND)wParam;
                 CWindowManager *pWindowManager = GetManagerClass(hWnd);
                 int x = GET_X_LPARAM(lParam);
                 int y = GET_Y_LPARAM(lParam);
 
-                if (pWindowManager->m_mapNotifyClassesByWindow.count(hTargetWindow) > 0)
-                {
+                if (pWindowManager->m_mapNotifyClassesByWindow.count(hTargetWindow) > 0) {
                     pWindowManager->m_mapNotifyClassesByWindow[hTargetWindow]->DoContextMenu(x, y);
-                }
-                else
-                {
+                } else {
                     CNotifyClass(pWindowManager->m_hWindow, hTargetWindow, 0, NULL, FALSE).DoContextMenu(x, y);
                 }
             }
             break;
 
         case WM_TIMER:
-            if (wParam == TIMERID_CHECK)
-            {
+            if (wParam == TIMERID_CHECK) {
                 CWindowManager *pManager = GetManagerClass(hWnd);
                 map<UINT, CNotifyClass *> m_mapNotifyClassesById;
                 map<HWND, CNotifyClass *>::iterator it = pManager->m_mapNotifyClassesByWindow.begin();
 
-                while (it != pManager->m_mapNotifyClassesByWindow.end())
-                {
+                while (it != pManager->m_mapNotifyClassesByWindow.end()) {
                     HWND hTargetWindow = it->first;
 
-                    if (IsWindow(hTargetWindow))
-                    {
-                        if (CNotifyClass::IsOptionHideOnMinimaze() && IsIconic(hTargetWindow))
-                        {
+                    if (IsWindow(hTargetWindow)) {
+                        if (CNotifyClass::IsOptionHideOnMinimaze() && IsIconic(hTargetWindow)) {
                             ShowWindow(hTargetWindow, SW_HIDE);
                         }
 
                         it->second->RefreshInfo();
                         ++it;
-                    }
-                    else
-                    {
+                    } else {
                         pManager->m_mapNotifyClassesById.erase(it->second->GetId());
                         delete it->second;
                         it = pManager->m_mapNotifyClassesByWindow.erase(it);
@@ -277,14 +236,12 @@ private:
             break;
 
         case WM_REMOVE_NOTIFY:
-            if (lParam != NULL)
-            {
+            if (lParam != NULL) {
                 CWindowManager *pManager = GetManagerClass(hWnd);
                 HWND hTargetWindow = (HWND)lParam;
                 map<HWND, CNotifyClass *>::iterator it = pManager->m_mapNotifyClassesByWindow.find(hTargetWindow);
 
-                if (it != pManager->m_mapNotifyClassesByWindow.end())
-                {
+                if (it != pManager->m_mapNotifyClassesByWindow.end()) {
                     delete it->second;
                     pManager->m_mapNotifyClassesById.erase((UINT)wParam);
                     pManager->m_mapNotifyClassesByWindow.erase(it);
@@ -293,8 +250,7 @@ private:
             break;
 
         case WM_HOTKEY:
-            switch (wParam)
-            {
+            switch (wParam) {
             case HK_HIDEWINDOW:
             case HK_HIDEWINDOW2:
                 GetManagerClass(hWnd)->DoHide();
@@ -321,29 +277,22 @@ private:
             break;
 
         case WM_CALLBACK:
-            if (lParam == WM_LBUTTONDBLCLK || lParam == WM_RBUTTONUP || lParam == WM_RBUTTONUP)
-            {
+            if (lParam == WM_LBUTTONDBLCLK || lParam == WM_RBUTTONUP || lParam == WM_RBUTTONUP) {
                 UINT uId = (UINT)wParam;
 
                 map<UINT, CNotifyClass *>::iterator it = GetManagerClass(hWnd)->m_mapNotifyClassesById.find(uId);
 
-                if (it != GetManagerClass(hWnd)->m_mapNotifyClassesById.end())
-                {
-                    if (lParam == WM_LBUTTONDBLCLK)
-                    {
+                if (it != GetManagerClass(hWnd)->m_mapNotifyClassesById.end()) {
+                    if (lParam == WM_LBUTTONDBLCLK) {
                         it->second->SwitchVisiable();
-                    }
-                    else
-                    {
+                    } else {
                         POINT pt;
 
                         GetCursorPos(&pt);
                         it->second->DoContextMenu(pt.x, pt.y);
                     }
                 }
-            }
-            else
-            {
+            } else {
 
             }
             break;
@@ -362,18 +311,15 @@ private:
     map<HWND, CNotifyClass *> m_mapNotifyClassesByWindow;
 };
 
-static DWORD CALLBACK WindowManagerProc(LPVOID lpParam)
-{
+static DWORD CALLBACK WindowManagerProc(LPVOID lpParam) {
     HINSTANCE hInstance = (HINSTANCE)lpParam;
     WCHAR szImagePath[MAX_PATH] = L"";
 
     GetModuleFileNameW(GetModuleHandleW(NULL), szImagePath, RTL_NUMBER_OF(szImagePath));
 
-    if (lstrcmpiW(L"rundll32.exe", PathFindFileNameW(szImagePath)) != 0)
-    {
+    if (lstrcmpiW(L"rundll32.exe", PathFindFileNameW(szImagePath)) != 0) {
         DWORD dwSleepTime = 1;
-        while (!IsWindow(GetTrayNotifyWndInProcess()))
-        {
+        while (!IsWindow(GetTrayNotifyWndInProcess())) {
             Sleep((dwSleepTime++) * 1000);
         }
     }
@@ -382,15 +328,12 @@ static DWORD CALLBACK WindowManagerProc(LPVOID lpParam)
     return 0;
 }
 
-void StartWindowManager(HINSTANCE hinstDll)
-{
-    if (!IsExplorer())
-    {
+void StartWindowManager(HINSTANCE hinstDll) {
+    if (!IsExplorer()) {
         return;
     }
 
-    if (IsWow64ProcessHelper(GetCurrentProcess()))
-    {
+    if (IsWow64ProcessHelper(GetCurrentProcess())) {
         return;
     }
 
@@ -398,8 +341,7 @@ void StartWindowManager(HINSTANCE hinstDll)
     CloseHandle(hThread);
 }
 
-void __stdcall T3(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdLine, int nCmdShow)
-{
+void __stdcall T3(HWND hwndStub, HINSTANCE hAppInstance, LPWSTR lpszCmdLine, int nCmdShow) {
     extern HINSTANCE g_hinstDll; //SlxCom.cpp
     WindowManagerProc((LPVOID)g_hinstDll);
 }

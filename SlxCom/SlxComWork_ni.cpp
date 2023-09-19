@@ -25,8 +25,7 @@ using namespace tr1;
 #define REG_QUESTION_TITLE  L"处理注册表路径不存在的问题"
 #define COMPACT_WIDTH       400
 
-enum
-{
+enum {
     WM_CALLBACK = WM_USER + 112,
     WM_HIDEICON,
     WM_SET_DEBUGBREAK_TASK,
@@ -39,8 +38,7 @@ extern BOOL g_bVistaLater;          // SlxCom.cpp
 static HHOOK g_hMsgHook = NULL;
 static BOOL g_bChangeButtonText = FALSE;
 static WCHAR g_szModulePath[MAX_PATH] = L"";
-static struct
-{
+static struct {
     LPCWSTR lpName;
     LPCWSTR lpPath;
 } g_szBuildinRegPaths[] = {
@@ -91,8 +89,7 @@ static struct
     { L"ShellIconOverlayIdentifiers", L"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers"},
 };
 
-enum
-{
+enum {
     SYS_QUIT = 1,
     SYS_HIDEICON,
     SYS_ABOUT,
@@ -111,13 +108,11 @@ enum
     SYS_MAXVALUE,
 };
 
-enum
-{
+enum {
     HK_PAINTVIEW = 112,
 };
 
-class MenuItem
-{
+class MenuItem {
 public:
     MenuItem() : m_nCmdId(0) { }
     virtual ~MenuItem() { }
@@ -135,8 +130,7 @@ protected:
 // 定位文件、目录
 // 访问网页
 // ping地址
-enum CBType
-{
+enum CBType {
     CT_NONE = 0x0,
     CT_ESCAPE_STRING = 0x1,
     CT_LOCATE_REGPATH = 0x2,
@@ -145,21 +139,16 @@ enum CBType
     CT_PING_IP_ADDRESS = 0x10,
 };
 
-class MenuItemClipboardW : public MenuItem
-{
+class MenuItemClipboardW : public MenuItem {
 public:
     MenuItemClipboardW(int nCmdId, CBType cbType, LPCWSTR lpText)
-        : m_cbType(cbType)
-    {
+        : m_cbType(cbType) {
         AssignString(m_strText, lpText);
     }
 
-    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const
-    {
-        switch (m_cbType)
-        {
-        case CT_ESCAPE_STRING:
-            {
+    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const {
+        switch (m_cbType) {
+        case CT_ESCAPE_STRING: {
                 wstring strText = m_strText;
                 Replace<wchar_t>(strText, L"\\", L"\\\\");
                 Replace<wchar_t>(strText, L"\"", L"\\\"");
@@ -193,23 +182,18 @@ public:
         }
     }
 
-    virtual wstring GetMenuItemText() const
-    {
+    virtual wstring GetMenuItemText() const {
         wstring strMenuItemText = L"任务项";
         wstring strSubText;
 
-        if (m_strText.length() > 65)
-        {
+        if (m_strText.length() > 65) {
             strSubText = m_strText.substr(0, 100);
             strSubText += L"...";
-        }
-        else
-        {
+        } else {
             strSubText = m_strText;
         }
 
-        switch (m_cbType)
-        {
+        switch (m_cbType) {
         case CT_ESCAPE_STRING:
             strMenuItemText = L"转义后复制到剪贴板\t";
             strMenuItemText += strSubText;
@@ -242,22 +226,17 @@ public:
         return strMenuItemText;
     }
 
-    static bool GetClipboardStringAndType(wstring &strText, CBType &cbType)
-    {
+    static bool GetClipboardStringAndType(wstring &strText, CBType &cbType) {
         bool bSucceed = false;
 
-        if (OpenClipboard(NULL))
-        {
-            if (IsClipboardFormatAvailable(CF_UNICODETEXT))
-            {
+        if (OpenClipboard(NULL)) {
+            if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
                 HGLOBAL hData = (HGLOBAL)GetClipboardData(CF_UNICODETEXT);
 
-                if (hData)
-                {
+                if (hData) {
                     LPCWSTR lpText = (LPCWSTR)GlobalLock((HANDLE)hData);
 
-                    if (lpText)
-                    {
+                    if (lpText) {
                         AssignString(strText, lpText);
                         GlobalUnlock(hData);
 
@@ -269,38 +248,32 @@ public:
             CloseClipboard();
         }
 
-        if (bSucceed)
-        {
+        if (bSucceed) {
             cbType = CT_NONE;
 
             if (strText.find(L'\\') != wstring::npos ||
                 strText.find(L'\"') != wstring::npos ||
-                strText.find(L'\'') != wstring::npos)
-            {
+                strText.find(L'\'') != wstring::npos) {
                 (unsigned &)cbType |= CT_ESCAPE_STRING;
             }
 
-            if (strText.substr(0, 5) == L"HKEY_")
-            {
+            if (strText.substr(0, 5) == L"HKEY_") {
                 (unsigned &)cbType |= CT_LOCATE_REGPATH;
             }
 
-            if (PathFileExistsW(strText.c_str()))
-            {
+            if (PathFileExistsW(strText.c_str())) {
                 (unsigned &)cbType |= CT_LOCATE_FILEPATH;
             }
 
             // (25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|[\w\-]+(\.[\w\-]+)*?(\.[\w\-]{1,5})
-            if (SmMatchExact(strText.c_str(), L"(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}|[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})", true))
-            {
+            if (SmMatchExact(strText.c_str(), L"(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}|[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})", true)) {
                 (unsigned &)cbType |= CT_PING_IP_ADDRESS;
                 (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
             }
             // ((https?|ftp)://)?[\w\-]+(\.[\w\-]+)*?(\.[\w\-]{1,5})(:\d{1,5})?(/[^/]+)*/?
-            else if (SmMatchExact(strText.c_str(), L"((https?|ftp)://)?[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})(:\\d{1,5})?(/[^/]+)*/?", true))
-            {
+            else if (SmMatchExact(strText.c_str(), L"((https?|ftp)://)?[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})(:\\d{1,5})?(/[^/]+)*/?", true)) {
                 (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
-            } 
+            }
         }
 
         return bSucceed;
@@ -311,33 +284,24 @@ private:
     wstring m_strText;
 };
 
-class MenuItemRegistry : public MenuItem
-{
+class MenuItemRegistry : public MenuItem {
 public:
-    MenuItemRegistry(int nCmdId, LPCWSTR lpText, LPCWSTR lpRegPath)
-    {
+    MenuItemRegistry(int nCmdId, LPCWSTR lpText, LPCWSTR lpRegPath) {
         m_nCmdId = nCmdId;
         AssignString(m_strText, lpText);
         AssignString(m_strRegPath, lpRegPath);
     }
 
-    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const
-    {
+    virtual void DoJob(HWND hWindow, HINSTANCE hInstance) const {
         LPCWSTR lpRegPath = NULL;
         HKEY hRootKey = ParseRegPath(m_strRegPath.c_str(), &lpRegPath);
 
-        if (hRootKey == NULL)
-        {
+        if (hRootKey == NULL) {
             MessageBoxFormat(hWindow, NULL, MB_ICONERROR, L"%s不是合法的注册表路径，无法自动导航。", m_strRegPath.c_str());
-        }
-        else
-        {
-            if (IsRegPathExists(hRootKey, lpRegPath))
-            {
+        } else {
+            if (IsRegPathExists(hRootKey, lpRegPath)) {
                 BrowseForRegPath(m_strRegPath.c_str());
-            }
-            else
-            {
+            } else {
                 g_bChangeButtonText = TRUE;
 
                 int nId = MessageBoxFormat(
@@ -352,39 +316,30 @@ public:
 
                 g_bChangeButtonText = FALSE;
 
-                if (nId == IDYES)       //就近
-                {
+                if (nId == IDYES) {       //就近
                     int len = (lstrlenW(lpRegPath) + 1);
                     WCHAR *szPath = (WCHAR *)malloc(len * sizeof(WCHAR));
 
-                    if (szPath != NULL)
-                    {
+                    if (szPath != NULL) {
                         lstrcpynW(szPath, lpRegPath, len);
                         PathRemoveBackslashW(szPath);
 
-                        while (!IsRegPathExists(hRootKey, szPath))
-                        {
+                        while (!IsRegPathExists(hRootKey, szPath)) {
                             PathRemoveFileSpecW(szPath);
                         }
 
                         wstring::size_type pos = m_strRegPath.find(L"\\");
 
-                        if (pos != m_strRegPath.npos)
-                        {
+                        if (pos != m_strRegPath.npos) {
                             BrowseForRegPath((m_strRegPath.substr(0, pos + 1) + szPath).c_str());
                         }
 
                         free((void *)szPath);
                     }
-                }
-                else if (nId == IDNO)   //创建
-                {
-                    if (TouchRegPath(hRootKey, lpRegPath))
-                    {
+                } else if (nId == IDNO) {   //创建
+                    if (TouchRegPath(hRootKey, lpRegPath)) {
                         BrowseForRegPath(m_strRegPath.c_str());
-                    }
-                    else
-                    {
+                    } else {
                         MessageBoxFormat(hWindow, NULL, MB_ICONERROR, L"创建%s失败。", m_strRegPath.c_str());
                     }
                 }
@@ -396,12 +351,9 @@ protected:
     wstring m_strRegPath;
 };
 
-class MenuMgr
-{
+class MenuMgr {
 public:
-    MenuMgr(HWND hWindow, HINSTANCE hInstance)
-        : m_hWindow(hWindow), m_hInstance(hInstance), m_nTimePlageIntervalMinutes(30)
-    {
+    MenuMgr(HWND hWindow, HINSTANCE hInstance) : m_hWindow(hWindow), m_hInstance(hInstance), m_nTimePlageIntervalMinutes(30) {
         m_hMenuFont = GetMenuDefaultFont();
         m_hMenuDc = CreateCompatibleDC(NULL);
         m_hOldFont = SelectObject(m_hMenuDc, (HGDIOBJ)m_hMenuFont);
@@ -411,13 +363,10 @@ public:
         // 菜单项会选中“禁用”，但实际并不禁用
         DWORD dwInterval = cfglGetLong(L"time_plate.interval.every", 30);
 
-        if (dwInterval == -1 || dwInterval == 0)
-        {
+        if (dwInterval == -1 || dwInterval == 0) {
             EnableTimePlate(FALSE);
             m_nTimePlageIntervalMinutes = 0;
-        }
-        else
-        {
+        } else {
             EnableTimePlate(TRUE);
             m_nTimePlageIntervalMinutes = dwInterval;
         }
@@ -426,25 +375,20 @@ public:
         UpdateMenu();
     }
 
-    ~MenuMgr()
-    {
+    ~MenuMgr() {
         SelectObject(m_hMenuDc, m_hOldFont);
         DeleteDC(m_hMenuDc);
 
-        if (m_hMenuFont)
-        {
+        if (m_hMenuFont) {
             DeleteObject(m_hMenuFont);
         }
     }
 
-    void TrackAndDealPopupMenu(int x, int y)
-    {
-        if (g_bDebugMode)
-        {
+    void TrackAndDealPopupMenu(int x, int y) {
+        if (g_bDebugMode) {
             DeleteMenu(m_hMenu, SYS_DEBUGBREAK, MF_BYCOMMAND);
 
-            if (IsDebuggerPresent())
-            {
+            if (IsDebuggerPresent()) {
                 AppendMenuW(m_hMenu, MF_STRING, SYS_DEBUGBREAK, L"5秒后DebugBreak");
             }
         }
@@ -459,13 +403,11 @@ public:
             NULL
             );
 
-        if (nCmd == 0)
-        {
+        if (nCmd == 0) {
             return;
         }
 
-        switch (nCmd)
-        {
+        switch (nCmd) {
         case SYS_QUIT:
             PostMessageW(m_hWindow, WM_SYSCOMMAND, SC_CLOSE, 0);
             break;
@@ -484,20 +426,16 @@ public:
                 L"要重启Explorer（操作系统外壳程序）吗？",
                 L"请确认",
                 MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3 | MB_SYSTEMMODAL
-                ))
-            {
+                )) {
                 ResetExplorer();
             }
             break;
 
         case SYS_DISABLECTRLCOPYINSAMEDIR:
-            if (DisableCtrlCopyInSameDir_IsRunning())
-            {
+            if (DisableCtrlCopyInSameDir_IsRunning()) {
                 DisableCtrlCopyInSameDir_Op(DCCO_OFF);
                 cfglSetBool(L"DisableCtrlCopyInSameDir", FALSE);
-            }
-            else
-            {
+            } else {
                 DisableCtrlCopyInSameDir_Op(DCCO_ON);
                 cfglSetBool(L"DisableCtrlCopyInSameDir", TRUE);
             }
@@ -578,21 +516,18 @@ public:
             break;
 
         default:
-            if (m_mapMenuItems.find(nCmd) != m_mapMenuItems.end())
-            {
+            if (m_mapMenuItems.find(nCmd) != m_mapMenuItems.end()) {
                 m_mapMenuItems[nCmd]->DoJob(m_hWindow, m_hInstance);
             }
             break;
         }
     }
 
-    void UpdateMenu()
-    {
+    void UpdateMenu() {
         m_setMenuItemsRegistry.clear();
         m_mapMenuItems.clear();
 
-        if (m_hMenu != NULL)
-        {
+        if (m_hMenu != NULL) {
             DestroyMenu(m_hMenu);
         }
 
@@ -618,8 +553,7 @@ public:
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(m_hMenu, MF_STRING, SYS_RESETEXPLORER, L"重新启动Explorer(&E)");
-        if (g_bVistaLater)
-        {
+        if (g_bVistaLater) {
             AppendMenuW(m_hMenu, MF_STRING, SYS_DISABLECTRLCOPYINSAMEDIR, L"禁用同目录内按住Ctrl键制作副本(&C)");
             CheckMenuItemHelper(m_hMenu, SYS_DISABLECTRLCOPYINSAMEDIR, 0, DisableCtrlCopyInSameDir_IsRunning());
         }
@@ -628,9 +562,7 @@ public:
         AppendMenuW(m_hMenu, MF_STRING, SYS_UPDATEMENU, L"刷新菜单内容(&U)");
         AppendMenuW(m_hMenu, MF_STRING, SYS_HIDEICON, L"不显示托盘图标(&Q)");
 
-
-        switch (m_nTimePlageIntervalMinutes)
-        {
+        switch (m_nTimePlageIntervalMinutes) {
         default:
         case 0:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_DISABLE, MF_BYCOMMAND);
@@ -660,13 +592,11 @@ public:
 
 private:
     //获取指定注册表路径下的所有子项列表，子项列表中不含路径部分
-    static set<wstring> GetRegAllSubPath(HKEY hRootKey, LPCWSTR lpRegPath)
-    {
+    static set<wstring> GetRegAllSubPath(HKEY hRootKey, LPCWSTR lpRegPath) {
         set<wstring> result;
         HKEY hKey = NULL;
 
-        if (ERROR_SUCCESS == RegOpenKeyExW(hRootKey, lpRegPath, 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE, &hKey))
-        {
+        if (ERROR_SUCCESS == RegOpenKeyExW(hRootKey, lpRegPath, 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE, &hKey)) {
             DWORD dwSubKeyCount = 0;
             DWORD dwMaxSubKeyLen = 0;
 
@@ -683,28 +613,23 @@ private:
                 NULL,
                 NULL,
                 NULL
-                ))
-            {
+                )) {
                 dwMaxSubKeyLen += 1;
                 dwMaxSubKeyLen *= 2;
 
                 WCHAR *szSubKey = (WCHAR *)malloc(dwMaxSubKeyLen);
 
-                if (szSubKey != NULL)
-                {
-                    for (DWORD dwIndex = 0; dwIndex < dwSubKeyCount; dwIndex += 1)
-                    {
+                if (szSubKey != NULL) {
+                    for (DWORD dwIndex = 0; dwIndex < dwSubKeyCount; dwIndex += 1) {
                         DWORD dwSubKeySize = dwMaxSubKeyLen;
 
-                        if (ERROR_SUCCESS == RegEnumKeyExW(hKey, dwIndex, szSubKey, &dwSubKeySize, NULL, NULL, NULL, NULL))
-                        {
+                        if (ERROR_SUCCESS == RegEnumKeyExW(hKey, dwIndex, szSubKey, &dwSubKeySize, NULL, NULL, NULL, NULL)) {
                             result.insert(szSubKey);
                         }
                     }
                 }
 
-                if (szSubKey != NULL)
-                {
+                if (szSubKey != NULL) {
                     free((void *)szSubKey);
                 }
             }
@@ -716,13 +641,11 @@ private:
     }
 
     //获取指定注册表路径下的所有字符串键值对应表，只关注REG_SZ类型
-    static map<wstring, wstring> GetRegAllSzValuePairs(HKEY hRootKey, LPCWSTR lpRegPath)
-    {
+    static map<wstring, wstring> GetRegAllSzValuePairs(HKEY hRootKey, LPCWSTR lpRegPath) {
         map<wstring, wstring> result;
         HKEY hKey = NULL;
 
-        if (ERROR_SUCCESS == RegOpenKeyExW(hRootKey, lpRegPath, 0, KEY_QUERY_VALUE, &hKey))
-        {
+        if (ERROR_SUCCESS == RegOpenKeyExW(hRootKey, lpRegPath, 0, KEY_QUERY_VALUE, &hKey)) {
             DWORD dwValueCount = 0;
             DWORD dwMaxValueNameLen = 0;
             DWORD dwMaxDataLen = 0;
@@ -740,8 +663,7 @@ private:
                 &dwMaxDataLen,
                 NULL,
                 NULL
-                ))
-            {
+                )) {
                 dwMaxValueNameLen += 1;
                 dwMaxValueNameLen *= 2;
                 dwMaxDataLen += 1;
@@ -749,10 +671,8 @@ private:
                 WCHAR *szValueName = (WCHAR *)malloc(dwMaxValueNameLen);
                 unsigned char *szData = (unsigned char *)malloc(dwMaxDataLen);
 
-                if (szValueName != NULL && szData != NULL)
-                {
-                    for (DWORD dwIndex = 0; dwIndex < dwValueCount; dwIndex += 1)
-                    {
+                if (szValueName != NULL && szData != NULL) {
+                    for (DWORD dwIndex = 0; dwIndex < dwValueCount; dwIndex += 1) {
                         DWORD dwRegType = REG_NONE;
                         DWORD dwValueSize = dwMaxValueNameLen;
                         DWORD dwDataSize = dwMaxDataLen;
@@ -766,23 +686,19 @@ private:
                             &dwRegType,
                             szData,
                             &dwDataSize
-                            ))
-                        {
-                            if (dwRegType == REG_SZ)
-                            {
+                            )) {
+                            if (dwRegType == REG_SZ) {
                                 result[szValueName] = (LPCWSTR)szData;
                             }
                         }
                     }
                 }
 
-                if (szValueName != NULL)
-                {
+                if (szValueName != NULL) {
                     free((void *)szValueName);
                 }
 
-                if (szData != NULL)
-                {
+                if (szData != NULL) {
                     free((void *)szData);
                 }
             }
@@ -796,17 +712,14 @@ private:
     //将指定注册表路径映射为菜单，菜单项ID使用pMenuId指向的值递增使用
     //bEraseHead如被指定，则删除值中的最前的一个路径段
     //bHaveChildPath如被指定，则处理子项
-    HMENU RegistryPathToMenu(UINT *pMenuId, HKEY hRootKey, LPCWSTR lpRegPath, BOOL bEraseHead, BOOL bHaveChildPath)
-    {
+    HMENU RegistryPathToMenu(UINT *pMenuId, HKEY hRootKey, LPCWSTR lpRegPath, BOOL bEraseHead, BOOL bHaveChildPath) {
         HMENU hPopupMenu = CreatePopupMenu();
 
         //处理子项
-        if (bHaveChildPath)
-        {
+        if (bHaveChildPath) {
             set<wstring> setSubPaths = GetRegAllSubPath(hRootKey, lpRegPath);
             set<wstring>::iterator itSubPath = setSubPaths.begin();
-            for (; itSubPath != setSubPaths.end(); ++itSubPath)
-            {
+            for (; itSubPath != setSubPaths.end(); ++itSubPath) {
                 wstring strSubPath = lpRegPath;
 
                 strSubPath += L"\\";
@@ -825,21 +738,17 @@ private:
         map<wstring, wstring>::const_iterator itValue;
         map<wstring, wstring> mapMenu = GetRegAllSzValuePairs(hRootKey, lpRegPath);
 
-        for (itValue = mapMenu.begin(); itValue != mapMenu.end(); ++itValue)
-        {
+        for (itValue = mapMenu.begin(); itValue != mapMenu.end(); ++itValue) {
             wstring strRegPath = itValue->second;
 
-            if (bEraseHead)
-            {
+            if (bEraseHead) {
                 wstring::size_type pos = strRegPath.find(L'\\');
-                if (pos != strRegPath.npos)
-                {
+                if (pos != strRegPath.npos) {
                     strRegPath = strRegPath.substr(pos + 1);
                 }
             }
 
-            if (!itValue->first.empty())        //不处理注册表默认值
-            {
+            if (!itValue->first.empty()) {        //不处理注册表默认值
                 WCHAR szShortRegPath[1000];
 
                 lstrcpynW(szShortRegPath, itValue->second.c_str(), RTL_NUMBER_OF(szShortRegPath));
@@ -854,16 +763,14 @@ private:
         return hPopupMenu;
     }
 
-    HMENU InitRegPathSubMenu(UINT *pMenuId)
-    {
+    HMENU InitRegPathSubMenu(UINT *pMenuId) {
         LPCWSTR lpSysRegPath = L"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\Favorites";
         LPCWSTR lpSlxRegPath = L"Software\\Shilyx Studio\\SlxCom\\RegPath";
         LPCWSTR lpSlxRegPath2 = L"HKEY_CURRENT_USER\\Software\\Shilyx Studio\\SlxCom\\RegPath";
         HMENU hRetMenu = CreatePopupMenu();
 
         HMENU hBuildinMenu = CreatePopupMenu();
-        for (int index = 0; index < RTL_NUMBER_OF(g_szBuildinRegPaths); index += 1)
-        {
+        for (int index = 0; index < RTL_NUMBER_OF(g_szBuildinRegPaths); index += 1) {
             WCHAR szShortRegPath[1000];
 
             lstrcpynW(szShortRegPath, g_szBuildinRegPaths[index].lpPath, RTL_NUMBER_OF(szShortRegPath));
@@ -874,8 +781,7 @@ private:
             *pMenuId += 1;
         }
 
-        if (GetMenuItemCount(hBuildinMenu) > 0)
-        {
+        if (GetMenuItemCount(hBuildinMenu) > 0) {
             AppendMenuW(hRetMenu, MF_POPUP, (UINT)(UINT_PTR)hBuildinMenu, L"注册表常用位置(&B)");
         }
 
@@ -907,33 +813,28 @@ private:
     HDC m_hMenuDc;
 };
 
-static DWORD CALLBACK DebugBreakProc(LPVOID)
-{
-    if (IsDebuggerPresent())
-    {
+static DWORD CALLBACK DebugBreakProc(LPVOID) {
+    if (IsDebuggerPresent()) {
         DebugBreak();
     }
 
     return 0;
 }
 
-static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     static NOTIFYICONDATAW nid = {sizeof(nid)};
     static int nIconShowIndex = INT_MAX;
     static HICON arrIcons[ICON_COUNT] = {NULL};
     static MenuMgr *pMenuMgr = NULL;
     static int nDebugBreakIndex = -1;
 
-    if (uMsg == WM_CREATE)
-    {
+    if (uMsg == WM_CREATE) {
         LPCREATESTRUCT lpCs = (LPCREATESTRUCT)lParam;
 
         //load icons
         int nFirstIconId = IDI_BIRD_0;
 
-        for (int i = 0; i < ICON_COUNT; i += 1)
-        {
+        for (int i = 0; i < ICON_COUNT; i += 1) {
             arrIcons[i] = LoadIconW(lpCs->hInstance, MAKEINTRESOURCEW(nFirstIconId + i));
         }
 
@@ -950,9 +851,8 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
         Shell_NotifyIconW(NIM_ADD, &nid);
 
-        // 
-        if (cfglGetBool(L"DisableCtrlCopyInSameDir"))
-        {
+        //
+        if (cfglGetBool(L"DisableCtrlCopyInSameDir")) {
             DisableCtrlCopyInSameDir_Op(DCCO_ON);
         }
 
@@ -967,47 +867,33 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         pMenuMgr = new MenuMgr(hWnd, lpCs->hInstance);
 
         //
-        if (!RegisterHotKey(hWnd, HK_PAINTVIEW, MOD_ALT | MOD_SHIFT, L'P'))
-        {
+        if (!RegisterHotKey(hWnd, HK_PAINTVIEW, MOD_ALT | MOD_SHIFT, L'P')) {
             SafeDebugMessage(L"SlxCom 桌面画板快捷键注册失败%lu。\r\n", GetLastError());
         }
 
         return 0;
-    }
-    else if (uMsg == WM_TIMER)
-    {
-        if (TIMER_ICON == wParam)
-        {
-            if (nIconShowIndex < RTL_NUMBER_OF(arrIcons))
-            {
+    } else if (uMsg == WM_TIMER) {
+        if (TIMER_ICON == wParam) {
+            if (nIconShowIndex < RTL_NUMBER_OF(arrIcons)) {
                 nid.hIcon = arrIcons[nIconShowIndex];
                 nid.uFlags = NIF_ICON;
 
                 Shell_NotifyIconW(NIM_MODIFY, &nid);
                 nIconShowIndex += 1;
             }
-        }
-        else if (TIMER_MENU == wParam)
-        {
+        } else if (TIMER_MENU == wParam) {
             pMenuMgr->UpdateMenu();
-        }
-        else if (TIMER_DEBUGBREAK == wParam)
-        {
-            if (nDebugBreakIndex > 0)
-            {
+        } else if (TIMER_DEBUGBREAK == wParam) {
+            if (nDebugBreakIndex > 0) {
                 --nDebugBreakIndex;
 
-                if (nDebugBreakIndex == 0)
-                {
+                if (nDebugBreakIndex == 0) {
                     CloseHandle(CreateThread(NULL, 0, DebugBreakProc, NULL, 0, NULL));
                 }
             }
         }
-    }
-    else if (uMsg == WM_HOTKEY)
-    {
-        if (wParam == HK_PAINTVIEW)
-        {
+    } else if (uMsg == WM_HOTKEY) {
+        if (wParam == HK_PAINTVIEW) {
             WCHAR szCommand[MAX_PATH * 2];
 
             wnsprintfW(
@@ -1021,53 +907,38 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
             return 0;
         }
-    }
-    else if (uMsg == WM_CLOSE)
-    {
+    } else if (uMsg == WM_CLOSE) {
         UnregisterHotKey(hWnd, HK_PAINTVIEW);
         Shell_NotifyIconW(NIM_DELETE, &nid);
         DestroyWindow(hWnd);
-    }
-    else if (uMsg == WM_DESTROY)
-    {
-        if (pMenuMgr != NULL)
-        {
+    } else if (uMsg == WM_DESTROY) {
+        if (pMenuMgr != NULL) {
             delete pMenuMgr;
             pMenuMgr = NULL;
         }
 
         PostQuitMessage(0);
-    }
-    else if (uMsg == WM_LBUTTONDOWN)
-    {
+    } else if (uMsg == WM_LBUTTONDOWN) {
         nIconShowIndex = 0;
-    }
-    else if (uMsg == WM_CALLBACK)
-    {
-        if (lParam == WM_RBUTTONUP)
-        {
+    } else if (uMsg == WM_CALLBACK) {
+        if (lParam == WM_RBUTTONUP) {
             POINT pt;
 
             GetCursorPos(&pt);
             SetForegroundWindow(hWnd);
             pMenuMgr->TrackAndDealPopupMenu(pt.x, pt.y);
-        }
-        else if (lParam == WM_LBUTTONUP)
-        {
+        } else if (lParam == WM_LBUTTONUP) {
             map<int, shared_ptr<MenuItem>> mapItems;
             int nMenuId = 100;
             wstring strCbText;
             CBType cbType = CT_NONE;
 
-            if (MenuItemClipboardW::GetClipboardStringAndType(strCbText, cbType))
-            {
+            if (MenuItemClipboardW::GetClipboardStringAndType(strCbText, cbType)) {
                 unsigned nType = (unsigned)cbType;
                 unsigned nCurrentType = 1;
 
-                for (int i = 0; i < 32; ++i)
-                {
-                    if (nCurrentType & nType)
-                    {
+                for (int i = 0; i < 32; ++i) {
+                    if (nCurrentType & nType) {
                         mapItems[nMenuId] = shared_ptr<MenuItem>(new MenuItemClipboardW(nMenuId, (CBType)nCurrentType, strCbText.c_str()));
                         ++nMenuId;
                     }
@@ -1076,16 +947,14 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
                 }
             }
 
-            if (!mapItems.empty())
-            {
+            if (!mapItems.empty()) {
                 POINT pt;
                 HMENU hMenu = CreatePopupMenu();
 
                 GetCursorPos(&pt);
                 SetForegroundWindow(hWnd);
 
-                for (map<int, shared_ptr<MenuItem>>::const_iterator it = mapItems.begin(); it != mapItems.end(); ++it)
-                {
+                for (map<int, shared_ptr<MenuItem>>::const_iterator it = mapItems.begin(); it != mapItems.end(); ++it) {
                     AppendMenuW(hMenu, MF_STRING, it->first, it->second->GetMenuItemText().c_str());
                 }
 
@@ -1099,8 +968,7 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
                     NULL
                     );
 
-                if (mapItems.count(nCmd))
-                {
+                if (mapItems.count(nCmd)) {
                     mapItems[nCmd]->DoJob(hWnd, NULL);
                 }
 
@@ -1108,31 +976,23 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             }
         }
 
-        if (nIconShowIndex >= RTL_NUMBER_OF(arrIcons))
-        {
+        if (nIconShowIndex >= RTL_NUMBER_OF(arrIcons)) {
             nIconShowIndex = 0;
         }
-    }
-    else if (uMsg == WM_HIDEICON)
-    {
+    } else if (uMsg == WM_HIDEICON) {
         Shell_NotifyIconW(NIM_DELETE, &nid);
-    }
-    else if (uMsg == WM_SET_DEBUGBREAK_TASK)
-    {
+    } else if (uMsg == WM_SET_DEBUGBREAK_TASK) {
         nDebugBreakIndex = 5;
     }
 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-    if (nCode >= 0 && g_bChangeButtonText)
-    {
+static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode >= 0 && g_bChangeButtonText) {
         LPCWPRETSTRUCT lpCrs = (LPCWPRETSTRUCT)lParam;
 
-        if (lpCrs != NULL && lpCrs->message == WM_INITDIALOG)
-        {
+        if (lpCrs != NULL && lpCrs->message == WM_INITDIALOG) {
             WCHAR szWindowText[100] = L"";
             HWND hYes = GetDlgItem(lpCrs->hwnd, IDYES);
             HWND hNo = GetDlgItem(lpCrs->hwnd, IDNO);
@@ -1140,8 +1000,7 @@ static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
 
             GetWindowTextW(lpCrs->hwnd, szWindowText, RTL_NUMBER_OF(szWindowText));
 
-            if (IsWindow(hYes) && IsWindow(hNo) && IsWindow(hCancel) && lstrcmpiW(szWindowText, REG_QUESTION_TITLE) == 0)
-            {
+            if (IsWindow(hYes) && IsWindow(hNo) && IsWindow(hCancel) && lstrcmpiW(szWindowText, REG_QUESTION_TITLE) == 0) {
                 SetDlgItemTextW(lpCrs->hwnd, IDYES, L"就近(&N)");
                 SetDlgItemTextW(lpCrs->hwnd, IDNO, L"创建(&C)");
                 SetDlgItemTextW(lpCrs->hwnd, IDCANCEL, L"取消(&Q)");
@@ -1152,10 +1011,8 @@ static LRESULT CALLBACK CallWndRetProc(int nCode, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(g_hMsgHook, nCode, wParam, lParam);
 }
 
-static DWORD CALLBACK NotifyIconManagerProc(LPVOID lpParam)
-{
-    if (g_hMsgHook != NULL)
-    {
+static DWORD CALLBACK NotifyIconManagerProc(LPVOID lpParam) {
+    if (g_hMsgHook != NULL) {
         return 0;
     }
 
@@ -1163,11 +1020,9 @@ static DWORD CALLBACK NotifyIconManagerProc(LPVOID lpParam)
 
     GetModuleFileNameW(GetModuleHandleW(NULL), szImagePath, RTL_NUMBER_OF(szImagePath));
 
-    if (lstrcmpiW(L"rundll32.exe", PathFindFileNameW(szImagePath)) != 0)
-    {
+    if (lstrcmpiW(L"rundll32.exe", PathFindFileNameW(szImagePath)) != 0) {
         DWORD dwSleepTime = 1;
-        while (!IsWindow(GetTrayNotifyWndInProcess()))
-        {
+        while (!IsWindow(GetTrayNotifyWndInProcess())) {
             Sleep((dwSleepTime++) * 1000);
         }
     }
@@ -1202,12 +1057,10 @@ static DWORD CALLBACK NotifyIconManagerProc(LPVOID lpParam)
 
     MSG msg;
 
-    while (TRUE)
-    {
+    while (TRUE) {
         int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-        if (nRet <= 0)
-        {
+        if (nRet <= 0) {
             break;
         }
 
@@ -1221,15 +1074,12 @@ static DWORD CALLBACK NotifyIconManagerProc(LPVOID lpParam)
     return 0;
 }
 
-void StartNotifyIconManager(HINSTANCE hinstDll)
-{
-    if (!IsExplorer())
-    {
+void StartNotifyIconManager(HINSTANCE hinstDll) {
+    if (!IsExplorer()) {
         return;
     }
 
-    if (IsWow64ProcessHelper(GetCurrentProcess()))
-    {
+    if (IsWow64ProcessHelper(GetCurrentProcess())) {
         return;
     }
 

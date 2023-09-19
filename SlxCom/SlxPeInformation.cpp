@@ -11,8 +11,7 @@
 using namespace std;
 using namespace tr1;
 
-class PeInformationAnalyzer
-{
+class PeInformationAnalyzer {
 #define HALT throw __LINE__
 public:
     PeInformationAnalyzer(const wchar_t *lpPeFilePath)
@@ -20,34 +19,28 @@ public:
         , m_lpBuffer(NULL)
         , m_dwBufferSize(0)
         , m_nNumberOfSections(0)
-        , m_pImageSectionHeader(NULL)
-    {
+        , m_pImageSectionHeader(NULL) {
         Analyze();
     }
 
-    shared_ptr<GeneralTreeItemW> GetResult() const
-    {
+    shared_ptr<GeneralTreeItemW> GetResult() const {
         return m_pResult;
     }
 
 private:
-    wstring GetByte2String(WORD nValue) const
-    {
+    wstring GetByte2String(WORD nValue) const {
         return fmtW(L"0x%04x", nValue);
     }
 
-    wstring GetByte4String(DWORD nValue) const
-    {
+    wstring GetByte4String(DWORD nValue) const {
         return fmtW(L"0x%08x", nValue);
     }
 
-    wstring GetByte8String(ULONGLONG nValue) const
-    {
+    wstring GetByte8String(ULONGLONG nValue) const {
         return fmtW(L"0x%016x", nValue);
     }
 
-    wstring GetTimeStampString(DWORD dwTimeStamp) const
-    {
+    wstring GetTimeStampString(DWORD dwTimeStamp) const {
         SYSTEMTIME stTime;
 
         Time1970ToLocalTime(dwTimeStamp, &stTime);
@@ -63,24 +56,18 @@ private:
             dwTimeStamp);
     }
 
-    wstring GetAnsiString(const char *lpString) const
-    {
+    wstring GetAnsiString(const char *lpString) const {
         wchar_t szNewString[8192];
 
-        if (lpString != NULL)
-        {
-            for (int i = 0; i < RTL_NUMBER_OF(szNewString); ++i)
-            {
+        if (lpString != NULL) {
+            for (int i = 0; i < RTL_NUMBER_OF(szNewString); ++i) {
                 szNewString[i] = lpString[i];
 
-                if (szNewString[i] == L'\0')
-                {
+                if (szNewString[i] == L'\0') {
                     break;
                 }
             }
-        }
-        else
-        {
+        } else {
             szNewString[0] = L'\0';
         }
 
@@ -89,18 +76,14 @@ private:
         return szNewString;
     }
 
-    DWORD RvaToVa(DWORD dwRva) const
-    {
-        if (m_pImageSectionHeader == NULL || m_nNumberOfSections == 0)
-        {
+    DWORD RvaToVa(DWORD dwRva) const {
+        if (m_pImageSectionHeader == NULL || m_nNumberOfSections == 0) {
             return 0;
         }
 
-        for (int i = 0; i < m_nNumberOfSections; ++i)
-        {
+        for (int i = 0; i < m_nNumberOfSections; ++i) {
             if (dwRva >= m_pImageSectionHeader[i].VirtualAddress &&
-                dwRva <= m_pImageSectionHeader[i].VirtualAddress + m_pImageSectionHeader[i].SizeOfRawData)
-            {
+                dwRva <= m_pImageSectionHeader[i].VirtualAddress + m_pImageSectionHeader[i].SizeOfRawData) {
                 return (dwRva - m_pImageSectionHeader[i].VirtualAddress) + m_pImageSectionHeader[i].PointerToRawData;
             }
         }
@@ -108,12 +91,10 @@ private:
         return 0;
     }
 
-    shared_ptr<GeneralTreeItemW> AnalyzeDosHeader(PIMAGE_DOS_HEADER pDosHeader)
-    {
+    shared_ptr<GeneralTreeItemW> AnalyzeDosHeader(PIMAGE_DOS_HEADER pDosHeader) {
         shared_ptr<GeneralTreeItemW> pDosInfo(new GeneralTreeItemW(L"DOS头部"));
 
-        if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
-        {
+        if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
             HALT;
         }
 
@@ -136,10 +117,8 @@ private:
         return pDosInfo;
     }
 
-    shared_ptr<GeneralTreeItemW> AnalyzeNtHeaderWithoutOptHeader(PIMAGE_NT_HEADERS32 pNtHeader)
-    {
-        struct
-        {
+    shared_ptr<GeneralTreeItemW> AnalyzeNtHeaderWithoutOptHeader(PIMAGE_NT_HEADERS32 pNtHeader) {
+        struct {
             WORD nMachine;
             LPCWSTR lpMachineName;
         } machineNames[] = {
@@ -170,8 +149,7 @@ private:
         char szSignature[128] = "";
         wstring strMachineName;
 
-        if (pNtHeader->Signature != IMAGE_NT_SIGNATURE)
-        {
+        if (pNtHeader->Signature != IMAGE_NT_SIGNATURE) {
             HALT;
         }
 
@@ -179,10 +157,8 @@ private:
 
         *(DWORD *)szSignature = pNtHeader->Signature;
 
-        for (int i = 0; i < RTL_NUMBER_OF(machineNames); ++i)
-        {
-            if (machineNames[i].nMachine == pFileHeader->Machine)
-            {
+        for (int i = 0; i < RTL_NUMBER_OF(machineNames); ++i) {
+            if (machineNames[i].nMachine == pFileHeader->Machine) {
                 strMachineName = machineNames[i].lpMachineName;
                 break;
             }
@@ -222,10 +198,8 @@ private:
         pNtInfo->AppendItem(pCharacteristicsInfo);
         pCharacteristicsInfo->SetValue(GetByte2String(pFileHeader->Characteristics));
 
-        for (int i = 0; i < RTL_NUMBER_OF(lpCharacteristicsName); ++i)
-        {
-            if (pFileHeader->Characteristics & (wBit << i))
-            {
+        for (int i = 0; i < RTL_NUMBER_OF(lpCharacteristicsName); ++i) {
+            if (pFileHeader->Characteristics & (wBit << i)) {
                 pCharacteristicsInfo->AppendItem(L"具体特性")->SetValue(fmtW(L"(0x%04x)%ls", wBit << i, lpCharacteristicsName[i]));
             }
         }
@@ -233,8 +207,7 @@ private:
         return pNtInfo;
     }
 
-    shared_ptr<GeneralTreeItemW> AnalyzeOptHeader(PIMAGE_OPTIONAL_HEADER32 pOptHeader32, BOOL bIsX64)
-    {
+    shared_ptr<GeneralTreeItemW> AnalyzeOptHeader(PIMAGE_OPTIONAL_HEADER32 pOptHeader32, BOOL bIsX64) {
         shared_ptr<GeneralTreeItemW> pOptInfo(new GeneralTreeItemW(L"可选头部"));
         PIMAGE_OPTIONAL_HEADER64 pOptHeader64 = (PIMAGE_OPTIONAL_HEADER64)pOptHeader32;
         PIMAGE_DATA_DIRECTORY pImageDataDirectory = NULL;
@@ -242,21 +215,15 @@ private:
         wstring strMagic = L"未知的";
         wstring strSubSystemName;
 
-        if (pOptHeader32->Magic == 0x10B)
-        {
+        if (pOptHeader32->Magic == 0x10B) {
             strMagic = L"32位可执行文件";
-        }
-        else if (pOptHeader32->Magic == 0x107)
-        {
+        } else if (pOptHeader32->Magic == 0x107) {
             strMagic = L"ROM镜像文件";
-        }
-        else if (pOptHeader32->Magic == 0x20B)
-        {
+        } else if (pOptHeader32->Magic == 0x20B) {
             strMagic = L"64位可执行文件";
         }
 
-        switch (pOptHeader32->Subsystem)
-        {
+        switch (pOptHeader32->Subsystem) {
         default:
         case 0:
             strSubSystemName = L"未知子系统";
@@ -314,12 +281,9 @@ private:
         pOptInfo->AppendItem(L"入口点")->SetValue(GetByte4String(pOptHeader32->AddressOfEntryPoint));
         pOptInfo->AppendItem(L"代码基址")->SetValue(GetByte4String(pOptHeader32->BaseOfCode));
 
-        if (bIsX64)
-        {
+        if (bIsX64) {
             pOptInfo->AppendItem(L"镜像基址")->SetValue(GetByte8String(pOptHeader64->ImageBase));
-        }
-        else
-        {
+        } else {
             pOptInfo->AppendItem(L"数据基址")->SetValue(GetByte4String(pOptHeader32->BaseOfData));
             pOptInfo->AppendItem(L"镜像基址")->SetValue(GetByte4String(pOptHeader32->ImageBase));
         }
@@ -365,16 +329,13 @@ private:
             L"可以用于终端服务器。",
         };
 
-        for (int i = 0; i < RTL_NUMBER_OF(lpCharacteristicsName); ++i)
-        {
-            if (pOptHeader32->DllCharacteristics & (wBit << i))
-            {
+        for (int i = 0; i < RTL_NUMBER_OF(lpCharacteristicsName); ++i) {
+            if (pOptHeader32->DllCharacteristics & (wBit << i)) {
                 pDllCharacteristics->AppendItem(L"具体特性")->SetValue(fmtW(L"(0x%04x)%ls", wBit << i, lpCharacteristicsName[i]));
             }
         }
 
-        if (bIsX64)
-        {
+        if (bIsX64) {
             pOptInfo->AppendItem(L"栈保留大小")->SetValue(fmtW(L"(%ls) %hs", GetByte8String(pOptHeader64->SizeOfStackReserve).c_str(), GetFriendlyFileSizeA(pOptHeader64->SizeOfStackReserve).c_str()));
             pOptInfo->AppendItem(L"栈提交大小")->SetValue(fmtW(L"(%ls) %hs", GetByte8String(pOptHeader64->SizeOfStackCommit).c_str(), GetFriendlyFileSizeA(pOptHeader64->SizeOfStackCommit).c_str()));
             pOptInfo->AppendItem(L"堆保留大小")->SetValue(fmtW(L"(%ls) %hs", GetByte8String(pOptHeader64->SizeOfHeapReserve).c_str(), GetFriendlyFileSizeA(pOptHeader64->SizeOfHeapReserve).c_str()));
@@ -384,9 +345,7 @@ private:
 
             pImageDataDirectory = pOptHeader64->DataDirectory;
             dwCountOfDataDirectorys = pOptHeader64->NumberOfRvaAndSizes;
-        }
-        else
-        {
+        } else {
             pOptInfo->AppendItem(L"栈保留大小")->SetValue(fmtW(L"(%ls) %hs", GetByte4String(pOptHeader32->SizeOfStackReserve).c_str(), GetFriendlyFileSizeA(pOptHeader32->SizeOfStackReserve).c_str()));
             pOptInfo->AppendItem(L"栈提交大小")->SetValue(fmtW(L"(%ls) %hs", GetByte4String(pOptHeader32->SizeOfStackCommit).c_str(), GetFriendlyFileSizeA(pOptHeader32->SizeOfStackCommit).c_str()));
             pOptInfo->AppendItem(L"堆保留大小")->SetValue(fmtW(L"(%ls) %hs", GetByte4String(pOptHeader32->SizeOfHeapReserve).c_str(), GetFriendlyFileSizeA(pOptHeader32->SizeOfHeapReserve).c_str()));
@@ -422,8 +381,7 @@ private:
 
         pDataDirectoryInfo->SetValue(fmtW(L"共%lu个", dwCountOfDataDirectorys));
 
-        for (DWORD i = 0; i < min(dwCountOfDataDirectorys, RTL_NUMBER_OF(lpDataDirctoryNames)); ++i, ++pImageDataDirectory)
-        {
+        for (DWORD i = 0; i < min(dwCountOfDataDirectorys, RTL_NUMBER_OF(lpDataDirctoryNames)); ++i, ++pImageDataDirectory) {
             shared_ptr<GeneralTreeItemW> p = pDataDirectoryInfo->AppendItem(lpDataDirctoryNames[i]);
 
             p->AppendItem(L"地址")->SetValue(GetByte4String(pImageDataDirectory->VirtualAddress));
@@ -433,12 +391,10 @@ private:
         return pOptInfo;
     }
 
-    shared_ptr<GeneralTreeItemW> AnalyzeImageSectionHeader(PIMAGE_SECTION_HEADER pImageSectionHeader)
-    {
+    shared_ptr<GeneralTreeItemW> AnalyzeImageSectionHeader(PIMAGE_SECTION_HEADER pImageSectionHeader) {
         WCHAR szSectionName[IMAGE_SIZEOF_SHORT_NAME + 1] = L"";
 
-        for (int i = 0; i < RTL_NUMBER_OF(pImageSectionHeader->Name); ++i)
-        {
+        for (int i = 0; i < RTL_NUMBER_OF(pImageSectionHeader->Name); ++i) {
             szSectionName[i] = pImageSectionHeader->Name[i];
         }
 
@@ -459,8 +415,7 @@ private:
 
         pSectionCharacteristics->SetValue(GetByte4String(pImageSectionHeader->Characteristics));
 
-        struct
-        {
+        struct {
             int nBitIndex;
             LPCWSTR lpCharacteristic;
         } sectionCharacteristics[] = {
@@ -478,12 +433,10 @@ private:
             {32, L"可写", },
         };
 
-        for (int i = 0; i < RTL_NUMBER_OF(sectionCharacteristics); ++i)
-        {
+        for (int i = 0; i < RTL_NUMBER_OF(sectionCharacteristics); ++i) {
             DWORD dwMask = 1 << (sectionCharacteristics[i].nBitIndex - 1);
 
-            if (pImageSectionHeader->Characteristics & dwMask)
-            {
+            if (pImageSectionHeader->Characteristics & dwMask) {
                 pSectionCharacteristics->AppendItem(L"具体特性")->SetValue(fmtW(L"(0x%08x)%ls", dwMask, sectionCharacteristics[i].lpCharacteristic).c_str());
             }
         }
@@ -491,8 +444,7 @@ private:
         return pSectionInfo;
     }
 
-    shared_ptr<GeneralTreeItemW> GetExportDirectoryDetailInformation(PIMAGE_EXPORT_DIRECTORY pExportDirectory)
-    {
+    shared_ptr<GeneralTreeItemW> GetExportDirectoryDetailInformation(PIMAGE_EXPORT_DIRECTORY pExportDirectory) {
         shared_ptr<GeneralTreeItemW> pInfo(new GeneralTreeItemW(L"原始信息"));
 
         pInfo->AppendItem(L"特性")->SetValue(GetByte4String(pExportDirectory->Characteristics));
@@ -510,16 +462,14 @@ private:
         return pInfo;
     }
 
-    struct ExportEntry
-    {
+    struct ExportEntry {
         wstring strName;
         WORD wOrd;
         DWORD dwAddress;
         wstring strForword;
     };
 
-    shared_ptr<GeneralTreeItemW> GetExportDirectoryFunctionList(PIMAGE_EXPORT_DIRECTORY pExportDirectory)
-    {
+    shared_ptr<GeneralTreeItemW> GetExportDirectoryFunctionList(PIMAGE_EXPORT_DIRECTORY pExportDirectory) {
         map<WORD, ExportEntry> mapExportEntries;
         shared_ptr<GeneralTreeItemW> pInfo(new GeneralTreeItemW(GetAnsiString(m_lpBuffer + RvaToVa(pExportDirectory->Name))));
 
@@ -532,33 +482,28 @@ private:
         LPWORD lpAddressOfNameOrdinals = (LPWORD)(m_lpBuffer + dwAddressOfNameOrdinals);        // 名字地址中每一项对应在全部函数地址的index
 
         // 初始化map，并确认ord
-        for (WORD i = 0; i < pExportDirectory->NumberOfFunctions; ++i)
-        {
+        for (WORD i = 0; i < pExportDirectory->NumberOfFunctions; ++i) {
             DWORD dwAddress = lpAddressOfFunctions[i];
 
-            if (dwAddress != 0)
-            {
+            if (dwAddress != 0) {
                 mapExportEntries[i].dwAddress = dwAddress;
                 mapExportEntries[i].wOrd = i + (WORD)pExportDirectory->Base;
             }
         }
 
         // 给具名的函数命名
-        for (DWORD i = 0; i < pExportDirectory->NumberOfNames; ++i)
-        {
+        for (DWORD i = 0; i < pExportDirectory->NumberOfNames; ++i) {
             DWORD dwNameAddress = RvaToVa(lpAddressOfNames[i]);
             const char *lpName = m_lpBuffer + dwNameAddress;
             WORD wIndex = lpAddressOfNameOrdinals[i];
 
-            if (mapExportEntries.count(wIndex) > 0)
-            {
+            if (mapExportEntries.count(wIndex) > 0) {
                 mapExportEntries[wIndex].strName = GetAnsiString(lpName);
             }
         }
 
         // 找出forword的函数
-        for (map<WORD, ExportEntry>::iterator it = mapExportEntries.begin(); it != mapExportEntries.end(); ++it)
-        {
+        for (map<WORD, ExportEntry>::iterator it = mapExportEntries.begin(); it != mapExportEntries.end(); ++it) {
             // if (it->second.dwAddress >= m_dataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
         }
 
@@ -567,18 +512,14 @@ private:
         map<wstring, WORD> mapExportEntriesByName;                  // 以名字排序的
         map<WORD, WORD> mapExportEntriesByOrd;                      // 以序号排序的
 
-        for (map<WORD, ExportEntry>::iterator it = mapExportEntries.begin(); it != mapExportEntries.end(); ++it)
-        {
+        for (map<WORD, ExportEntry>::iterator it = mapExportEntries.begin(); it != mapExportEntries.end(); ++it) {
             const ExportEntry &entry = it->second;
             shared_ptr<GeneralTreeItemW> pFunction;
 
-            if (!entry.strName.empty())
-            {
+            if (!entry.strName.empty()) {
                 mapExportEntriesByName[entry.strName] = it->first;
                 pFunction.reset(new GeneralTreeItemW(entry.strName));
-            }
-            else
-            {
+            } else {
                 mapExportEntriesByOrd[entry.wOrd] = it->first;
                 pFunction.reset(new GeneralTreeItemW(fmtW(L"#%u", entry.wOrd)));
             }
@@ -588,42 +529,36 @@ private:
             pFunction->AppendItem(L"序号")->SetValue(fmtW(L"%u", entry.wOrd));
             pFunction->AppendItem(L"地址")->SetValue(GetByte4String(entry.dwAddress));
 
-            if (!entry.strForword.empty())
-            {
+            if (!entry.strForword.empty()) {
                 pFunction->AppendItem(L"重定向至")->SetValue(entry.strForword);
             }
         }
 
-        for (map<WORD, WORD>::const_iterator it = mapExportEntriesByOrd.begin(); it != mapExportEntriesByOrd.end(); ++it)
-        {
+        for (map<WORD, WORD>::const_iterator it = mapExportEntriesByOrd.begin(); it != mapExportEntriesByOrd.end(); ++it) {
             pInfo->AppendItem(mapAllFunctions[it->second]);
         }
 
-        for (map<wstring, WORD>::const_iterator it = mapExportEntriesByName.begin(); it != mapExportEntriesByName.end(); ++it)
-        {
+        for (map<wstring, WORD>::const_iterator it = mapExportEntriesByName.begin(); it != mapExportEntriesByName.end(); ++it) {
             pInfo->AppendItem(mapAllFunctions[it->second]);
         }
 
         return pInfo;
     }
 
-    shared_ptr<GeneralTreeItemW> GetPeInformationFromBuffer()
-    {
+    shared_ptr<GeneralTreeItemW> GetPeInformationFromBuffer() {
         shared_ptr<GeneralTreeItemW> pPeInfo(new GeneralTreeItemW(L"pe信息"));
 
         LPCSTR lpRestBuffer = m_lpBuffer;
         DWORD dwRestSize = m_dwBufferSize;
 
-        if (dwRestSize < sizeof(IMAGE_DOS_HEADER))
-        {
+        if (dwRestSize < sizeof(IMAGE_DOS_HEADER)) {
             HALT;
         }
 
         PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)lpRestBuffer;
         pPeInfo->AppendItem(AnalyzeDosHeader(pDosHeader));
 
-        if (dwRestSize < (DWORD)pDosHeader->e_lfanew)
-        {
+        if (dwRestSize < (DWORD)pDosHeader->e_lfanew) {
             HALT;
         }
 
@@ -634,50 +569,40 @@ private:
         PIMAGE_NT_HEADERS32 pNtHeader32 = (PIMAGE_NT_HEADERS32)lpRestBuffer;
         PIMAGE_NT_HEADERS64 pNtHeader64 = (PIMAGE_NT_HEADERS64)lpRestBuffer;
 
-        if (dwRestSize < min(sizeof(IMAGE_NT_HEADERS32), sizeof(IMAGE_NT_HEADERS64)))
-        {
+        if (dwRestSize < min(sizeof(IMAGE_NT_HEADERS32), sizeof(IMAGE_NT_HEADERS64))) {
             HALT;
         }
 
         pPeInfo->AppendItem(AnalyzeNtHeaderWithoutOptHeader(pNtHeader32));
 
         // 可选头
-        if (pNtHeader32->FileHeader.Machine == 0x14c)
-        {
+        if (pNtHeader32->FileHeader.Machine == 0x14c) {
             pPeInfo->AppendItem(AnalyzeOptHeader(&pNtHeader32->OptionalHeader, FALSE));
-        }
-        else if (pNtHeader32->FileHeader.Machine == 0x8664)
-        {
+        } else if (pNtHeader32->FileHeader.Machine == 0x8664) {
             pPeInfo->AppendItem(AnalyzeOptHeader(&pNtHeader32->OptionalHeader, TRUE));
-        }
-        else
-        {
+        } else {
             // do nothing
         }
 
         // 节
         m_pImageSectionHeader = IMAGE_FIRST_SECTION(pNtHeader32);
 
-        if ((ULONG_PTR)(m_pImageSectionHeader + m_nNumberOfSections) > (ULONG_PTR)(m_lpBuffer + m_dwBufferSize))
-        {
+        if ((ULONG_PTR)(m_pImageSectionHeader + m_nNumberOfSections) > (ULONG_PTR)(m_lpBuffer + m_dwBufferSize)) {
             HALT;
         }
 
         shared_ptr<GeneralTreeItemW> pSections = pPeInfo->AppendItem(L"节");
 
-        for (WORD i = 0; i < m_nNumberOfSections; ++i)
-        {
+        for (WORD i = 0; i < m_nNumberOfSections; ++i) {
             pSections->AppendItem(AnalyzeImageSectionHeader(m_pImageSectionHeader + i));
         }
 
         // 导出表 IMAGE_DIRECTORY_ENTRY_EXPORT
-        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size > 0)
-        {
+        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size > 0) {
             UINT dwOffset = RvaToVa(m_dataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
             DWORD dwSize = m_dataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
 
-            if (dwOffset != 0 && dwSize >= sizeof(IMAGE_EXPORT_DIRECTORY))
-            {
+            if (dwOffset != 0 && dwSize >= sizeof(IMAGE_EXPORT_DIRECTORY)) {
                 PIMAGE_EXPORT_DIRECTORY pExportDirectory = (PIMAGE_EXPORT_DIRECTORY)(m_lpBuffer + dwOffset);
                 shared_ptr<GeneralTreeItemW> pExportTable = pPeInfo->AppendItem(L"导出表");
 
@@ -687,58 +612,45 @@ private:
         }
 
         // 导入表 IMAGE_DIRECTORY_ENTRY_IMPORT
-        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size > 0)
-        {
-            
+        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size > 0) {
+
         }
 
         // 数字签名区域 IMAGE_DIRECTORY_ENTRY_SECURITY
-        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY].Size > 0)
-        {
+        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY].Size > 0) {
             m_pBasicInfo->AppendItem(L"数字签名区域")->SetValue(L"存在");
         }
 
         // 调试信息区域 IMAGE_DIRECTORY_ENTRY_DEBUG
-        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size > 0)
-        {
+        if (m_dataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size > 0) {
             m_pBasicInfo->AppendItem(L"调试信息区域")->SetValue(L"存在");
         }
 
         return pPeInfo;
     }
 
-    void Analyze()
-    {
+    void Analyze() {
         m_pResult = shared_ptr<GeneralTreeItemW>(new GeneralTreeItemW(m_szFilePath.c_str()));
 
-        if (PathFileExistsW(m_szFilePath.c_str()))
-        {
+        if (PathFileExistsW(m_szFilePath.c_str())) {
             CReadonlyFileMapping fm(m_szFilePath.c_str());
 
             m_lpBuffer = (LPCSTR)fm.GetBuffer();
             m_dwBufferSize = fm.GetSize();
 
-            if (m_lpBuffer != NULL && m_dwBufferSize > 0)
-            {
-                try
-                {
+            if (m_lpBuffer != NULL && m_dwBufferSize > 0) {
+                try {
                     m_pBasicInfo = m_pResult->AppendItem(L"摘要信息");
                     m_pBasicInfo->AppendItem(L"文件大小")->SetValue(GetAnsiString(GetFriendlyFileSizeA(m_dwBufferSize).c_str()));
 
                     m_pResult->AppendItem(GetPeInformationFromBuffer());
-                }
-                catch (int)
-                {
+                } catch (int) {
                     m_pResult->SetValue(L"解析失败");
                 }
-            }
-            else
-            {
+            } else {
                 m_pResult->SetValue(L"文件映射失败");
             }
-        }
-        else
-        {
+        } else {
             m_pResult->SetValue(L"文件不存在");
         }
     }
@@ -755,36 +667,28 @@ private:
     IMAGE_DATA_DIRECTORY m_dataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
 };
 
-std::string GetPeInformation(const wchar_t *lpPeFilePath)
-{
+std::string GetPeInformation(const wchar_t *lpPeFilePath) {
     return PeInformationAnalyzer(lpPeFilePath).GetResult()->GenerateXmlUtf8();
 }
 
-std::wstring GetPeInformationW(const wchar_t *lpPeFilePath)
-{
+std::wstring GetPeInformationW(const wchar_t *lpPeFilePath) {
     return PeInformationAnalyzer(lpPeFilePath).GetResult()->GenerateXml();
 }
 
-bool IsFileLikePeFile(const wchar_t *lpPeFilePath)
-{
+bool IsFileLikePeFile(const wchar_t *lpPeFilePath) {
     bool bIsPe = false;
     HANDLE hFile = CreateFileW(lpPeFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
-    if (hFile!= INVALID_HANDLE_VALUE)
-    {
+    if (hFile!= INVALID_HANDLE_VALUE) {
         char szBuffer[1024];
         DWORD dwBytesRead = 0;
 
-        if (ReadFile(hFile, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL) && dwBytesRead == sizeof(szBuffer))
-        {
+        if (ReadFile(hFile, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL) && dwBytesRead == sizeof(szBuffer)) {
             PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)szBuffer;
 
-            if (pDosHeader->e_magic == IMAGE_DOS_SIGNATURE)
-            {
-                if (pDosHeader->e_lfanew + sizeof(DWORD) <= sizeof(szBuffer))
-                {
-                    if (*(DWORD *)(szBuffer + pDosHeader->e_lfanew) == IMAGE_NT_SIGNATURE)
-                    {
+            if (pDosHeader->e_magic == IMAGE_DOS_SIGNATURE) {
+                if (pDosHeader->e_lfanew + sizeof(DWORD) <= sizeof(szBuffer)) {
+                    if (*(DWORD *)(szBuffer + pDosHeader->e_lfanew) == IMAGE_NT_SIGNATURE) {
                         bIsPe = true;
                     }
                 }
@@ -801,8 +705,7 @@ bool IsFileLikePeFile(const wchar_t *lpPeFilePath)
 // 测试接口
 #include "resource.h"
 
-class CTestGetPeInformationDialog
-{
+class CTestGetPeInformationDialog {
 #define TESTGETPEINFORMATION_OBJECT_PROP_NAME L"__TestGetPeInformationObject"
 
 public:
@@ -814,28 +717,23 @@ public:
     {
     }
 
-    INT_PTR DoModel()
-    {
+    INT_PTR DoModel() {
         return DialogBoxParamW(m_hInstance, m_lpTemplate, m_hParent, TestGetPeInformationDialogProc, (LPARAM)this);
     }
 
 private:
-    static INT_PTR CALLBACK TestGetPeInformationDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        if (uMsg == WM_INITDIALOG)
-        {
+    static INT_PTR CALLBACK TestGetPeInformationDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        if (uMsg == WM_INITDIALOG) {
             SetPropW(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME, (HANDLE)lParam);
         }
 
         CTestGetPeInformationDialog *pTestGetPeInformationDialog = (CTestGetPeInformationDialog *)GetPropW(hwndDlg, TESTGETPEINFORMATION_OBJECT_PROP_NAME);
 
-        if (pTestGetPeInformationDialog != NULL)
-        {
+        if (pTestGetPeInformationDialog != NULL) {
             return pTestGetPeInformationDialog->TestGetPeInformationDialogPrivateProc(hwndDlg, uMsg, wParam, lParam);
         }
 
-        switch (uMsg)
-        {
+        switch (uMsg) {
         case WM_CLOSE:
             EndDialog(hwndDlg, 0);
             break;
@@ -847,10 +745,8 @@ private:
         return FALSE;
     }
 
-    INT_PTR CALLBACK TestGetPeInformationDialogPrivateProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-    {
-        switch (uMsg)
-        {
+    INT_PTR CALLBACK TestGetPeInformationDialogPrivateProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        switch (uMsg) {
         case WM_INITDIALOG:{
             m_hwndDlg = hwndDlg;
 
@@ -867,24 +763,21 @@ private:
             break;
 
         case WM_DROPFILES:
-            if (wParam != 0)
-            {
+            if (wParam != 0) {
                 HDROP hDrop = (HDROP)wParam;
                 WCHAR szFilePath[MAX_PATH] = L"";
 
                 DragQueryFileW(hDrop, 0, szFilePath, RTL_NUMBER_OF(szFilePath));
                 DragFinish(hDrop);
 
-                if (PathFileExistsW(szFilePath))
-                {
+                if (PathFileExistsW(szFilePath)) {
                     LoadPeFile(szFilePath);
                 }
             }
             return TRUE;
 
         case WM_SHOWWINDOW:
-            if (!wParam)
-            {
+            if (!wParam) {
                 break;
             }
 
@@ -899,21 +792,18 @@ private:
         return FALSE;
     }
 
-    void ResizeTreeControl()
-    {
+    void ResizeTreeControl() {
         RECT rectClient;
 
         GetClientRect(m_hwndDlg, &rectClient);
         InflateRect(&rectClient, -7, -7);
 
-        if (IsWindow(GetDlgItem(m_hwndDlg, IDC_TREE)))
-        {
+        if (IsWindow(GetDlgItem(m_hwndDlg, IDC_TREE))) {
             MoveWindow(GetDlgItem(m_hwndDlg, IDC_TREE), rectClient.left, rectClient.top, rectClient.right - rectClient.left, rectClient.bottom - rectClient.top, TRUE);
         }
     }
 
-    void LoadPeFile(LPCWSTR lpFilePath)
-    {
+    void LoadPeFile(LPCWSTR lpFilePath) {
         SendDlgItemMessageW(m_hwndDlg, IDC_TREE, TVM_DELETEITEM, 0, 0);
         AttachToTreeCtrlUtf8(GetPeInformation(lpFilePath), GetDlgItem(m_hwndDlg, IDC_TREE));
         ExpandTreeControlForLevel(GetDlgItem(m_hwndDlg, IDC_TREE), NULL, 2);
@@ -928,8 +818,7 @@ private:
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
-void CALLBACK TestShowPeInformationW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd)
-{
+void CALLBACK TestShowPeInformationW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd) {
     CTestGetPeInformationDialog(g_hinstDll, MAKEINTRESOURCEW(IDD_TEST_PEINFORMATION_DIALOG), NULL).DoModel();
 }
 
@@ -937,28 +826,23 @@ void CALLBACK TestShowPeInformationW(HWND hwndStub, HINSTANCE hInstance, LPWSTR 
 // 获取pe信息接口
 #include "lib/charconv.h"
 
-static LONG WINAPI UnhandledExceptionFilterProc(struct _EXCEPTION_POINTERS* ExceptionInfo)
-{
+static LONG WINAPI UnhandledExceptionFilterProc(struct _EXCEPTION_POINTERS* ExceptionInfo) {
     ExitProcess(0);
 }
 
 // cmdLine: hwnd lpFilePath
-void CALLBACK GetPeInformationAndReportW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd)
-{
+void CALLBACK GetPeInformationAndReportW(HWND hwndStub, HINSTANCE hInstance, LPWSTR lpCmdLine, int nShowCmd) {
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
     SetUnhandledExceptionFilter(UnhandledExceptionFilterProc);
 
     int nArgc = 0;
     LPWSTR *lpArgv = CommandLineToArgvW(lpCmdLine, &nArgc);
 
-    if (lpArgv != NULL)
-    {
-        if (nArgc >= 2)
-        {
+    if (lpArgv != NULL) {
+        if (nArgc >= 2) {
             HWND hTargetWindow = (HWND)StrToInt64Def(WtoW(lpArgv[0]).c_str(), 0);
 
-            if (IsWindow(hTargetWindow))
-            {
+            if (IsWindow(hTargetWindow)) {
                 wstring strText = GetPeInformationW(lpArgv[1]);
                 SetWindowTextW(hTargetWindow, strText.c_str());
             }

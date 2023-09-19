@@ -12,14 +12,12 @@ static int gs_nIntervalMinutes = 60;        // 每几分钟显示一次
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 
-enum
-{
+enum {
     TI_MAIN = 12,
     TI_MOUSE_MONITOR,
 };
 
-class CImageBuilder
-{
+class CImageBuilder {
 #define MAX_PIXEL 2000
 #define DEFALUT_BK_COLOR (RGB(91, 91, 91))
 public:
@@ -28,8 +26,7 @@ public:
         , m_nMinute(100)
         , m_nSecond(100)
         , m_nTextWidth(488)
-        , m_nTextHeight(99)
-    {
+        , m_nTextHeight(99) {
         HDC hScreenDc = GetDC(NULL);
 
         m_hMemDc = CreateCompatibleDC(hScreenDc);
@@ -58,8 +55,7 @@ public:
         CalcTextSize();
     }
 
-    ~CImageBuilder()
-    {
+    ~CImageBuilder() {
         SelectObject(m_hMemDc, m_hOldFont);
         SelectObject(m_hMemDc, m_hOldBmp);
 
@@ -70,10 +66,8 @@ public:
 
 public:
     // 传入当前时间，对比，更新，处理时间字符串，绘制到内存dc，更新窗口
-    void UpdateMemText(HWND hWnd, int nHour, int nMinute, int nSecond)
-    {
-        if (m_nSecond != nSecond || m_nMinute != nMinute || m_nHour != nHour)
-        {
+    void UpdateMemText(HWND hWnd, int nHour, int nMinute, int nSecond) {
+        if (m_nSecond != nSecond || m_nMinute != nMinute || m_nHour != nHour) {
             m_nHour = nHour;
             m_nMinute = m_nMinute;
             m_nSecond = m_nSecond;
@@ -84,17 +78,14 @@ public:
 
             wnsprintfW(szTimeString, RTL_NUMBER_OF(szTimeString), L" %02u %c %02u %c %02u ", nHour, ch, nMinute, ch, nSecond);
 
-            for (int i = 0, j = 0; i < RTL_NUMBER_OF(szTimeString); ++i, ++j)
-            {
-                if (szTimeString[i] == L'1')
-                {
+            for (int i = 0, j = 0; i < RTL_NUMBER_OF(szTimeString); ++i, ++j) {
+                if (szTimeString[i] == L'1') {
                     szTimeStringAdjusted[j++] = L' ';
                 }
 
                 szTimeStringAdjusted[j] = szTimeString[i];
 
-                if (szTimeStringAdjusted[j] == L'\0')
-                {
+                if (szTimeStringAdjusted[j] == L'\0') {
                     break;
                 }
             }
@@ -104,24 +95,20 @@ public:
         }
     }
 
-    HDC GetDc() const
-    {
+    HDC GetDc() const {
         return m_hMemDc;
     }
 
-    int GetTextWidth() const
-    {
+    int GetTextWidth() const {
         return m_nTextWidth;
     }
 
-    int GetTextHeight() const
-    {
+    int GetTextHeight() const {
         return m_nTextHeight;
     }
 
 private:
-    void CalcTextSize()
-    {
+    void CalcTextSize() {
         m_nTextWidth = (int)GetDrawTextSizeInDc(m_hMemDc, L" 88 : 88 : 88 ", (UINT *)&m_nTextHeight);
     }
 
@@ -140,8 +127,7 @@ private:
 
 static CImageBuilder *g_pImageBuilder = NULL;
 
-static void UpdateWindowLayeredValue(HWND hWnd, BOOL bForceUpdate = FALSE)
-{
+static void UpdateWindowLayeredValue(HWND hWnd, BOOL bForceUpdate = FALSE) {
     static int s_nValues[] = {155, 35};
     static bool s_bPtInRect = false;
 
@@ -153,22 +139,17 @@ static void UpdateWindowLayeredValue(HWND hWnd, BOOL bForceUpdate = FALSE)
 
     bool bBtInRectNow = !!PtInRect(&rect, pt);
 
-    if (bForceUpdate)
-    {
+    if (bForceUpdate) {
         s_bPtInRect = bBtInRectNow;
         SetLayeredWindowAttributes(hWnd, 0, s_nValues[!!s_bPtInRect], LWA_ALPHA);
-    }
-    else if (!bBtInRectNow ^ !s_bPtInRect)
-    {
+    } else if (!bBtInRectNow ^ !s_bPtInRect) {
         s_bPtInRect = !s_bPtInRect;
         SetLayeredWindowAttributes(hWnd, 0, s_nValues[!!s_bPtInRect], LWA_ALPHA);
     }
 }
 
-static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
     case WM_CREATE:
         SetTimer(hWnd, TI_MAIN, 31, NULL);
         SetTimer(hWnd, TI_MOUSE_MONITOR, 333, NULL);
@@ -200,8 +181,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         break;}
 
     case WM_TIMER:
-        if (wParam == TI_MAIN)
-        {
+        if (wParam == TI_MAIN) {
             SYSTEMTIME stNow;
 
             GetLocalTime(&stNow);
@@ -210,30 +190,23 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             BOOL bShouldShow = g_bEnabled && (stNow.wMinute % gs_nIntervalMinutes == 0 || (stNow.wMinute + 1) % gs_nIntervalMinutes == 0);
             BOOL bIsWindowVisible = IsWindowVisible(hWnd);
 
-            if (bIsWindowVisible && !bShouldShow)
-            {
+            if (bIsWindowVisible && !bShouldShow) {
                 ShowWindow(hWnd, SW_HIDE);
-            }
-            else if (!bIsWindowVisible && bShouldShow)
-            {
+            } else if (!bIsWindowVisible && bShouldShow) {
                 ShowWindow(hWnd, SW_SHOW);
             }
 
             // 控制展示时间
-            if (IsWindowVisible(hWnd))
-            {
+            if (IsWindowVisible(hWnd)) {
                 g_pImageBuilder->UpdateMemText(hWnd, stNow.wHour, stNow.wMinute, stNow.wSecond);
             }
-        }
-        else if (wParam == TI_MOUSE_MONITOR && IsWindowVisible(hWnd))
-        {
+        } else if (wParam == TI_MOUSE_MONITOR && IsWindowVisible(hWnd)) {
             UpdateWindowLayeredValue(hWnd);
         }
         break;
 
     case WM_SHOWWINDOW:
-        if (wParam)
-        {
+        if (wParam) {
             const int nDefaultDistance = 38;
             RECT rectWnd;
             int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -252,18 +225,15 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-static DWORD CALLBACK WorkProc(LPVOID lpParam)
-{
+static DWORD CALLBACK WorkProc(LPVOID lpParam) {
     DWORD dwResSize = 0;
     LPCVOID lpResBuffer = GetResourceBuffer(g_hinstDll, L"RT_FILE", MAKEINTRESOURCEW(IDR_DIGIB_FONT), &dwResSize);
 
-    if (lpResBuffer != NULL && dwResSize != 0)
-    {
+    if (lpResBuffer != NULL && dwResSize != 0) {
         DWORD dwCountInstalled = 0;
         HANDLE hFontHandle = AddFontMemResourceEx((LPVOID)lpResBuffer, dwResSize, NULL, &dwCountInstalled);
 
-        if (hFontHandle == NULL)
-        {
+        if (hFontHandle == NULL) {
             return 0;
         }
     }
@@ -282,8 +252,7 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
     wcex.hCursor        = LoadCursorW(NULL, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
 
-    if (RegisterClassExW(&wcex))
-    {
+    if (RegisterClassExW(&wcex)) {
         HWND hWindow = CreateWindowExW(
             WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE,
             CLASS_NAME,
@@ -299,16 +268,13 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
             NULL
             );
 
-        if (IsWindow(hWindow))
-        {
+        if (IsWindow(hWindow)) {
             MSG msg;
 
-            while (TRUE)
-            {
+            while (TRUE) {
                 int nRet = GetMessageW(&msg, NULL, 0, 0);
 
-                if (nRet <= 0)
-                {
+                if (nRet <= 0) {
                     break;
                 }
 
@@ -321,17 +287,14 @@ static DWORD CALLBACK WorkProc(LPVOID lpParam)
     return 0;
 }
 
-void EnableTimePlate(bool bEnable)
-{
-    if (bEnable && g_hWorkThread == NULL)
-    {
+void EnableTimePlate(bool bEnable) {
+    if (bEnable && g_hWorkThread == NULL) {
         g_hWorkThread = CreateThread(NULL, 0, WorkProc, NULL, 0, NULL);
     }
 
     InterlockedExchange(&g_bEnabled, !!bEnable);
 }
 
-void SetTimePlateOption(int nIntervalMinutes)
-{
+void SetTimePlateOption(int nIntervalMinutes) {
     gs_nIntervalMinutes = nIntervalMinutes;
 }

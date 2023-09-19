@@ -9,22 +9,19 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 
-typedef struct _md5ctx
-{
+typedef struct _md5ctx {
     uint32_t state[4];
     uint32_t count[2];
     uint8_t buffer[64];
 } md5_ctx;
 
-typedef struct
-{
+typedef struct {
     uint32_t state[5];
     uint32_t count[2];
     unsigned char buffer[64];
 } sha1_ctx;
 
-typedef struct _crc32ctx
-{
+typedef struct _crc32ctx {
     uint32_t crc;
 } crc32_ctx;
 

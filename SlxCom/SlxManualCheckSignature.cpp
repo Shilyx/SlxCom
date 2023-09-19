@@ -14,55 +14,42 @@ using namespace std;
 
 extern HINSTANCE g_hinstDll;    //SlxCom.cpp
 
-DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam)
-{
-    while (lpParam == 0)
-    {
+DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam) {
+    while (lpParam == 0) {
         SleepEx(INFINITE, TRUE);
     }
 
     map<wstring, HWND> *pMapPaths = (map<wstring, HWND> *)lpParam;
 
-    if (pMapPaths != NULL && !pMapPaths->empty())
-    {
+    if (pMapPaths != NULL && !pMapPaths->empty()) {
         map<wstring, HWND>::iterator it = pMapPaths->begin();
         HWND hTargetWindow = it->second;
         DWORD dwFileIndex = 0;
 
-        if (IsWindow(hTargetWindow))             //通过排队，窗口可能已经被取消
-        {
-            for (; it != pMapPaths->end(); it++, dwFileIndex++)
-            {
+        if (IsWindow(hTargetWindow)) {             //通过排队，窗口可能已经被取消
+            for (; it != pMapPaths->end(); it++, dwFileIndex++) {
                 BOOL bSigned = FALSE;
 
-                if (PathFileExistsW(it->first.c_str()))
-                {
+                if (PathFileExistsW(it->first.c_str())) {
                     WCHAR szString[MAX_PATH + 100];
 
                     if (CSlxComOverlay::BuildFileMarkString(
                         it->first.c_str(),
                         szString,
                         sizeof(szString) / sizeof(WCHAR)
-                        ))
-                    {
-                        if (IsFileSigned(it->first.c_str()))
-                        {
+                        )) {
+                        if (IsFileSigned(it->first.c_str())) {
                             CSlxComOverlay::m_cache.AddCache(szString, SS_1);
                             bSigned = TRUE;
-                        }
-                        else
-                        {
+                        } else {
                             CSlxComOverlay::m_cache.AddCache(szString, SS_2);
                         }
                     }
                 }
 
-                if (IsWindow(hTargetWindow))
-                {
+                if (IsWindow(hTargetWindow)) {
                     SendMessageW(hTargetWindow, WM_SIGNRESULT, (WPARAM)it->first.c_str(), bSigned);
-                }
-                else
-                {
+                } else {
                     break;
                 }
             }
@@ -77,8 +64,7 @@ DWORD CALLBACK ManualCheckSignatureThreadProc(LPVOID lpParam)
 #define LVH_PATH        1
 #define LVH_RESULT      2
 
-static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
-{
+static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {
     ListCtrlSortStruct *pLcss = (ListCtrlSortStruct *)lParamSort;
     WCHAR szText1[1000] = L"";
     WCHAR szText2[1000] = L"";
@@ -86,55 +72,40 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(WCHAR));
     ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(WCHAR));
 
-    if (lstrcmpW(szText1, szText2) == 0)
-    {
+    if (lstrcmpW(szText1, szText2) == 0) {
         return 0;
     }
 
-    if (pLcss->nSubItem == LVH_INDEX)
-    {
+    if (pLcss->nSubItem == LVH_INDEX) {
         int n1 = StrToIntW(szText1);
         int n2 = StrToIntW(szText2);
 
-        if (n1 > n2)
-        {
+        if (n1 > n2) {
             return pLcss->nRet;
-        }
-        else
-        {
+        } else {
             return -pLcss->nRet;
         }
-    }
-    else if (pLcss->nSubItem == LVH_PATH)
-    {
+    } else if (pLcss->nSubItem == LVH_PATH) {
         return lstrcmpW(szText1, szText2) * pLcss->nRet;
-    }
-    else if (pLcss->nSubItem == LVH_RESULT)
-    {
+    } else if (pLcss->nSubItem == LVH_RESULT) {
         return lstrcmpW(szText1, szText2) * pLcss->nRet;
-    }
-    else
-    {
+    } else {
         return pLcss->nRet;
     }
 }
 
-INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     static HICON hIcon = NULL;
     BOOL bDlgProcResult = FALSE;
     HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
 
-    if (uMsg == WM_INITDIALOG)
-    {
+    if (uMsg == WM_INITDIALOG) {
         //设定对话框图标
-        if (hIcon == NULL)
-        {
+        if (hIcon == NULL) {
             hIcon = LoadIconW(g_hinstDll, MAKEINTRESOURCEW(IDI_CONFIG_ICON));
         }
 
-        if (hIcon != NULL)
-        {
+        if (hIcon != NULL) {
             SendMessageW(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
             SendMessageW(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         }
@@ -162,8 +133,7 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
         //开始启动校验过程
         map<wstring, HWND> *pMapPaths = (map<wstring, HWND> *)lParam;
 
-        if (pMapPaths != NULL && !pMapPaths->empty())
-        {
+        if (pMapPaths != NULL && !pMapPaths->empty()) {
             //填充列表
             WCHAR szText[1000];
             DWORD dwIndex = 0;
@@ -172,8 +142,7 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
 
             it->second = hwndDlg;
 
-            for (; it != pMapPaths->end(); it++, dwIndex++)
-            {
+            for (; it != pMapPaths->end(); it++, dwIndex++) {
                 item.iItem = dwIndex;
                 item.pszText = szText;
 
@@ -206,11 +175,8 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
         SetTimer(hwndDlg, 1, 40, NULL);
 
         bDlgProcResult = TRUE;
-    }
-    else if (uMsg == WM_TIMER)
-    {
-        if (wParam == 1)
-        {
+    } else if (uMsg == WM_TIMER) {
+        if (wParam == 1) {
             static DWORD dwTimeStamp = 0;
 
             WCHAR szText[100];
@@ -222,12 +188,10 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
             };
             HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
 
-            for (int nIndex = 0; nIndex < ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST)); nIndex += 1)
-            {
+            for (int nIndex = 0; nIndex < ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST)); nIndex += 1) {
                 ListView_GetItemText(hFileList, nIndex, LVH_RESULT, szText, sizeof(szText) / sizeof(WCHAR));
 
-                if (lstrlenW(szText) <= 1)
-                {
+                if (lstrlenW(szText) <= 1) {
                     ListView_SetItemText(
                         hFileList,
                         nIndex,
@@ -239,23 +203,16 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
 
             dwTimeStamp += 1;
         }
-    }
-    else if (uMsg == WM_NOTIFY)
-    {
+    } else if (uMsg == WM_NOTIFY) {
         LPNMHDR lpNmHdr = (LPNMHDR)lParam;
 
-        if (lpNmHdr != NULL && lpNmHdr->idFrom == IDC_FILELIST)
-        {
-            if (lpNmHdr->code == NM_CUSTOMDRAW)
-            {
+        if (lpNmHdr != NULL && lpNmHdr->idFrom == IDC_FILELIST) {
+            if (lpNmHdr->code == NM_CUSTOMDRAW) {
                 LPNMLVCUSTOMDRAW lpNMCustomDraw = (LPNMLVCUSTOMDRAW)lParam;
 
-                if (CDDS_PREPAINT == lpNMCustomDraw->nmcd.dwDrawStage)
-                {
+                if (CDDS_PREPAINT == lpNMCustomDraw->nmcd.dwDrawStage) {
                     SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_NOTIFYITEMDRAW);
-                }
-                else if (CDDS_ITEMPREPAINT == lpNMCustomDraw->nmcd.dwDrawStage)
-                {
+                } else if (CDDS_ITEMPREPAINT == lpNMCustomDraw->nmcd.dwDrawStage) {
                     WCHAR szResult[100] = L"";
 
                     ListView_GetItemText(
@@ -266,31 +223,23 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                         sizeof(szResult) / sizeof(WCHAR)
                         );
 
-                    if (lstrcmpiW(szResult, L"已签名") == 0)
-                    {
+                    if (lstrcmpiW(szResult, L"已签名") == 0) {
                         lpNMCustomDraw->clrText = RGB(0, 0, 255);
                     }
 
-                    if (lpNMCustomDraw->nmcd.dwItemSpec % 2)
-                    {
+                    if (lpNMCustomDraw->nmcd.dwItemSpec % 2) {
                         lpNMCustomDraw->clrTextBk = RGB(240, 240, 230);
-                    }
-                    else
-                    {
+                    } else {
                         lpNMCustomDraw->clrTextBk = RGB(255, 255, 255);
                     }
 
                     SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_DODEFAULT);
-                }
-                else
-                {
+                } else {
                     SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_DODEFAULT);
                 }
 
                 bDlgProcResult = TRUE;
-            }
-            else if (lpNmHdr->code == LVN_COLUMNCLICK)
-            {
+            } else if (lpNmHdr->code == LVN_COLUMNCLICK) {
                 static int nRet = 1;
                 LPNMLISTVIEW lpNmListView = (LPNMLISTVIEW)lpNmHdr;
 
@@ -304,8 +253,7 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
 
                 LVITEMW item = {LVIF_PARAM};
 
-                for (int nIndex = 0; nIndex < ListView_GetItemCount(hFileList); nIndex += 1)
-                {
+                for (int nIndex = 0; nIndex < ListView_GetItemCount(hFileList); nIndex += 1) {
                     item.iItem = nIndex;
                     item.lParam = nIndex;
 
@@ -313,31 +261,22 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                 }
 
                 ListView_SortItems(hFileList, ListCtrlCompareProc, &lcss);
-            }
-            else if (lpNmHdr->code == NM_DBLCLK)
-            {
+            } else if (lpNmHdr->code == NM_DBLCLK) {
                 LPNMITEMACTIVATE lpNmItemActivate = (LPNMITEMACTIVATE)lParam;
                 WCHAR szFilePath[MAX_PATH] = L"";
 
                 ListView_GetItemText(hFileList, lpNmItemActivate->iItem, LVH_PATH, szFilePath, sizeof(szFilePath) / sizeof(WCHAR));
 
-                if (PathFileExistsW(szFilePath))
-                {
+                if (PathFileExistsW(szFilePath)) {
                     BrowseForFile(szFilePath);
-                }
-                else
-                {
+                } else {
                     MessageBoxW(hwndDlg, L"文件不存在，无法定位。", NULL, MB_ICONERROR);
                 }
-            }
-            else if (lpNmHdr->code == NM_RCLICK)
-            {
+            } else if (lpNmHdr->code == NM_RCLICK) {
                 LPNMITEMACTIVATE lpNmItemActivate = (LPNMITEMACTIVATE)lParam;
 
-                if (lpNmItemActivate->iItem >= 0)
-                {
-                    enum
-                    {
+                if (lpNmItemActivate->iItem >= 0) {
+                    enum {
                         IDM_BROWSE_FILE = 1000,
                         IDM_REMOVE_SIGNATURE,
                     };
@@ -349,8 +288,7 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                     switch (CSlxQuickPopupMenu()
                             .AddItemIf(L"定位到文件(&B)", IDM_BROWSE_FILE, FALSE, FALSE, FALSE, nSelCount == 1)
                             .AddItemIf(L"去除数字签名(&R)", IDM_REMOVE_SIGNATURE, FALSE, FALSE, FALSE, nSelCount > 0)
-                            .Popup(hFileList, pt.x, pt.y))
-                    {
+                            .Popup(hFileList, pt.x, pt.y)) {
                     case IDM_BROWSE_FILE:
                         lpNmHdr->code = NM_DBLCLK;
                         SendMessageW(hwndDlg, WM_NOTIFY, wParam, lParam);
@@ -358,34 +296,27 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                         break;
 
                     case IDM_REMOVE_SIGNATURE:
-                        if (MessageBoxW(hwndDlg, L"要尝试去除这些文件的数字签名吗？如有需要请自行备份文件。", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL) == IDYES)
-                        {
+                        if (MessageBoxW(hwndDlg, L"要尝试去除这些文件的数字签名吗？如有需要请自行备份文件。", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL) == IDYES) {
                             WCHAR szPath[MAX_PATH];
                             vector<wstring> vectorFilesFailed;
                             vector<wstring> vectorFilesSucced;
 
                             int pos = ListView_GetNextItem(hFileList, -1, LVNI_SELECTED);
-                            while (pos >= 0)
-                            {
+                            while (pos >= 0) {
                                 ListView_GetItemText(hFileList, pos, LVH_PATH, szPath, RTL_NUMBER_OF(szPath));
 
-                                if (!RemoveFileSignatrueArea(szPath))
-                                {
+                                if (!RemoveFileSignatrueArea(szPath)) {
                                     vectorFilesFailed.push_back(szPath);
-                                }
-                                else
-                                {
+                                } else {
                                     vectorFilesSucced.push_back(szPath);
                                 }
 
                                 pos = ListView_GetNextItem(hFileList, pos, LVNI_SELECTED);
                             }
-                            
-                            if (!vectorFilesFailed.empty())
-                            {
+
+                            if (!vectorFilesFailed.empty()) {
                                 wstring strText = L"以下文件操作失败:\r\n\r\n";
-                                for (vector<wstring>::const_iterator it = vectorFilesFailed.begin(); it != vectorFilesFailed.end(); ++it)
-                                {
+                                for (vector<wstring>::const_iterator it = vectorFilesFailed.begin(); it != vectorFilesFailed.end(); ++it) {
                                     strText += *it;
                                     strText += L"\r\n";
                                 }
@@ -393,11 +324,9 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                             }
 
                             // 更新界面
-                            if (!vectorFilesSucced.empty())
-                            {
+                            if (!vectorFilesSucced.empty()) {
                                 map<wstring, HWND>* pMapPaths = new map<wstring, HWND>;
-                                for (vector<wstring>::const_iterator it = vectorFilesSucced.begin(); it != vectorFilesSucced.end(); ++it)
-                                {
+                                for (vector<wstring>::const_iterator it = vectorFilesSucced.begin(); it != vectorFilesSucced.end(); ++it) {
                                     (*pMapPaths)[*it] = hwndDlg;
                                 }
 
@@ -416,39 +345,27 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
                 }
             }
         }
-    }
-    else if (uMsg == WM_SIZING)
-    {
+    } else if (uMsg == WM_SIZING) {
         LPRECT pRect = (LPRECT)lParam;
         const LONG lWidthLimit = 482;
         const LONG lHeightLimit = 306;
 
-        if (pRect->right - pRect->left < lWidthLimit)
-        {
-            if (wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT)
-            {
+        if (pRect->right - pRect->left < lWidthLimit) {
+            if (wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_LEFT) {
                 pRect->left = pRect->right - lWidthLimit;
-            }
-            else
-            {
+            } else {
                 pRect->right = pRect->left + lWidthLimit;
             }
         }
 
-        if (pRect->bottom - pRect->top < lHeightLimit)
-        {
-            if (wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP)
-            {
+        if (pRect->bottom - pRect->top < lHeightLimit) {
+            if (wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT || wParam == WMSZ_TOP) {
                 pRect->top = pRect->bottom - lHeightLimit;
-            }
-            else
-            {
+            } else {
                 pRect->bottom = pRect->top + lHeightLimit;
             }
         }
-    }
-    else if (uMsg == WM_SIZE)
-    {
+    } else if (uMsg == WM_SIZE) {
         RECT rectClient;
 
         GetClientRect(hwndDlg, &rectClient);
@@ -462,35 +379,25 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
             rectClient.bottom - rectClient.top,
             TRUE
             );
-    }
-    else if (uMsg == WM_SYSCOMMAND)
-    {
-        if (wParam == SC_CLOSE)
-        {
+    } else if (uMsg == WM_SYSCOMMAND) {
+        if (wParam == SC_CLOSE) {
             KillTimer(hwndDlg, 1);
             EndDialog(hwndDlg, 0);
         }
-    }
-    else if (uMsg == WM_SIGNRESULT)
-    {
+    } else if (uMsg == WM_SIGNRESULT) {
         WCHAR szPath[MAX_PATH];
         WCHAR szResult[100];
         HWND hFileList = GetDlgItem(hwndDlg, IDC_FILELIST);
         int nCount = ListView_GetItemCount(GetDlgItem(hwndDlg, IDC_FILELIST));
 
         //更新列表状态
-        for (int nIndex = 0; nIndex < nCount; nIndex += 1)
-        {
+        for (int nIndex = 0; nIndex < nCount; nIndex += 1) {
             ListView_GetItemText(hFileList, nIndex, LVH_PATH, szPath, RTL_NUMBER_OF(szPath));
 
-            if (lstrcmpiW((LPCWSTR)wParam, szPath) == 0)
-            {
-                if ((BOOL)lParam)
-                {
+            if (lstrcmpiW((LPCWSTR)wParam, szPath) == 0) {
+                if ((BOOL)lParam) {
                     lstrcpynW(szResult, L"已签名", sizeof(szResult) / sizeof(WCHAR));
-                }
-                else
-                {
+                } else {
                     lstrcpynW(szResult, L"未签名", sizeof(szResult) / sizeof(WCHAR));
                 }
 
