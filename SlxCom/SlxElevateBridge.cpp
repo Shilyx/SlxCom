@@ -12,6 +12,7 @@
 #define CLASS_NAME L"__SlxElevateBridgeWindow"
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
+extern OSVERSIONINFO g_osi; // SlxCom.cpp
 
 enum {
     WM_TO_BRIDGE_INFO = WM_USER + 65,
@@ -25,11 +26,7 @@ struct TaskDiscription {
 };
 
 static BOOL NeedElevated() {
-    OSVERSIONINFO osi = { sizeof(osi) };
-
-    GetVersionEx(&osi);
-
-    if (osi.dwMajorVersion < 6) {
+    if (g_osi.dwMajorVersion < 6) {
         return FALSE;
     }
 

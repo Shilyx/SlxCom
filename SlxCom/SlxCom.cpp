@@ -1,4 +1,5 @@
 #define INITGUID
+#pragma warning(disable: 4996)
 #include <Guiddef.h>
 #include <Windows.h>
 #include <shlwapi.h>
