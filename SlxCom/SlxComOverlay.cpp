@@ -32,7 +32,7 @@ STDMETHODIMP CSlxComOverlay::QueryInterface(REFIID riid, void **ppv) {
             if (InterlockedCompareExchange((volatile LONG *)&m_hTaskEvent, (LONG)hEvent, NULL) == NULL)
 #endif
             {
-                wnsprintfW(m_szTaskRegPath, sizeof(m_szTaskRegPath) / sizeof(WCHAR), L"Software\\Slx\\Tasks\\%lu", GetCurrentProcessId());
+                wnsprintfW(m_szTaskRegPath, RTL_NUMBER_OF(m_szTaskRegPath), L"Software\\Slx\\Tasks\\%lu", GetCurrentProcessId());
 
                 HANDLE hThread = CreateThread(NULL, 0, CheckTaskProc, NULL, 0, NULL);
                 CloseHandle(hThread);
@@ -73,7 +73,7 @@ STDMETHODIMP CSlxComOverlay::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib) {
     WCHAR szString[MAX_PATH + 100];
     ULARGE_INTEGER uliFileSize = {0};
 
-    if (BuildFileMarkString(pwszPath, szString, sizeof(szString) / sizeof(WCHAR), &uliFileSize)) {
+    if (BuildFileMarkString(pwszPath, szString, RTL_NUMBER_OF(szString), &uliFileSize)) {
         StringStatus ssValue = SS_0;
 
         if (m_cache.CheckCache(szString, &ssValue)) {
@@ -193,7 +193,7 @@ DWORD CALLBACK CSlxComOverlay::CheckTaskProc(LPVOID lpParam) {
                     WCHAR szFilePath[MAX_PATH] = L"";
                     DWORD dwFilePathSize = sizeof(szFilePath);
                     WCHAR szValueName[MAX_PATH + 100] = L"";
-                    DWORD dwValueNameSize = sizeof(szValueName) / sizeof(WCHAR);
+                    DWORD dwValueNameSize = RTL_NUMBER_OF(szValueName);
                     DWORD dwRegType = REG_NONE;
 
                     if (ERROR_SUCCESS == RegEnumValueW(hKey, 0, szValueName, &dwValueNameSize, NULL, &dwRegType, (LPBYTE)szFilePath, &dwFilePathSize)) {

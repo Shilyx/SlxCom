@@ -30,8 +30,8 @@ static int CALLBACK ListCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
     WCHAR szText1[1000] = L"";
     WCHAR szText2[1000] = L"";
 
-    ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, sizeof(szText1) / sizeof(WCHAR));
-    ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, sizeof(szText2) / sizeof(WCHAR));
+    ListView_GetItemText(pLcss->hListCtrl, lParam1, pLcss->nSubItem, szText1, RTL_NUMBER_OF(szText1));
+    ListView_GetItemText(pLcss->hListCtrl, lParam2, pLcss->nSubItem, szText2, RTL_NUMBER_OF(szText2));
 
     if (lstrcmpW(szText1, szText2) == 0) {
         return 0;
@@ -196,10 +196,10 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                     DWORD dwProcessId = 0;
                     HANDLE hHandle = NULL;
 
-                    ListView_GetItemText(hHandleList, lResult, LVH_PROCESSID, szText, sizeof(szText) / sizeof(WCHAR));
+                    ListView_GetItemText(hHandleList, lResult, LVH_PROCESSID, szText, RTL_NUMBER_OF(szText));
                     dwProcessId = StrToIntW(szText);
 
-                    ListView_GetItemText(hHandleList, lResult, LVH_HANDLEVALUE, szText, sizeof(szText) / sizeof(WCHAR));
+                    ListView_GetItemText(hHandleList, lResult, LVH_HANDLEVALUE, szText, RTL_NUMBER_OF(szText));
                     StrToIntExW(szText, STIF_SUPPORT_HEX, (int *)&hHandle);
 
                     if (CloseRemoteHandle(dwProcessId, hHandle)) {
@@ -253,7 +253,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
             DWORD dwHandleIndex = 0;
             WCHAR szTargetFilePath[MAX_PATH] = L"";
 
-            GetDlgItemTextW(hwndDlg, IDC_FILEPATH, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(WCHAR));
+            GetDlgItemTextW(hwndDlg, IDC_FILEPATH, szTargetFilePath, RTL_NUMBER_OF(szTargetFilePath));
 
             for (; dwHandleIndex < dwCount; dwHandleIndex += 1) {
                 if (!bFilter || bFilter && IsSameFilePath(szTargetFilePath, pHandles[dwHandleIndex].szFilePath)) {
@@ -264,15 +264,15 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                     item.pszText = szText;
 
                     item.iItem = dwItemIndex;
-                    wnsprintfW(szText, sizeof(szText) / sizeof(WCHAR), L"%lu", dwItemIndex + 1);
+                    wnsprintfW(szText, RTL_NUMBER_OF(szText), L"%lu", dwItemIndex + 1);
                     ListView_InsertItem(hHandleList, &item);
 
-                    wnsprintfW(szText, sizeof(szText) / sizeof(WCHAR), L"%lu", pHandles[dwHandleIndex].dwProcessId);
+                    wnsprintfW(szText, RTL_NUMBER_OF(szText), L"%lu", pHandles[dwHandleIndex].dwProcessId);
                     ListView_SetItemText(hHandleList, dwItemIndex, LVH_PROCESSID, szText);
 
                     ListView_SetItemText(hHandleList, dwItemIndex, LVH_PROCESSNAME, pHandles[dwHandleIndex].szProcessName);
 
-                    wnsprintfW(szText, sizeof(szText) / sizeof(WCHAR), L"%#x", pHandles[dwHandleIndex].hFile);
+                    wnsprintfW(szText, RTL_NUMBER_OF(szText), L"%#x", pHandles[dwHandleIndex].hFile);
                     ListView_SetItemText(hHandleList, dwItemIndex, LVH_HANDLEVALUE, szText);
 
                     ListView_SetItemText(hHandleList, dwItemIndex, LVH_FILEPATH, pHandles[dwHandleIndex].szFilePath);
@@ -315,7 +315,7 @@ INT_PTR CALLBACK UnlockFileFromPathDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wP
                     if (nIndex != -1) {
                         WCHAR szFilePath[MAX_PATH] = L"";
 
-                        ListView_GetItemText(hHandleList, lpNmItemAct->iItem, LVH_FILEPATH, szFilePath, sizeof(szFilePath) / sizeof(WCHAR));
+                        ListView_GetItemText(hHandleList, lpNmItemAct->iItem, LVH_FILEPATH, szFilePath, RTL_NUMBER_OF(szFilePath));
 
                         BrowseForFile(szFilePath);
                     }
@@ -418,7 +418,7 @@ void UnlockFileFromPathInternal(HWND hwndStub, LPCWSTR lpFilePath) {
 void WINAPI UnlockFileFromPathW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow) {
     WCHAR szFilePath[MAX_PATH] = L"";
 
-    wnsprintfW(szFilePath, sizeof(szFilePath) / sizeof(WCHAR), L"%ls", lpszCmdLine);
+    wnsprintfW(szFilePath, RTL_NUMBER_OF(szFilePath), L"%ls", lpszCmdLine);
 
     EnableDebugPrivilege(TRUE);
     UnlockFileFromPathInternal(hwndStub, szFilePath);

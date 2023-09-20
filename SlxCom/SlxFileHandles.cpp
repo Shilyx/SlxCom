@@ -317,7 +317,7 @@ DWORD CALLBACK QueryFileNameProc(LPVOID lpParam) {
         if (pFni->FileNameLength > 0) {
             wnsprintfW(
                 pThreadParam->szFilePath,
-                sizeof(pThreadParam->szFilePath) / sizeof(WCHAR),
+                RTL_NUMBER_OF(pThreadParam->szFilePath),
                 L"%c:%ls",
                 chDriveLetter,
                 pFni->FileName
@@ -377,9 +377,9 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount) {
 
     InitDriveSerials(threadParam.dwSerials);
 
-    GetTempPathW(sizeof(szTempPath) / sizeof(WCHAR), szTempPath);
-    lstrcpynW(szTempFile, szTempPath, sizeof(szTempFile) / sizeof(WCHAR));
-    StrCatBuffW(szTempFile, L"__SlxComTestTempFile.txt", sizeof(szTempFile) / sizeof(WCHAR));
+    GetTempPathW(RTL_NUMBER_OF(szTempPath), szTempPath);
+    lstrcpynW(szTempFile, szTempPath, RTL_NUMBER_OF(szTempFile));
+    StrCatBuffW(szTempFile, L"__SlxComTestTempFile.txt", RTL_NUMBER_OF(szTempFile));
 
     while (TRUE) {
         hTempFile = CreateFileW(
@@ -397,7 +397,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount) {
         }
 
         wnsprintfW(szTempFile,
-            sizeof(szTempFile) / sizeof(WCHAR),
+            RTL_NUMBER_OF(szTempFile),
             L"%s__SlxComTestTempFile_%lu.txt",
             szTempPath,
             ++dwFileIndex
@@ -433,7 +433,7 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount) {
 
                     if (hDubHandle != NULL) {
                         threadParam.hDubHandle = hDubHandle;
-                        lstrcpynW(threadParam.szFilePath, L"", sizeof(threadParam.szFilePath) / sizeof(WCHAR));
+                        lstrcpynW(threadParam.szFilePath, L"", RTL_NUMBER_OF(threadParam.szFilePath));
 
                         HANDLE hThread = CreateThread(NULL, 0, QueryFileNameProc, &threadParam, 0, NULL);
 
@@ -450,18 +450,18 @@ FileHandleInfo *GetFileHandleInfos(DWORD *pCount) {
 
                                     pResult[*pCount - 1].dwProcessId = pHandles->aSH[uIndex].uIdProcess;
                                     pResult[*pCount - 1].hFile = (HANDLE)pHandles->aSH[uIndex].Handle;
-                                    lstrcpynW(pResult[*pCount - 1].szFilePath, threadParam.szFilePath, sizeof(pResult[*pCount - 1].szFilePath) / sizeof(WCHAR));
+                                    lstrcpynW(pResult[*pCount - 1].szFilePath, threadParam.szFilePath, RTL_NUMBER_OF(pResult[*pCount - 1].szFilePath));
 
                                     if (!QueryProcessNameFromSnapshot(
                                         hSnapshot,
                                         pResult[*pCount - 1].dwProcessId,
                                         pResult[*pCount - 1].szProcessName,
-                                        sizeof(pResult[*pCount - 1].szProcessName) / sizeof(WCHAR)
+                                        RTL_NUMBER_OF(pResult[*pCount - 1].szProcessName)
                                         )) {
                                         lstrcpynW(
                                             pResult[*pCount - 1].szProcessName,
                                             L"",
-                                            sizeof(pResult[*pCount - 1].szProcessName) / sizeof(WCHAR)
+                                            RTL_NUMBER_OF(pResult[*pCount - 1].szProcessName)
                                             );
                                     }
                                 }

@@ -66,7 +66,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
         SendDlgItemMessageW(hwndDlg, IDOK, BCM_SETSHIELD, 0, TRUE);
         SendDlgItemMessageW(hwndDlg, IDCANCEL, BCM_SETSHIELD, 0, TRUE);
 
-        ModifyAppPath_GetFileCommand((LPCWSTR)lParam, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
+        ModifyAppPath_GetFileCommand((LPCWSTR)lParam, szCommandInReg, RTL_NUMBER_OF(szCommandInReg));
 
         SetDlgItemTextW(hwndDlg, IDC_FILE, (LPCWSTR)lParam);
         SetDlgItemTextW(hwndDlg, IDC_KEY, szCommandInReg);
@@ -75,7 +75,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
             SetDlgItemTextW(hwndDlg, IDC_KEY, PathFindFileNameW((LPCWSTR)lParam));
         }
 
-        SendDlgItemMessageW(hwndDlg, IDC_KEY, EM_SETLIMITTEXT, sizeof(szCommandInReg) / sizeof(WCHAR), 0);
+        SendDlgItemMessageW(hwndDlg, IDC_KEY, EM_SETLIMITTEXT, RTL_NUMBER_OF(szCommandInReg), 0);
 
         return FALSE;
 
@@ -89,14 +89,14 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
             WCHAR szFilePath[MAX_PATH] = L"";
             WCHAR szCommand[MAX_PATH] = L"";
 
-            GetDlgItemTextW(hwndDlg, IDC_FILE, szFilePath, sizeof(szFilePath) / sizeof(WCHAR));
-            GetDlgItemTextW(hwndDlg, IDC_KEY, szCommand, sizeof(szCommand) / sizeof(WCHAR));
-            ModifyAppPath_GetFileCommand(szFilePath, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
+            GetDlgItemTextW(hwndDlg, IDC_FILE, szFilePath, RTL_NUMBER_OF(szFilePath));
+            GetDlgItemTextW(hwndDlg, IDC_KEY, szCommand, RTL_NUMBER_OF(szCommand));
+            ModifyAppPath_GetFileCommand(szFilePath, szCommandInReg, RTL_NUMBER_OF(szCommandInReg));
 
             if (lstrlenW(szCommandInReg) > 0) {
                 wnsprintfW(
                     szRegPath,
-                    sizeof(szRegPath) / sizeof(WCHAR),
+                    RTL_NUMBER_OF(szRegPath),
                     L"%s\\%s",
                     APPPATH_PATH,
                     szCommandInReg
@@ -115,7 +115,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         L"«Î»∑»œ",
                         MB_ICONQUESTION | MB_YESNO
                         )) {
-                        StrCatBuffW(szCommand, L".exe", sizeof(szCommand) / sizeof(WCHAR));
+                        StrCatBuffW(szCommand, L".exe", RTL_NUMBER_OF(szCommand));
                         SetDlgItemTextW(hwndDlg, IDC_KEY, szCommand);
                     }
                 }
@@ -124,7 +124,7 @@ INT_PTR CALLBACK ModifyAppPathProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
                 wnsprintfW(
                     szRegPath,
-                    sizeof(szRegPath) / sizeof(WCHAR),
+                    RTL_NUMBER_OF(szRegPath),
                     L"%s\\%s",
                     APPPATH_PATH,
                     szCommand

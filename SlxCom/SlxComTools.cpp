@@ -370,7 +370,7 @@ INT_PTR CALLBACK RunCommandWithArgumentsProc(HWND hwndDlg, UINT uMsg, WPARAM wPa
                 } else {
                     WCHAR szErrorMessage[200];
 
-                    wnsprintfW(szErrorMessage, sizeof(szErrorMessage) / sizeof(WCHAR), L"无法启动进程，错误码%lu", GetLastError());
+                    wnsprintfW(szErrorMessage, RTL_NUMBER_OF(szErrorMessage), L"无法启动进程，错误码%lu", GetLastError());
 
                     MessageBoxW(hwndDlg, szErrorMessage, NULL, MB_ICONERROR);
 
@@ -630,7 +630,7 @@ BOOL BrowseForFile(LPCWSTR lpFile) {
 
         GetWindowsDirectoryW(szExplorerPath, MAX_PATH);
         PathAppendW(szExplorerPath, L"\\Explorer.exe");
-        wnsprintfW(szCommandLine, sizeof(szCommandLine) / sizeof(WCHAR), L"%s /n,/select,\"%s\"", szExplorerPath, lpFile);
+        wnsprintfW(szCommandLine, RTL_NUMBER_OF(szCommandLine), L"%s /n,/select,\"%s\"", szExplorerPath, lpFile);
 
         OutputDebugStringW(L"BrowseForFile by starting new explorer.exe\r\n");
 
@@ -704,7 +704,7 @@ BOOL BrowseForFile(LPCWSTR lpFile) {
 //                                         WCHAR szFilePath[MAX_PATH];
 //                                         DWORD dwFileAttributes = INVALID_FILE_ATTRIBUTES;
 //
-//                                         wnsprintfW(szFilePath, sizeof(szFilePath) / sizeof(WCHAR), L"%ls", ppArgv[1]);
+//                                         wnsprintfW(szFilePath, RTL_NUMBER_OF(szFilePath), L"%ls", ppArgv[1]);
 //
 //                                         dwFileAttributes = GetFileAttributesW(szFilePath);
 //
@@ -860,9 +860,9 @@ BOOL ResolveShortcut(LPCWSTR lpLinkFilePath, WCHAR szResolvedPath[], UINT nSize)
 
     if (PathFileExistsW(lpLinkFilePath)) {
 #ifdef UNICODE
-        wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%s", lpLinkFilePath);
+        wnsprintfW(szLinkFilePath, RTL_NUMBER_OF(szLinkFilePath), L"%s", lpLinkFilePath);
 #else
-        wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%S", lpLinkFilePath);
+        wnsprintfW(szLinkFilePath, RTL_NUMBER_OF(szLinkFilePath), L"%S", lpLinkFilePath);
 #endif
 
         if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&pShellLink))) {
@@ -899,7 +899,7 @@ VOID ShowErrorMessage(HWND hWindow, DWORD dwErrorCode) {
     if (lpMessage != NULL) {
         wnsprintfW(
             szMessage,
-            sizeof(szMessage) / sizeof(WCHAR),
+            RTL_NUMBER_OF(szMessage),
             L"错误码：%lu\r\n\r\n参考意义：%s",
             dwErrorCode,
             lpMessage
@@ -1090,7 +1090,7 @@ int MessageBoxFormat(HWND hWindow, LPCWSTR lpCaption, UINT uType, LPCWSTR lpForm
     va_list val;
 
     va_start(val, lpFormat);
-    wvnsprintfW(szText, sizeof(szText) / sizeof(WCHAR), lpFormat, val);
+    wvnsprintfW(szText, RTL_NUMBER_OF(szText), lpFormat, val);
     va_end(val);
 
     return MessageBoxW(hWindow, szText, lpCaption, uType);
@@ -1102,10 +1102,10 @@ void WINAPI BrowserLinkFilePosition(HWND hwndStub, HINSTANCE hAppInstance, LPCST
 
     CoInitialize(NULL);
 
-    wnsprintfW(szLinkFilePath, sizeof(szLinkFilePath) / sizeof(WCHAR), L"%hs", lpszCmdLine);
+    wnsprintfW(szLinkFilePath, RTL_NUMBER_OF(szLinkFilePath), L"%hs", lpszCmdLine);
     PathUnquoteSpacesW(szLinkFilePath);
 
-    if (ResolveShortcut(szLinkFilePath, szTargetFilePath, sizeof(szTargetFilePath) / sizeof(WCHAR))) {
+    if (ResolveShortcut(szLinkFilePath, szTargetFilePath, RTL_NUMBER_OF(szTargetFilePath))) {
         BrowseForFile(szTargetFilePath);
     }
 }
@@ -1172,15 +1172,15 @@ BOOL IsSameFilePath(LPCWSTR lpFilePath1, LPCWSTR lpFilePath2) {
     WCHAR szLongFilePath1[MAX_PATH];
     WCHAR szLongFilePath2[MAX_PATH];
 
-    lstrcpynW(szFilePath1, lpFilePath1, sizeof(szFilePath1) / sizeof(WCHAR));
-    lstrcpynW(szFilePath2, lpFilePath2, sizeof(szFilePath2) / sizeof(WCHAR));
+    lstrcpynW(szFilePath1, lpFilePath1, RTL_NUMBER_OF(szFilePath1));
+    lstrcpynW(szFilePath2, lpFilePath2, RTL_NUMBER_OF(szFilePath2));
 
-    if (0 == GetLongPathNameW(szFilePath1, szLongFilePath1, sizeof(szLongFilePath1) / sizeof(WCHAR))) {
-        lstrcpynW(szLongFilePath1, lpFilePath1, sizeof(szLongFilePath1) / sizeof(WCHAR));
+    if (0 == GetLongPathNameW(szFilePath1, szLongFilePath1, RTL_NUMBER_OF(szLongFilePath1))) {
+        lstrcpynW(szLongFilePath1, lpFilePath1, RTL_NUMBER_OF(szLongFilePath1));
     }
 
-    if (0 == GetLongPathNameW(szFilePath2, szLongFilePath2, sizeof(szLongFilePath2) / sizeof(WCHAR))) {
-        lstrcpynW(szLongFilePath2, lpFilePath2, sizeof(szLongFilePath2) / sizeof(WCHAR));
+    if (0 == GetLongPathNameW(szFilePath2, szLongFilePath2, RTL_NUMBER_OF(szLongFilePath2))) {
+        lstrcpynW(szLongFilePath2, lpFilePath2, RTL_NUMBER_OF(szLongFilePath2));
     }
 
     return lstrcmpiW(szLongFilePath1, szLongFilePath2) == 0;
@@ -1436,7 +1436,7 @@ void SafeDebugMessage(LPCWSTR pFormat, ...) {
     va_list pArg;
 
     va_start(pArg, pFormat);
-    wvnsprintfW(szBuffer, sizeof(szBuffer) / sizeof(WCHAR), pFormat, pArg);
+    wvnsprintfW(szBuffer, RTL_NUMBER_OF(szBuffer), pFormat, pArg);
     va_end(pArg);
 
     OutputDebugStringW(szBuffer);

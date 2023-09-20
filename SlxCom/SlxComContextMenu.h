@@ -20,7 +20,7 @@ public:
         bIsJpg = FALSE;
         bIsPicture = FALSE;
         bIsRar = FALSE;
-        lstrcpynW(szPath, L"", sizeof(szPath) / sizeof(WCHAR));
+        lstrcpynW(szPath, L"", RTL_NUMBER_OF(szPath));
     }
 };
 

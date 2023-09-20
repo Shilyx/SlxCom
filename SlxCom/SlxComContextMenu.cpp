@@ -386,12 +386,12 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     //Unescape
                     WCHAR szUnescapedFileName[MAX_PATH];
 
-                    if (TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR))) {
+                    if (TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, RTL_NUMBER_OF(szUnescapedFileName))) {
                         WCHAR szCommandText[MAX_PATH + 100];
 
                         wnsprintfW(
                             szCommandText,
-                            sizeof(szCommandText) / sizeof(WCHAR),
+                            RTL_NUMBER_OF(szCommandText),
                             L"重命名为“%s”",
                             PathFindFileNameW(szUnescapedFileName)
                             );
@@ -403,7 +403,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                     //App path
                     WCHAR szCommandInReg[MAX_PATH] = L"";
 
-                    ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, sizeof(szCommandInReg) / sizeof(WCHAR));
+                    ModifyAppPath_GetFileCommand(m_pFiles[0].szPath, szCommandInReg, RTL_NUMBER_OF(szCommandInReg));
 
                     if (bShiftDown ||
                         lstrcmpiW(PathFindExtensionW(m_pFiles[0].szPath), L".exe") == 0 ||
@@ -414,7 +414,7 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                         if (lstrlenW(szCommandInReg) > 0) {
                             wnsprintfW(
                                 szMenuText,
-                                sizeof(szMenuText) / sizeof(WCHAR),
+                                RTL_NUMBER_OF(szMenuText),
                                 L"修改快捷短语“%s”",
                                 szCommandInReg
                                 );
@@ -669,10 +669,10 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
         STARTUPINFOW si = {sizeof(si)};
         PROCESS_INFORMATION pi;
 
-        GetModuleFileNameW(g_hinstDll, szDllPath, sizeof(szDllPath) / sizeof(WCHAR));
+        GetModuleFileNameW(g_hinstDll, szDllPath, RTL_NUMBER_OF(szDllPath));
         wnsprintfW(
             szCommand,
-            sizeof(szCommand) / sizeof(WCHAR),
+            RTL_NUMBER_OF(szCommand),
             L"rundll32.exe \"%s\" UnlockFileFromPath %s",
             szDllPath,
             m_pFiles[0].szPath
@@ -733,13 +733,13 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
     case ID_TRYRUN: {
         WCHAR szCommandLine[MAX_PATH + 100];
 
-        wnsprintfW(szCommandLine, sizeof(szCommandLine) / sizeof(WCHAR), L"\"%s\"", m_pFiles[0].szPath);
+        wnsprintfW(szCommandLine, RTL_NUMBER_OF(szCommandLine), L"\"%s\"", m_pFiles[0].szPath);
 
         if (IDYES == MessageBoxW(pici->hwnd, L"确定要尝试将此文件作为可执行文件运行吗？", L"请确认", MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3)) {
             if (!RunCommand(szCommandLine)) {
                 WCHAR szErrorMessage[MAX_PATH + 300];
 
-                wnsprintfW(szErrorMessage, sizeof(szErrorMessage) / sizeof(WCHAR), L"无法启动进程，错误码%lu\r\n\r\n%s",
+                wnsprintfW(szErrorMessage, RTL_NUMBER_OF(szErrorMessage), L"无法启动进程，错误码%lu\r\n\r\n%s",
                     GetLastError(), szCommandLine);
 
                 MessageBoxW(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
@@ -806,7 +806,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
         if (!RunCommand(szCommandLine)) {
             WCHAR szErrorMessage[MAX_PATH + 300];
 
-            wnsprintfW(szErrorMessage, sizeof(szErrorMessage) / sizeof(WCHAR), L"无法启动进程，错误码%lu\r\n\r\n%s",
+            wnsprintfW(szErrorMessage, RTL_NUMBER_OF(szErrorMessage), L"无法启动进程，错误码%lu\r\n\r\n%s",
                 GetLastError(), szCommandLine);
 
             MessageBoxW(pici->hwnd, szErrorMessage, NULL, MB_ICONERROR | MB_TOPMOST);
@@ -922,11 +922,11 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
         WCHAR szUnescapedFileName[MAX_PATH];
         WCHAR szMsgText[MAX_PATH + 1000];
 
-        if (TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, sizeof(szUnescapedFileName) / sizeof(WCHAR))) {
+        if (TryUnescapeFileName(m_pFiles[0].szPath, szUnescapedFileName, RTL_NUMBER_OF(szUnescapedFileName))) {
             if (PathFileExistsW(szUnescapedFileName)) {
                 wnsprintfW(
                     szMsgText,
-                    sizeof(szMsgText) / sizeof(WCHAR),
+                    RTL_NUMBER_OF(szMsgText),
                     L"“%s”已存在，是否要先删除？",
                     szUnescapedFileName
                     );
@@ -950,7 +950,7 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
             if (!MoveFileW(m_pFiles[0].szPath, szUnescapedFileName)) {
                 wnsprintfW(
                     szMsgText,
-                    sizeof(szMsgText) / sizeof(WCHAR),
+                    RTL_NUMBER_OF(szMsgText),
                     L"操作失败。\r\n\r\n错误码：%lu",
                     GetLastError()
                     );
@@ -2320,8 +2320,8 @@ BOOL CSlxComContextMenu::ConvertToShortPaths() {
     WCHAR szFilePathTemp[MAX_PATH];
 
     for (UINT uFileIndex = 0; uFileIndex < m_uFileCount; uFileIndex += 1) {
-        GetShortPathNameW(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(WCHAR));
-        lstrcpynW(m_pFiles[uFileIndex].szPath, szFilePathTemp, sizeof(szFilePathTemp) / sizeof(WCHAR));
+        GetShortPathNameW(m_pFiles[uFileIndex].szPath, szFilePathTemp, RTL_NUMBER_OF(szFilePathTemp));
+        lstrcpynW(m_pFiles[uFileIndex].szPath, szFilePathTemp, RTL_NUMBER_OF(szFilePathTemp));
     }
 
     return TRUE;

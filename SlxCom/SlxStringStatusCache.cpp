@@ -141,7 +141,7 @@ BOOL SlxStringStatusCache::CheckCache(LPCWSTR lpString, StringStatus *pssValue) 
 // #ifdef _DEBUG
 //             WCHAR szDebugText[1000];
 //
-//             wnsprintfW(szDebugText, sizeof(szDebugText) / sizeof(WCHAR), L"SlxCom!命中%s\r\n", lpString);
+//             wnsprintfW(szDebugText, RTL_NUMBER_OF(szDebugText), L"SlxCom!命中%s\r\n", lpString);
 //             OutputDebugStringW(szDebugText);
 // #endif
 
@@ -174,7 +174,7 @@ BOOL SlxStringStatusCache::AddCache(LPCWSTR lpString, StringStatus ssValue) {
 // #ifdef _DEBUG
 //     WCHAR szDebugText[1000];
 //
-//     wnsprintfW(szDebugText, sizeof(szDebugText) / sizeof(WCHAR), L"SlxCom!添加%s\r\n", lpString);
+//     wnsprintfW(szDebugText, RTL_NUMBER_OF(szDebugText), L"SlxCom!添加%s\r\n", lpString);
 //     OutputDebugStringW(szDebugText);
 // #endif
 
