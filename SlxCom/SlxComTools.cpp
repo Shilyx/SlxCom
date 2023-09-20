@@ -859,11 +859,7 @@ BOOL ResolveShortcut(LPCWSTR lpLinkFilePath, WCHAR szResolvedPath[], UINT nSize)
     BOOL bResult = FALSE;
 
     if (PathFileExistsW(lpLinkFilePath)) {
-#ifdef UNICODE
-        wnsprintfW(szLinkFilePath, RTL_NUMBER_OF(szLinkFilePath), L"%s", lpLinkFilePath);
-#else
-        wnsprintfW(szLinkFilePath, RTL_NUMBER_OF(szLinkFilePath), L"%S", lpLinkFilePath);
-#endif
+        wnsprintfW(szLinkFilePath, RTL_NUMBER_OF(szLinkFilePath), L"%ls", lpLinkFilePath);
 
         if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&pShellLink))) {
             if (SUCCEEDED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile))) {

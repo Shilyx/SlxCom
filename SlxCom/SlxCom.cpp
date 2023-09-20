@@ -461,49 +461,58 @@ STDAPI DllRegisterServer(void) {
     GetModuleFileNameW(g_hinstDll, szDllPath, MAX_PATH);
     Ensure__old_SlxAddin__NotExists();
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\                              30_%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_LOCAL_MACHINE, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"*\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"*\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\shellex\\DragDropHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\Background\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Drive\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, L"dllfile\\ShellEx\\IconHandler", NULL, REG_SZ, g_lpGuidSlxCom, (lstrlenW(g_lpGuidSlxCom) + 1) * sizeof(WCHAR));
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"CLSID\\%s\\InprocServer32",
         g_lpGuidSlxCom);
     nSumValue += !!SHSetValueW(HKEY_CLASSES_ROOT, szRegPath, NULL, REG_SZ, szDllPath, (lstrlenW(szDllPath) + 1) * sizeof(WCHAR));
@@ -549,47 +558,56 @@ STDAPI DllUnregisterServer(void) {
 
     Ensure__old_SlxAddin__NotExists();
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers\\                              30_%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_LOCAL_MACHINE, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"*\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\shellex\\PropertySheetHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\shellex\\DragDropHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"*\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Directory\\Background\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"Drive\\shellex\\ContextMenuHandlers\\%s",
         APPNAME);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
 
-    wnsprintfW(szRegPath, RTL_NUMBER_OF(szRegPath),
+    wnsprintfW(
+        szRegPath, RTL_NUMBER_OF(szRegPath),
         L"CLSID\\%s",
         g_lpGuidSlxCom);
     nSumValue += !!SHDeleteKeyW(HKEY_CLASSES_ROOT, szRegPath);
