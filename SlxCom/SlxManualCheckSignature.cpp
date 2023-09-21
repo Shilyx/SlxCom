@@ -6,7 +6,7 @@
 #include <map>
 #include "lib/charconv.h"
 #include "SlxComOverlay.h"
-#include "SlxQuickPopupMenu.h"
+#include "lib/QuickPopupMenu.h"
 
 using namespace std;
 
@@ -285,7 +285,7 @@ INT_PTR CALLBACK ManualCheckSignatureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM 
 
                     GetCursorPos(&pt);
 
-                    switch (CSlxQuickPopupMenu()
+                    switch (CQuickPopupMenu()
                             .AddItemIf(L"定位到文件(&B)", IDM_BROWSE_FILE, FALSE, FALSE, FALSE, nSelCount == 1)
                             .AddItemIf(L"去除数字签名(&R)", IDM_REMOVE_SIGNATURE, FALSE, FALSE, FALSE, nSelCount > 0)
                             .Popup(hFileList, pt.x, pt.y)) {

@@ -204,6 +204,7 @@
     <ClCompile Include="DesktopIconManager.cpp" />
     <ClCompile Include="lib\charconv.cpp" />
     <ClCompile Include="lib\GeneralTreeItemW.cpp" />
+    <ClCompile Include="lib\QuickPopupMenu.cpp" />
     <ClCompile Include="lib\ReadonlyFileMapping.cpp" />
     <ClCompile Include="SlxAppPath.cpp" />
     <ClCompile Include="SlxClipboard.cpp" />
@@ -229,7 +230,6 @@
     <ClCompile Include="SlxManualCheckSignature.cpp" />
     <ClCompile Include="SlxPaintView.cpp" />
     <ClCompile Include="SlxPeInformation.cpp" />
-    <ClCompile Include="SlxQuickPopupMenu.cpp" />
     <ClCompile Include="SlxRunDlgPlus.cpp" />
     <ClCompile Include="SlxStringStatusCache.cpp" />
     <ClCompile Include="SlxTimePlate.cpp" />
@@ -255,6 +255,7 @@
     <ClInclude Include="lib\deelx.h" />
     <ClInclude Include="lib\DummyWinTrustDll.h" />
     <ClInclude Include="lib\GeneralTreeItemW.h" />
+    <ClInclude Include="lib\QuickPopupMenu.h" />
     <ClInclude Include="lib\ReadonlyFileMapping.h" />
     <ClInclude Include="lib\StringMatch.h" />
     <ClInclude Include="resource.h" />
@@ -279,7 +280,6 @@
     <ClInclude Include="SlxFileHandles.h" />
     <ClInclude Include="SlxManualCheckSignature.h" />
     <ClInclude Include="SlxPeInformation.h" />
-    <ClInclude Include="SlxQuickPopupMenu.h" />
     <ClInclude Include="SlxRunDlgPlus.h" />
     <ClInclude Include="SlxStringStatusCache.h" />
     <ClInclude Include="SlxTimePlate.h" />

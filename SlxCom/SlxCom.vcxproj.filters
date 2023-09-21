@@ -120,9 +120,6 @@
     <ClCompile Include="lib\ReadonlyFileMapping.cpp">
       <Filter>lib</Filter>
     </ClCompile>
-    <ClCompile Include="SlxQuickPopupMenu.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="SlxComDisableCtrlCopyInSameDir.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -137,6 +134,9 @@
     </ClCompile>
     <ClCompile Include="WindowManager\WindowAppID.cpp">
       <Filter>WindowManager</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\QuickPopupMenu.cpp">
+      <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -244,9 +244,6 @@
     <ClInclude Include="lib\StringMatch.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="SlxQuickPopupMenu.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="SlxComDisableCtrlCopyInSameDir.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -258,6 +255,9 @@
     </ClInclude>
     <ClInclude Include="WindowManager\WindowAppID.h">
       <Filter>WindowManager</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\QuickPopupMenu.h">
+      <Filter>lib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

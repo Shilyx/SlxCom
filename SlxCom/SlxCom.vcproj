@@ -451,10 +451,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SlxQuickPopupMenu.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\SlxRunDlgPlus.cpp"
 				>
 			</File>
@@ -566,10 +562,6 @@
 			</File>
 			<File
 				RelativePath=".\SlxPeInformation.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SlxQuickPopupMenu.h"
 				>
 			</File>
 			<File
@@ -777,6 +769,14 @@
 			</File>
 			<File
 				RelativePath=".\lib\GeneralTreeItemW.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\QuickPopupMenu.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\QuickPopupMenu.h"
 				>
 			</File>
 			<File
