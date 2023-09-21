@@ -451,9 +451,10 @@ public:
                 m_hWindow,
                 L"窗口管理器可以快捷的管理各个顶层窗口（非子窗口），可以右击顶层窗口获得快捷菜单。\r\n"
                 L"\r\n"
-                L"窗口管理器可以将前端窗口最小化到系统托盘，快捷键为：\r\n"
-                L"隐藏前端窗口到托盘，Alt+Ctrl(Shift)+H\r\n"
+                L"窗口管理器可以针对前端窗口做出多种快捷操作，快捷键为：\r\n"
+                L"停止在任务栏分组窗口，Alt+Ctrl(Shift)+G\r\n"
                 L"置顶前端窗口，Alt+Ctrl(Shift)+T\r\n"
+                L"隐藏前端窗口到托盘，Alt+Ctrl(Shift)+H\r\n"
                 L"在托盘创建前端窗口的图标，Alt+Ctrl(Shift)+C\r\n",
                 L"SlxCom WindowManager",
                 MB_ICONINFORMATION | MB_TOPMOST
