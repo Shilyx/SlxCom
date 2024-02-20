@@ -850,7 +850,10 @@ static LRESULT __stdcall NotifyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         nid.uFlags = NIF_TIP | NIF_MESSAGE | NIF_ICON;
         lstrcpynW(nid.szTip, L"SlxCom", sizeof(nid.szTip));
 
-        Shell_NotifyIconW(NIM_ADD, &nid);
+        // 0x80004005 if too early
+        while (!Shell_NotifyIconW(NIM_ADD, &nid)) {
+            Sleep(1000);
+        }
 
         //
         if (cfglGetBool(L"DisableCtrlCopyInSameDir")) {
