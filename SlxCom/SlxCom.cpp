@@ -53,6 +53,7 @@ HBITMAP g_hCopyPictureHtmlBmp = NULL;
 HBITMAP g_hCreateLinkBmp = NULL;
 HBITMAP g_hEdfBmp = NULL;
 HBITMAP g_hLocateBmp = NULL;
+HBITMAP g_hClipboardBmp = NULL;
 OSVERSIONINFO g_osi = {sizeof(g_osi)};
 BOOL g_bVistaLater = FALSE;
 BOOL g_bXPLater = FALSE;
@@ -371,6 +372,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
         g_hCreateLinkBmp            = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CREATELINK));
         g_hEdfBmp                   = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_EDF));
         g_hLocateBmp                = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_LOCATE));
+		g_hClipboardBmp             = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CLIPBOARD));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

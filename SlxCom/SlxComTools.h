@@ -105,6 +105,12 @@ std::wstring fmtW(const wchar_t *fmt, ...);
 LPSYSTEMTIME Time1970ToLocalTime(DWORD dwTime1970, LPSYSTEMTIME lpSt);
 HRESULT SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv);
 
+void InitGdiplus();
+BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID* pClsid);
+BOOL ClipboardDataExist(BOOL& bHasImage);
+BOOL SaveClipboardImageAsPng(HWND hWindow, LPCWSTR lpImageFilePath);
+BOOL SaveClipboardImageAsPngToDir(HWND hWindow, LPCWSTR lpDirectory, std::wstring& strFilePath);
+
 template <class T>
 std::wstring AnyTypeToString(const T &value) {
     std::wstringstream ss;

@@ -10,6 +10,7 @@
 #include <TlHelp32.h>
 #include <PsApi.h>
 #include <shlobj.h>
+#include <gdiplus.h>
 #pragma warning(disable: 4786)
 #include <set>
 #include <iomanip>
@@ -20,6 +21,7 @@
 #include "SlxElevateBridge.h"
 
 using namespace std;
+using namespace Gdiplus;
 
 #pragma comment(lib, "Wintrust.lib")
 #pragma comment(lib, "PsApi.lib")
@@ -2240,6 +2242,110 @@ HRESULT SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv) {
     }
 
     return funcSHGetPropertyStoreForWindow(hwnd, riid, ppv);
+}
+
+void InitGdiplus() {
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+}
+
+BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID* pClsid) {
+	UINT uNum = 0;
+	UINT uIndex = 0;
+	UINT uSize = 0;
+	HANDLE hHeap = NULL;
+	ImageCodecInfo *pImageCodecInfo = NULL;
+
+	GetImageEncodersSize(&uNum, &uSize);
+
+	if (uSize != 0) {
+		hHeap = GetProcessHeap();
+		pImageCodecInfo = (ImageCodecInfo*)HeapAlloc(hHeap, 0, uSize);
+
+		if (pImageCodecInfo != NULL) {
+			GetImageEncoders(uNum, uSize, pImageCodecInfo);
+
+			for (; uIndex < uNum; uIndex += 1) {
+				if (lstrcmpW(pImageCodecInfo[uIndex].MimeType, lpFormat) == 0) {
+					*pClsid = pImageCodecInfo[uIndex].Clsid;
+					break;
+				}
+			}
+
+			HeapFree(hHeap, 0, pImageCodecInfo);
+		}
+	}
+
+	return uIndex < uNum;
+}
+
+BOOL ClipboardDataExist(BOOL& bHasImage) {
+	BOOL bExist = FALSE;
+	bHasImage = FALSE;
+
+	if (OpenClipboard(NULL)) {
+		bExist = CountClipboardFormats() > 0;
+		if (bExist) {
+			bHasImage = IsClipboardFormatAvailable(CF_BITMAP);
+		}
+
+		CloseClipboard();
+	}
+
+	return bExist;
+}
+
+BOOL SaveClipboardImageAsPng(HWND hWindow, LPCWSTR lpImageFilePath) {
+	BOOL bSuccess = FALSE;
+
+	InitGdiplus();
+
+	if (OpenClipboard(hWindow)) {
+		HBITMAP hBitmap = (HBITMAP)GetClipboardData(CF_BITMAP);
+		if (hBitmap != NULL) { // could be NULL since the 'new' operator of gdiplus is overrided
+			Gdiplus::Bitmap *pBmp = Gdiplus::Bitmap::FromHBITMAP(hBitmap, NULL);
+			if (pBmp->GetLastStatus() == Gdiplus::Ok) {
+				std::wstring imagePath(lpImageFilePath);
+
+				if (imagePath.find(L".png") == std::wstring::npos) {
+					imagePath += L".png"; // Ensure the file has a .png extension
+				}
+
+				CLSID clsidPng;
+				if (GetEncoderClsid(L"image/png", &clsidPng)) {
+					if (pBmp->Save(imagePath.c_str(), &clsidPng) == Gdiplus::Ok) {
+						bSuccess = TRUE;
+					}
+				}
+			}
+
+			delete pBmp;
+		}
+
+		CloseClipboard();
+	}
+
+	return bSuccess;
+}
+
+BOOL SaveClipboardImageAsPngToDir(HWND hWindow, LPCWSTR lpDirectory, std::wstring& strFilePath) {
+	WCHAR szFilePath[1024] = L"";
+	SYSTEMTIME st;
+
+	GetLocalTime(&st);
+	wstring strFileName = fmtW(
+		L"slxcom_clipboard_image_%04d%02d%02d_%02d%02d%02d_%03d.png",
+		st.wYear, st.wMonth, st.wDay,
+		st.wHour, st.wMinute, st.wSecond,
+		st.wMilliseconds);
+
+	lstrcpynW(szFilePath, lpDirectory, RTL_NUMBER_OF(szFilePath));
+	PathAddBackslashW(szFilePath);
+	StrCatBuffW(szFilePath, strFileName.c_str(), RTL_NUMBER_OF(szFilePath));
+
+	strFilePath = szFilePath;
+	return SaveClipboardImageAsPng(hWindow, szFilePath);
 }
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow) {

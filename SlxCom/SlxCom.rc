@@ -122,6 +122,7 @@ IDB_ABOUT_LOGO          BITMAP                  "res\\AboutLogo.bmp"
 IDB_CREATELINK          BITMAP                  "res\\CreateLink.bmp"
 IDB_EDF                 BITMAP                  "res\\Edf.bmp"
 IDB_LOCATE              BITMAP                  "res\\Locate.bmp"
+IDB_CLIPBOARD           BITMAP                  "res\\Clipboard.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

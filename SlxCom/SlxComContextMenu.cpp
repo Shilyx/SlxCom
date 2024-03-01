@@ -45,6 +45,7 @@ extern HBITMAP g_hCopyPictureHtmlBmp;
 extern HBITMAP g_hCreateLinkBmp;
 extern HBITMAP g_hEdfBmp;
 extern HBITMAP g_hLocateBmp;
+extern HBITMAP g_hClipboardBmp;
 extern BOOL g_bVistaLater;
 extern BOOL g_bElevated;
 extern BOOL g_bHasWin10Bash;
@@ -255,6 +256,8 @@ enum {
     ID_EXPAND_DIR_FILES,
     ID_UNEXPAND_DIR_FILES,
     ID_LOCATE_EXPAND_SOURCE_FILE,
+	ID_CLIPBOARD_DUMP,
+	ID_CLIPBOARD_IMAGE,
     IDCOUNT,
 };
 
@@ -453,6 +456,20 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                         InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_RUNBASHHERE, L"在此处运行Bash");
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNBASHHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
                     }
+
+					// 
+					BOOL bHasImageInClipboard = FALSE;
+					if (ClipboardDataExist(bHasImageInClipboard)) {
+						//// 转存剪贴板内容
+						//InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CLIPBOARD_DUMP, L"转存剪贴板内容");
+						//SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CLIPBOARD_DUMP, MF_BYCOMMAND, g_hClipboardBmp, g_hClipboardBmp);
+
+						if (bHasImageInClipboard) {
+							// 转存剪贴板图片
+							InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CLIPBOARD_IMAGE, L"转存剪贴板图片");
+							SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CLIPBOARD_IMAGE, MF_BYCOMMAND, g_hClipboardBmp, g_hClipboardBmp);
+						}
+					}
                 }
 
                 if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
@@ -1057,6 +1074,19 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
             EdfDoUnexpand(m_strInputFolder.c_str());
         }
         break;
+
+	case ID_CLIPBOARD_DUMP:
+		break;
+
+	case ID_CLIPBOARD_IMAGE: {
+			wstring strFilePath;
+			if (SaveClipboardImageAsPngToDir(pici->hwnd, m_pFiles[0].szPath, strFilePath)) {
+				BrowseForFile(strFilePath.c_str());
+			} else {
+				MessageBoxW(pici->hwnd, L"保存剪贴板图片失败。", NULL, MB_ICONERROR);
+			}
+		}
+		break;
 
     default:
         return E_INVALIDARG;

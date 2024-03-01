@@ -303,6 +303,7 @@
     <Image Include="res\bird\8.ico" />
     <Image Include="res\bird\9.ico" />
     <Image Include="res\CheckSignature.bmp" />
+    <Image Include="res\Clipboard.bmp" />
     <Image Include="res\Combine.bmp" />
     <Image Include="res\CopyFullPath.bmp" />
     <Image Include="res\CopyPictureHtml.bmp" />

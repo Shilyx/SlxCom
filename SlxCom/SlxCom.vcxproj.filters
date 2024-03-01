@@ -368,6 +368,9 @@
     <Image Include="res\bird\1.ico">
       <Filter>资源文件\bird</Filter>
     </Image>
+    <Image Include="res\Clipboard.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Font Include="res\DS-DIGIB.TTF">

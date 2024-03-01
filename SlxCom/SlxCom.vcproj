@@ -608,6 +608,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\Clipboard.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\Combine.bmp"
 				>
 			</File>
