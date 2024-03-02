@@ -138,6 +138,9 @@
     <ClCompile Include="lib\QuickPopupMenu.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="lib\SlxBase64.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -257,6 +260,9 @@
       <Filter>WindowManager</Filter>
     </ClInclude>
     <ClInclude Include="lib\QuickPopupMenu.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\SlxBase64.hxx">
       <Filter>lib</Filter>
     </ClInclude>
   </ItemGroup>

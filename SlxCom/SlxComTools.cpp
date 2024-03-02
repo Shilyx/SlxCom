@@ -18,6 +18,7 @@
 #include <sstream>
 #include "lib/charconv.h"
 #include "lib/DummyWinTrustDll.h"
+#include "lib/SlxBase64.hxx"
 #include "SlxElevateBridge.h"
 
 using namespace std;
@@ -1896,6 +1897,87 @@ HRESULT SHGetNameFromIDListHelper(PCIDLIST_ABSOLUTE pidl, SIGDN sigdnName, PWSTR
     return func(pidl, sigdnName, ppszName);
 }
 
+BOOL PathIsExistingDirectory(LPCWSTR lpFilePath) {
+    DWORD dwFileAttributes = GetFileAttributesW(lpFilePath);
+    return (dwFileAttributes != INVALID_FILE_ATTRIBUTES) && (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+}
+
+BOOL PathIsExistingFile(LPCWSTR lpFilePath) {
+    DWORD dwFileAttributes = GetFileAttributesW(lpFilePath);
+    return (dwFileAttributes != INVALID_FILE_ATTRIBUTES) && (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+}
+
+BOOL PathGetFileSize(LPCWSTR lpFilePath, ULONGLONG* pFileSizeHigh) {
+    WIN32_FILE_ATTRIBUTE_DATA wfad;
+
+    if (!GetFileAttributesExW(lpFilePath, GetFileExInfoStandard, &wfad)) {
+        return FALSE;
+    }
+
+    ULARGE_INTEGER uliFileSize;
+    uliFileSize.LowPart = wfad.nFileSizeLow;
+    uliFileSize.HighPart = wfad.nFileSizeHigh;
+    *pFileSizeHigh = uliFileSize.QuadPart;
+
+    return TRUE;
+}
+
+BOOL TextIsBase64W(LPCWSTR lpText) {
+    if (lpText == NULL || *lpText == 0) {
+        return FALSE;
+    }
+
+    for (LPCWSTR p = lpText; *p; p++) {
+        WCHAR ch = *p;
+
+        if (ch >= L'A' && ch <= L'Z' ||
+            ch >= L'a' && ch <= L'z' ||
+            ch >= L'0' && ch <= L'9' ||
+            ch == L'+' ||
+            ch == L'/' ||
+            ch == L'=' ||
+            ch == L'\r' ||
+            ch == L'\n')
+        {
+            continue;
+        }
+
+        return FALSE;
+    }
+
+    string strInput = WtoU(lpText);
+    Replace<char>(strInput, "\r", "");
+    Replace<char>(strInput, "\n", "");
+    return Base64Encode(Base64Decode(strInput)) == strInput;
+}
+
+BOOL TextIsHexW(LPCWSTR lpText) {
+    if (lpText == NULL || *lpText == 0) {
+        return FALSE;
+    }
+
+    int nNumCount = 0;
+    for (LPCWSTR p = lpText; *p; p++) {
+        WCHAR ch = *p;
+
+        if (ch >= L'A' && ch <= L'F' ||
+            ch >= L'a' && ch <= L'f' ||
+            ch >= L'0' && ch <= L'9')
+        {
+            nNumCount++;
+            continue;
+        }
+
+        if (ch == L' ' || ch == L'\t' || ch == L'\r' || ch == L'\n') {
+            continue;
+        }
+
+        return FALSE;
+    }
+
+    return nNumCount > 0 && nNumCount % 2 == 0;
+}
+
 BOOL SetWindowUnalphaValue(HWND hWindow, WindowUnalphaValue nValue) {
     DWORD dwExStyle = (DWORD)GetWindowLongPtr(hWindow, GWL_EXSTYLE);
 
@@ -2346,6 +2428,44 @@ BOOL SaveClipboardImageAsPngToDir(HWND hWindow, LPCWSTR lpDirectory, std::wstrin
 
 	strFilePath = szFilePath;
 	return SaveClipboardImageAsPng(hWindow, szFilePath);
+}
+
+string HexEncode(const string& strInput) {
+    ostringstream oss;
+    oss << hex << uppercase << setfill('0');
+
+    for (string::const_iterator it = strInput.begin(); it != strInput.end(); ++it) {
+        oss << setw(2) << static_cast<unsigned int>(*it);
+    }
+
+    return oss.str();
+}
+
+string HexDecode_Throw(const string& strInput) { // allow \r \n \t space
+    string result;
+    result.reserve(strInput.length() / 2);
+
+    string strInputCopy = strInput;
+    Replace<char>(strInputCopy, "\r", "");
+    Replace<char>(strInputCopy, "\n", "");
+    Replace<char>(strInputCopy, "\t", "");
+    Replace<char>(strInputCopy, " ", "");
+
+    for (size_t i = 0; i < strInputCopy.length(); i += 2) {
+        if (i + 1 >= strInputCopy.length()) {
+            throw invalid_argument("Invalid hexadecimal string length");
+        }
+
+        istringstream iss(strInputCopy.substr(i, 2));
+        int value;
+        if (!(iss >> hex >> value)) {
+            throw invalid_argument("Invalid hexadecimal character");
+        }
+
+        result.push_back(static_cast<char>(value));
+    }
+
+    return result;
 }
 
 void WINAPI T2(HWND hwndStub, HINSTANCE hAppInstance, LPCSTR lpszCmdLine, int nCmdShow) {

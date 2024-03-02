@@ -83,6 +83,11 @@ bool CreateHardLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 bool CreateSoftLinkHelperW(LPCWSTR lpSrcFilePath, LPCWSTR lpDestDirectory);
 void AutoCloseMessageBoxForThreadInSeconds(DWORD dwThreadId, int nSeconds);
 HRESULT SHGetNameFromIDListHelper(PCIDLIST_ABSOLUTE pidl, SIGDN sigdnName, PWSTR* ppszName);
+BOOL PathIsExistingDirectory(LPCWSTR lpFilePath);
+BOOL PathIsExistingFile(LPCWSTR lpFilePath);
+BOOL PathGetFileSize(LPCWSTR lpFilePath, ULONGLONG* pFileSizeHigh);
+BOOL TextIsBase64W(LPCWSTR lpText); // allow \r \n
+BOOL TextIsHexW(LPCWSTR lpText); // allow \r \n \t space
 
 enum WindowUnalphaValue {
     WUV100 = 255,
@@ -110,6 +115,9 @@ BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID* pClsid);
 BOOL ClipboardDataExist(BOOL& bHasImage);
 BOOL SaveClipboardImageAsPng(HWND hWindow, LPCWSTR lpImageFilePath);
 BOOL SaveClipboardImageAsPngToDir(HWND hWindow, LPCWSTR lpDirectory, std::wstring& strFilePath);
+
+std::string HexEncode(const std::string& strInput);
+std::string HexDecode_Throw(const std::string& strInput); // allow \r \n \t space
 
 template <class T>
 std::wstring AnyTypeToString(const T &value) {

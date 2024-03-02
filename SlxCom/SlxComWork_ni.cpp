@@ -13,6 +13,7 @@
 #include "SlxComConfigLight.h"
 #include "SlxComDisableCtrlCopyInSameDir.h"
 #include "lib/StringMatch.h"
+#include "lib/SlxBase64.hxx"
 
 using namespace std;
 using namespace tr1;
@@ -132,11 +133,17 @@ protected:
 // ping地址
 enum CBType {
     CT_NONE = 0x0,
-    CT_ESCAPE_STRING = 0x1,
-    CT_LOCATE_REGPATH = 0x2,
-    CT_LOCATE_FILEPATH = 0x4,
-    CT_BROWSE_WEB_ADDRESS = 0x8,
-    CT_PING_IP_ADDRESS = 0x10,
+    CT_ESCAPE_STRING        = ULONG(1) << 0,
+    CT_LOCATE_REGPATH       = ULONG(1) << 1,
+    CT_LOCATE_FILEPATH      = ULONG(1) << 2,
+    CT_BROWSE_WEB_ADDRESS   = ULONG(1) << 3,
+    CT_PING_IP_ADDRESS      = ULONG(1) << 4,
+    CT_TOBASE64             = ULONG(1) << 5,
+    CT_UNBASE64             = ULONG(1) << 6,
+    CT_UNBASE64_TOFILE      = ULONG(1) << 7,
+    CT_TOHEX                = ULONG(1) << 8,
+    CT_UNHEX                = ULONG(1) << 9,
+    CT_UNHEX_TOFILE         = ULONG(1) << 10,
 };
 
 class MenuItemClipboardW : public MenuItem {
@@ -175,6 +182,45 @@ public:
 
         case CT_PING_IP_ADDRESS:
             ShellExecuteW(hWindow, L"open", L"cmd", (L"/c ping " + m_strText + L" -t").c_str(), NULL, SW_SHOW);
+            break;
+
+        case CT_TOBASE64:
+            SetClipboardText(UtoW(Base64Encode(WtoU(m_strText))).c_str());
+            break;
+
+        case CT_UNBASE64:
+        case CT_UNBASE64_TOFILE: {
+                wstring strText = m_strText;
+                Replace<wchar_t>(strText, L"\r", L"");
+                Replace<wchar_t>(strText, L"\n", L"");
+                string strData = Base64Decode(WtoU(strText));
+
+                if (m_cbType == CT_UNBASE64) {
+                    SetClipboardText(UtoW(strData).c_str());
+                } else {
+                    
+                }
+            }
+
+            break;
+
+        case CT_TOHEX:
+            SetClipboardText(UtoW(HexEncode(WtoU(m_strText))).c_str());
+            break;
+
+        case CT_UNHEX:
+        case CT_UNHEX_TOFILE:
+            try {
+                string strData = HexDecode_Throw(WtoU(m_strText));
+
+                if (m_cbType == CT_UNBASE64) {
+                    SetClipboardText(UtoW(strData).c_str());
+                } else {
+
+                }
+            } catch (std::exception ex) {
+                MessageBoxFormat(NULL, NULL, MB_ICONERROR, L"转码中出现异常 %hs", ex.what());
+            }
             break;
 
         default:
@@ -219,8 +265,42 @@ public:
             strMenuItemText += strSubText;
             break;
 
+        case CT_TOBASE64:
+            strMenuItemText = L"转化为base64\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_UNBASE64:
+            strMenuItemText = L"解析base64\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_UNBASE64_TOFILE:
+            strMenuItemText = L"解析base64到文件\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_TOHEX:
+            strMenuItemText = L"转化为hex\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_UNHEX:
+            strMenuItemText = L"解析hex\t";
+            strMenuItemText += strSubText;
+            break;
+
+        case CT_UNHEX_TOFILE:
+            strMenuItemText = L"解析hex到文件\t";
+            strMenuItemText += strSubText;
+            break;
+
         default:
             break;
+        }
+
+        if (strMenuItemText.length() > 100) {
+            strMenuItemText = strMenuItemText.substr(0, 100) + L"....";
         }
 
         return strMenuItemText;
@@ -230,7 +310,7 @@ public:
         bool bSucceed = false;
 
         if (OpenClipboard(NULL)) {
-            if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
+            if (!bSucceed && IsClipboardFormatAvailable(CF_UNICODETEXT)) {
                 HGLOBAL hData = (HGLOBAL)GetClipboardData(CF_UNICODETEXT);
 
                 if (hData) {
@@ -241,6 +321,29 @@ public:
                         GlobalUnlock(hData);
 
                         bSucceed = !strText.empty();
+                    }
+                }
+            }
+
+            if (!bSucceed && IsClipboardFormatAvailable(CF_HDROP)) {
+                HANDLE hData = GetClipboardData(CF_HDROP);
+
+                if (hData != NULL) {
+                    HDROP hDrop = (HDROP)GlobalLock(hData);
+
+                    if (hDrop) {
+                        WCHAR szFilePath[MAX_PATH] = L"";
+                        if (DragQueryFileW(hDrop, -1, szFilePath, RTL_NUMBER_OF(szFilePath)) == 1) {
+                            if (DragQueryFileW(hDrop, 0, szFilePath, RTL_NUMBER_OF(szFilePath))) {
+                                DWORD dwFileAttributes = GetFileAttributesW(szFilePath);
+                                if (dwFileAttributes != INVALID_FILE_ATTRIBUTES && (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+                                    AssignString(strText, szFilePath);
+                                    bSucceed = !strText.empty();
+                                }
+                            }
+                        }
+
+                        GlobalUnlock(hDrop);
                     }
                 }
             }
@@ -273,6 +376,24 @@ public:
             // ((https?|ftp)://)?[\w\-]+(\.[\w\-]+)*?(\.[\w\-]{1,5})(:\d{1,5})?(/[^/]+)*/?
             else if (SmMatchExact(strText.c_str(), L"((https?|ftp)://)?[\\w\\-]+(\\.[\\w\\-]+)*?(\\.[\\w\\-]{1,5})(:\\d{1,5})?(/[^/]+)*/?", true)) {
                 (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
+            }
+
+            if (strText.length() > 0) {
+                (unsigned &)cbType |= CT_TOBASE64;
+            }
+
+            if (TextIsBase64W(strText.c_str())) {
+                (unsigned &)cbType |= CT_UNBASE64;
+                (unsigned &)cbType |= CT_UNBASE64_TOFILE;
+            }
+
+            if (strText.length() > 0) {
+                (unsigned &)cbType |= CT_TOHEX;
+            }
+
+            if (TextIsHexW(strText.c_str())) {
+                (unsigned &)cbType |= CT_UNHEX;
+                (unsigned &)cbType |= CT_UNHEX_TOFILE;
             }
         }
 

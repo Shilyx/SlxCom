@@ -206,6 +206,7 @@
     <ClCompile Include="lib\GeneralTreeItemW.cpp" />
     <ClCompile Include="lib\QuickPopupMenu.cpp" />
     <ClCompile Include="lib\ReadonlyFileMapping.cpp" />
+    <ClCompile Include="lib\SlxBase64.cpp" />
     <ClCompile Include="SlxAppPath.cpp" />
     <ClCompile Include="SlxClipboard.cpp" />
     <ClCompile Include="SlxCom.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="lib\GeneralTreeItemW.h" />
     <ClInclude Include="lib\QuickPopupMenu.h" />
     <ClInclude Include="lib\ReadonlyFileMapping.h" />
+    <ClInclude Include="lib\SlxBase64.hxx" />
     <ClInclude Include="lib\StringMatch.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SlxAppPath.h" />
