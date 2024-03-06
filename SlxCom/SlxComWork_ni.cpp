@@ -378,22 +378,18 @@ public:
                 (unsigned &)cbType |= CT_BROWSE_WEB_ADDRESS;
             }
 
-            if (strText.length() > 0) {
-                (unsigned &)cbType |= CT_TOBASE64;
-            }
-
             if (TextIsBase64W(strText.c_str())) {
                 (unsigned &)cbType |= CT_UNBASE64;
                 (unsigned &)cbType |= CT_UNBASE64_TOFILE;
-            }
-
-            if (strText.length() > 0) {
-                (unsigned &)cbType |= CT_TOHEX;
+            } else if (strText.length() > 0) {
+                (unsigned &)cbType |= CT_TOBASE64;
             }
 
             if (TextIsHexW(strText.c_str())) {
                 (unsigned &)cbType |= CT_UNHEX;
                 (unsigned &)cbType |= CT_UNHEX_TOFILE;
+            } else if (strText.length() > 0) {
+                (unsigned &)cbType |= CT_TOHEX;
             }
         }
 

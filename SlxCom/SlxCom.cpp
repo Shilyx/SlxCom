@@ -372,7 +372,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
         g_hCreateLinkBmp            = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CREATELINK));
         g_hEdfBmp                   = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_EDF));
         g_hLocateBmp                = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_LOCATE));
-		g_hClipboardBmp             = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CLIPBOARD));
+        g_hClipboardBmp             = LoadBitmapW(hInstance, MAKEINTRESOURCEW(IDB_CLIPBOARD));
 
         DisableThreadLibraryCalls(hInstance);
         SlxWork(hInstance);

@@ -256,8 +256,8 @@ enum {
     ID_EXPAND_DIR_FILES,
     ID_UNEXPAND_DIR_FILES,
     ID_LOCATE_EXPAND_SOURCE_FILE,
-	ID_CLIPBOARD_DUMP,
-	ID_CLIPBOARD_IMAGE,
+    ID_CLIPBOARD_DUMP,
+    ID_CLIPBOARD_IMAGE,
     IDCOUNT,
 };
 
@@ -457,19 +457,19 @@ STDMETHODIMP CSlxComContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu, U
                         SetMenuItemBitmaps(hmenu, idCmdFirst + ID_RUNBASHHERE, MF_BYCOMMAND, g_hRunCmdHereBmp, g_hRunCmdHereBmp);
                     }
 
-					// 
-					BOOL bHasImageInClipboard = FALSE;
-					if (ClipboardDataExist(bHasImageInClipboard)) {
-						//// ×ª´æ¼ôÌù°åÄÚÈÝ
-						//InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CLIPBOARD_DUMP, L"×ª´æ¼ôÌù°åÄÚÈÝ");
-						//SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CLIPBOARD_DUMP, MF_BYCOMMAND, g_hClipboardBmp, g_hClipboardBmp);
+                    // 
+                    BOOL bHasImageInClipboard = FALSE;
+                    if (ClipboardDataExist(bHasImageInClipboard)) {
+                        //// ×ª´æ¼ôÌù°åÄÚÈÝ
+                        //InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CLIPBOARD_DUMP, L"×ª´æ¼ôÌù°åÄÚÈÝ");
+                        //SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CLIPBOARD_DUMP, MF_BYCOMMAND, g_hClipboardBmp, g_hClipboardBmp);
 
-						if (bHasImageInClipboard) {
-							// ×ª´æ¼ôÌù°åÍ¼Æ¬
-							InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CLIPBOARD_IMAGE, L"×ª´æ¼ôÌù°åÍ¼Æ¬");
-							SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CLIPBOARD_IMAGE, MF_BYCOMMAND, g_hClipboardBmp, g_hClipboardBmp);
-						}
-					}
+                        if (bHasImageInClipboard) {
+                            // ×ª´æ¼ôÌù°åÍ¼Æ¬
+                            InsertMenuW(hmenu, indexMenu + uMenuIndex++, MF_BYPOSITION | MF_STRING, idCmdFirst + ID_CLIPBOARD_IMAGE, L"×ª´æ¼ôÌù°åÍ¼Æ¬");
+                            SetMenuItemBitmaps(hmenu, idCmdFirst + ID_CLIPBOARD_IMAGE, MF_BYCOMMAND, g_hClipboardBmp, g_hClipboardBmp);
+                        }
+                    }
                 }
 
                 if ((dwFileAttribute & FILE_ATTRIBUTE_DIRECTORY) != 0 && bShiftDown ||
@@ -1075,18 +1075,18 @@ STDMETHODIMP CSlxComContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO pici) {
         }
         break;
 
-	case ID_CLIPBOARD_DUMP:
-		break;
+    case ID_CLIPBOARD_DUMP:
+        break;
 
-	case ID_CLIPBOARD_IMAGE: {
-			wstring strFilePath;
-			if (SaveClipboardImageAsPngToDir(pici->hwnd, m_pFiles[0].szPath, strFilePath)) {
-				BrowseForFile(strFilePath.c_str());
-			} else {
-				MessageBoxW(pici->hwnd, L"±£´æ¼ôÌù°åÍ¼Æ¬Ê§°Ü¡£", NULL, MB_ICONERROR);
-			}
-		}
-		break;
+    case ID_CLIPBOARD_IMAGE: {
+            wstring strFilePath;
+            if (SaveClipboardImageAsPngToDir(pici->hwnd, m_pFiles[0].szPath, strFilePath)) {
+                BrowseForFile(strFilePath.c_str());
+            } else {
+                MessageBoxW(pici->hwnd, L"±£´æ¼ôÌù°åÍ¼Æ¬Ê§°Ü¡£", NULL, MB_ICONERROR);
+            }
+        }
+        break;
 
     default:
         return E_INVALIDARG;

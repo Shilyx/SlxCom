@@ -2327,107 +2327,107 @@ HRESULT SHGetPropertyStoreForWindowHelper(HWND hwnd, REFIID riid, void** ppv) {
 }
 
 void InitGdiplus() {
-	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR gdiplusToken;
-	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
 BOOL GetEncoderClsid(LPCWSTR lpFormat, CLSID* pClsid) {
-	UINT uNum = 0;
-	UINT uIndex = 0;
-	UINT uSize = 0;
-	HANDLE hHeap = NULL;
-	ImageCodecInfo *pImageCodecInfo = NULL;
+    UINT uNum = 0;
+    UINT uIndex = 0;
+    UINT uSize = 0;
+    HANDLE hHeap = NULL;
+    ImageCodecInfo *pImageCodecInfo = NULL;
 
-	GetImageEncodersSize(&uNum, &uSize);
+    GetImageEncodersSize(&uNum, &uSize);
 
-	if (uSize != 0) {
-		hHeap = GetProcessHeap();
-		pImageCodecInfo = (ImageCodecInfo*)HeapAlloc(hHeap, 0, uSize);
+    if (uSize != 0) {
+        hHeap = GetProcessHeap();
+        pImageCodecInfo = (ImageCodecInfo*)HeapAlloc(hHeap, 0, uSize);
 
-		if (pImageCodecInfo != NULL) {
-			GetImageEncoders(uNum, uSize, pImageCodecInfo);
+        if (pImageCodecInfo != NULL) {
+            GetImageEncoders(uNum, uSize, pImageCodecInfo);
 
-			for (; uIndex < uNum; uIndex += 1) {
-				if (lstrcmpW(pImageCodecInfo[uIndex].MimeType, lpFormat) == 0) {
-					*pClsid = pImageCodecInfo[uIndex].Clsid;
-					break;
-				}
-			}
+            for (; uIndex < uNum; uIndex += 1) {
+                if (lstrcmpW(pImageCodecInfo[uIndex].MimeType, lpFormat) == 0) {
+                    *pClsid = pImageCodecInfo[uIndex].Clsid;
+                    break;
+                }
+            }
 
-			HeapFree(hHeap, 0, pImageCodecInfo);
-		}
-	}
+            HeapFree(hHeap, 0, pImageCodecInfo);
+        }
+    }
 
-	return uIndex < uNum;
+    return uIndex < uNum;
 }
 
 BOOL ClipboardDataExist(BOOL& bHasImage) {
-	BOOL bExist = FALSE;
-	bHasImage = FALSE;
+    BOOL bExist = FALSE;
+    bHasImage = FALSE;
 
-	if (OpenClipboard(NULL)) {
-		bExist = CountClipboardFormats() > 0;
-		if (bExist) {
-			bHasImage = IsClipboardFormatAvailable(CF_BITMAP);
-		}
+    if (OpenClipboard(NULL)) {
+        bExist = CountClipboardFormats() > 0;
+        if (bExist) {
+            bHasImage = IsClipboardFormatAvailable(CF_BITMAP);
+        }
 
-		CloseClipboard();
-	}
+        CloseClipboard();
+    }
 
-	return bExist;
+    return bExist;
 }
 
 BOOL SaveClipboardImageAsPng(HWND hWindow, LPCWSTR lpImageFilePath) {
-	BOOL bSuccess = FALSE;
+    BOOL bSuccess = FALSE;
 
-	InitGdiplus();
+    InitGdiplus();
 
-	if (OpenClipboard(hWindow)) {
-		HBITMAP hBitmap = (HBITMAP)GetClipboardData(CF_BITMAP);
-		if (hBitmap != NULL) { // could be NULL since the 'new' operator of gdiplus is overrided
-			Gdiplus::Bitmap *pBmp = Gdiplus::Bitmap::FromHBITMAP(hBitmap, NULL);
-			if (pBmp->GetLastStatus() == Gdiplus::Ok) {
-				std::wstring imagePath(lpImageFilePath);
+    if (OpenClipboard(hWindow)) {
+        HBITMAP hBitmap = (HBITMAP)GetClipboardData(CF_BITMAP);
+        if (hBitmap != NULL) { // could be NULL since the 'new' operator of gdiplus is overrided
+            Gdiplus::Bitmap *pBmp = Gdiplus::Bitmap::FromHBITMAP(hBitmap, NULL);
+            if (pBmp->GetLastStatus() == Gdiplus::Ok) {
+                std::wstring imagePath(lpImageFilePath);
 
-				if (imagePath.find(L".png") == std::wstring::npos) {
-					imagePath += L".png"; // Ensure the file has a .png extension
-				}
+                if (imagePath.find(L".png") == std::wstring::npos) {
+                    imagePath += L".png"; // Ensure the file has a .png extension
+                }
 
-				CLSID clsidPng;
-				if (GetEncoderClsid(L"image/png", &clsidPng)) {
-					if (pBmp->Save(imagePath.c_str(), &clsidPng) == Gdiplus::Ok) {
-						bSuccess = TRUE;
-					}
-				}
-			}
+                CLSID clsidPng;
+                if (GetEncoderClsid(L"image/png", &clsidPng)) {
+                    if (pBmp->Save(imagePath.c_str(), &clsidPng) == Gdiplus::Ok) {
+                        bSuccess = TRUE;
+                    }
+                }
+            }
 
-			delete pBmp;
-		}
+            delete pBmp;
+        }
 
-		CloseClipboard();
-	}
+        CloseClipboard();
+    }
 
-	return bSuccess;
+    return bSuccess;
 }
 
 BOOL SaveClipboardImageAsPngToDir(HWND hWindow, LPCWSTR lpDirectory, std::wstring& strFilePath) {
-	WCHAR szFilePath[1024] = L"";
-	SYSTEMTIME st;
+    WCHAR szFilePath[1024] = L"";
+    SYSTEMTIME st;
 
-	GetLocalTime(&st);
-	wstring strFileName = fmtW(
-		L"slxcom_clipboard_image_%04d%02d%02d_%02d%02d%02d_%03d.png",
-		st.wYear, st.wMonth, st.wDay,
-		st.wHour, st.wMinute, st.wSecond,
-		st.wMilliseconds);
+    GetLocalTime(&st);
+    wstring strFileName = fmtW(
+        L"slxcom_clipboard_image_%04d%02d%02d_%02d%02d%02d_%03d.png",
+        st.wYear, st.wMonth, st.wDay,
+        st.wHour, st.wMinute, st.wSecond,
+        st.wMilliseconds);
 
-	lstrcpynW(szFilePath, lpDirectory, RTL_NUMBER_OF(szFilePath));
-	PathAddBackslashW(szFilePath);
-	StrCatBuffW(szFilePath, strFileName.c_str(), RTL_NUMBER_OF(szFilePath));
+    lstrcpynW(szFilePath, lpDirectory, RTL_NUMBER_OF(szFilePath));
+    PathAddBackslashW(szFilePath);
+    StrCatBuffW(szFilePath, strFileName.c_str(), RTL_NUMBER_OF(szFilePath));
 
-	strFilePath = szFilePath;
-	return SaveClipboardImageAsPng(hWindow, szFilePath);
+    strFilePath = szFilePath;
+    return SaveClipboardImageAsPng(hWindow, szFilePath);
 }
 
 string HexEncode(const string& strInput) {
