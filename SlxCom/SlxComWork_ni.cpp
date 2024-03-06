@@ -198,7 +198,7 @@ public:
                 if (m_cbType == CT_UNBASE64) {
                     SetClipboardText(UtoW(strData).c_str());
                 } else {
-                    
+                    _TrySaveFile(strData, L"base64_output.bin");
                 }
             }
 
@@ -216,7 +216,7 @@ public:
                 if (m_cbType == CT_UNBASE64) {
                     SetClipboardText(UtoW(strData).c_str());
                 } else {
-
+                    _TrySaveFile(strData, L"hex_output.bin");
                 }
             } catch (std::exception ex) {
                 MessageBoxFormat(NULL, NULL, MB_ICONERROR, L"转码中出现异常 %hs", ex.what());
@@ -394,6 +394,31 @@ public:
         }
 
         return bSucceed;
+    }
+
+private:
+    static void _TrySaveFile(const string& strData, LPCWSTR lpSuggestFileName) {
+        OPENFILENAMEW ofn = { sizeof(ofn) };
+        WCHAR szFilter[128] = L"All Files(*.*)\0*.*";
+        WCHAR szFileName[MAX_PATH] = L"";
+
+        lstrcpynW(szFileName, lpSuggestFileName, RTL_NUMBER_OF(szFileName));
+        ofn.lpstrFilter = szFilter;
+        ofn.lpstrFile = szFileName;
+        ofn.nMaxFile = RTL_NUMBER_OF(szFileName);
+        ofn.Flags |= OFN_OVERWRITEPROMPT;
+
+        if (!GetSaveFileNameW(&ofn)) {
+            return;
+        }
+
+        if (!WriteFileHelper(szFileName, (LPCVOID)strData.data(), (DWORD)strData.size())) {
+            return;
+        }
+
+        if (PathIsExistingFile(szFileName)) {
+            BrowseForFile(szFileName);
+        }
     }
 
 private:

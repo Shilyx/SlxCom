@@ -1649,6 +1649,17 @@ BOOL IsAdminMode() {
     return bIsElevated;
 }
 
+BOOL WriteFileHelper(LPCWSTR lpFilePath, LPCVOID lpBuffer, DWORD dwBytesToWrite) {
+    HANDLE hFile = CreateFileW(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return FALSE;
+    }
+
+    BOOL bRet = WriteFileHelper(hFile, lpBuffer, dwBytesToWrite);
+    CloseHandle(hFile);
+    return bRet;
+}
+
 BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite) {
     DWORD dwBytesWritten = 0;
 

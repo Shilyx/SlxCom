@@ -61,6 +61,7 @@ BOOL PathCompactPathHelper(HDC hdc, LPWSTR lpText, UINT dx);
 HWND GetTrayNotifyWndInProcess();
 BOOL GetVersionString(HINSTANCE hModule, WCHAR szVersionString[], int nSize);
 BOOL IsAdminMode();
+BOOL WriteFileHelper(LPCWSTR lpFilePath, LPCVOID lpBuffer, DWORD dwBytesToWrite);
 BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite);
 HICON GetWindowIcon(HWND hWindow);
 HICON GetWindowIconSmall(HWND hWindow);
