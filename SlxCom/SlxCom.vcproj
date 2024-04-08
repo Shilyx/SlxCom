@@ -792,6 +792,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lib\SlxBase64.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\SlxBase64.hxx"
+				>
+			</File>
+			<File
 				RelativePath=".\lib\StringMatch.h"
 				>
 			</File>
