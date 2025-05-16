@@ -1699,6 +1699,38 @@ HICON GetWindowIconSmall(HWND hWindow) {
     return hIcon;
 }
 
+void ModifyStyle(HWND hWindow, LONG_PTR nAdd, LONG_PTR nRemove) {
+    LONG_PTR nValue = GetWindowLongPtrA(hWindow, GWL_STYLE);
+    if (nValue == 0) {
+        return;
+    }
+
+    nValue &= ~nRemove;
+    nValue |= nAdd;
+    SetWindowLongPtrA(hWindow, GWL_STYLE, nValue);
+}
+
+void ModifyExStyle(HWND hWindow, LONG_PTR nAdd, LONG_PTR nRemove) {
+    LONG_PTR nValue = GetWindowLongPtrA(hWindow, GWL_EXSTYLE);
+    if (nValue == 0) {
+        return;
+    }
+
+    nValue &= ~nRemove;
+    nValue |= nAdd;
+    SetWindowLongPtrA(hWindow, GWL_EXSTYLE, nValue);
+}
+
+void UnpopupWindow(HWND hWnd) {
+    SetWindowLongPtr(hWnd, GWLP_HWNDPARENT, 0);
+    SetParent(hWnd, NULL);
+    ModifyStyle(hWnd, 0, WS_POPUP);
+    SetWindowPos(
+        hWnd, NULL,
+        0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+}
+
 DWORD RegGetDWORD(HKEY hRootKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, DWORD dwDefault) {
     DWORD dwSize = sizeof(dwDefault);
 

@@ -102,6 +102,7 @@ void CNotifyClass::SwitchVisiable() {
 
 void CNotifyClass::DoContextMenu(int x, int y) {
     WCHAR szSimpleText[8192] = L"";
+    DWORD_PTR dwTargetWndStyle = GetWindowLongPtr(m_hTargetWindow, GWL_STYLE);
     HMENU hMenu = CreatePopupMenu();
     HMENU hPopupMenu = CreatePopupMenu();
 
@@ -110,7 +111,7 @@ void CNotifyClass::DoContextMenu(int x, int y) {
     AppendMenuW(hMenu, MF_STRING, CMD_DETAIL, L"显示窗口信息(&D)");
 
     if (g_bVistaLater) {
-        AppendMenuW(hMenu, MF_STRING, CMD_UNGROUPING_WINDOW, L"在任务栏不分组此窗口(&G)\tAlt+Ctrl(Shift)+G");
+        AppendMenuW(hMenu, MF_STRING, CMD_UNGROUPING_WINDOW, L"在任务栏分组/不分组此窗口(&G)\tAlt+Ctrl(Shift)+G");
 
         if (HasWinAppID(m_hTargetWindow)) {
             CheckMenuItemHelper(hPopupMenu, CMD_UNGROUPING_WINDOW, 0, TRUE);
@@ -118,6 +119,10 @@ void CNotifyClass::DoContextMenu(int x, int y) {
     }
 
     AppendMenuW(hMenu, MF_STRING, CMD_PINWINDOW, L"置顶窗口(&T)\tAlt+Ctrl(Shift)+T");
+
+    if (dwTargetWndStyle & WS_POPUP) {
+        AppendMenuW(hMenu, MF_STRING, CMD_UNPOPUP_WINDOW, L"去窗口POPUP(&P)");
+    }
 
     if (m_bUseNotifyIcon) {
         AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
@@ -139,7 +144,7 @@ void CNotifyClass::DoContextMenu(int x, int y) {
 
     AppendMenuW(hMenu, MF_STRING, CMD_OPEN_IMAGE_PATH, L"打开窗口进程所在的目录");
     AppendMenuW(hMenu, MF_STRING, CMD_KILL_WINDOW_PROCESS, L"结束窗口所属的进程");
- {
+    {
         HMENU hPopupMenu = CreatePopupMenu();
 
         AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_HWNDVALUE, L"窗口句柄值");
@@ -152,7 +157,7 @@ void CNotifyClass::DoContextMenu(int x, int y) {
         AppendMenuW(hPopupMenu, MF_STRING, CMD_COPY_THREADID, L"线程id");
         AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPopupMenu, L"复制到剪贴板(&C)");
     }
- {
+    {
         HMENU hPopupMenu = CreatePopupMenu();
 
         AppendMenuW(hPopupMenu, MF_STRING, CMD_ALPHA_100, L"100%");
@@ -320,6 +325,10 @@ void CNotifyClass::DoContextMenu(int x, int y) {
 
     case CMD_UNGROUPING_WINDOW:
         ToggleWinAppID(m_hTargetWindow);
+        break;
+
+    case CMD_UNPOPUP_WINDOW:
+        UnpopupWindow(m_hTargetWindow);
         break;
 
     default:

@@ -136,24 +136,6 @@ HWND GetDesktopListViewWnd() {
     return hSysListView32;
 }
 
-void ModifyStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove) {
-    DWORD dwStyle = GetWindowLong(hWindow, GWL_STYLE);
-
-    dwStyle |= dwAdd;
-    dwStyle &= ~dwRemove;
-
-    SetWindowLong(hWindow, GWL_STYLE, dwStyle);
-}
-
-void ModifyExStyle(HWND hWindow, DWORD dwAdd, DWORD dwRemove) {
-    DWORD dwStyle = GetWindowLong(hWindow, GWL_EXSTYLE);
-
-    dwStyle |= dwAdd;
-    dwStyle &= ~dwRemove;
-
-    SetWindowLong(hWindow, GWL_EXSTYLE, dwStyle);
-}
-
 vector<POINT> GetAllIconPositions(HWND hListView) {
     vector<POINT> vectorPositions;
     int nCount = (int)SendMessageW(hListView, LVM_GETITEMCOUNT, 0, 0);

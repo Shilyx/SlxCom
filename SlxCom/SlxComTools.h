@@ -65,6 +65,9 @@ BOOL WriteFileHelper(LPCWSTR lpFilePath, LPCVOID lpBuffer, DWORD dwBytesToWrite)
 BOOL WriteFileHelper(HANDLE hFile, LPCVOID lpBuffer, DWORD dwBytesToWrite);
 HICON GetWindowIcon(HWND hWindow);
 HICON GetWindowIconSmall(HWND hWindow);
+void ModifyStyle(HWND hWindow, LONG_PTR nAdd, LONG_PTR nRemove);
+void ModifyExStyle(HWND hWindow, LONG_PTR nAdd, LONG_PTR nRemove);
+void UnpopupWindow(HWND hWindow);
 DWORD RegGetDWORD(HKEY hRootKey, LPCWSTR lpRegPath, LPCWSTR lpRegValue, DWORD dwDefault);
 DWORD CheckMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bChecked);
 DWORD EnableMenuItemHelper(HMENU hMenu, UINT uId, UINT uFlags, BOOL bEnabled);
