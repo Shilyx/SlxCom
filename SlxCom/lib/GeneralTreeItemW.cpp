@@ -247,7 +247,7 @@ std::wstring GeneralTreeItemW::GenerateXml(int nDepth /*= 1*/) const
     {
         ss<<L">"<<endl;
 
-        for (vector<tr1::shared_ptr<GeneralTreeItemW> >::const_iterator it = m_vectorSubItems.begin(); it != m_vectorSubItems.end(); ++it)
+        for (vector<shared_ptr<GeneralTreeItemW> >::const_iterator it = m_vectorSubItems.begin(); it != m_vectorSubItems.end(); ++it)
         {
             ss<<(*it)->GenerateXml(nDepth + 1);
         }
@@ -263,15 +263,15 @@ std::wstring GeneralTreeItemW::GenerateXml(int nDepth /*= 1*/) const
     return ss.str();
 }
 
-tr1::shared_ptr<GeneralTreeItemW> GeneralTreeItemW::AppendItem(tr1::shared_ptr<GeneralTreeItemW> pItem)
+shared_ptr<GeneralTreeItemW> GeneralTreeItemW::AppendItem(shared_ptr<GeneralTreeItemW> pItem)
 {
     m_vectorSubItems.push_back(pItem);
     return pItem;
 }
 
-tr1::shared_ptr<GeneralTreeItemW> GeneralTreeItemW::AppendItem(const wstring &strKey)
+shared_ptr<GeneralTreeItemW> GeneralTreeItemW::AppendItem(const wstring &strKey)
 {
-    return AppendItem(tr1::shared_ptr<GeneralTreeItemW>(new GeneralTreeItemW(strKey)));
+    return AppendItem(shared_ptr<GeneralTreeItemW>(new GeneralTreeItemW(strKey)));
 }
 
 std::wstring GeneralTreeItemW::GetValue() const

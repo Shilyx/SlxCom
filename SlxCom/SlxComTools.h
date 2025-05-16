@@ -10,6 +10,12 @@
 #include <string>
 #include <vector>
 
+namespace std {
+#if defined(_MSC_VER) && _MSC_VER == 1500
+    using namespace tr1;
+#endif
+}
+
 enum DRIVER_ACTION {
     DA_INSTALL,
     DA_START,

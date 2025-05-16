@@ -10,6 +10,12 @@
 #include <memory>
 #include <vector>
 
+namespace std {
+#if defined(_MSC_VER) && _MSC_VER == 1500
+    using namespace tr1;
+#endif
+}
+
 class GeneralTreeItemW
 {
 public:
@@ -20,8 +26,8 @@ public:
     void SetValue(const std::wstring &strValue);
     std::wstring GetValue() const;
 
-    std::tr1::shared_ptr<GeneralTreeItemW> AppendItem(const std::wstring &strKey);
-    std::tr1::shared_ptr<GeneralTreeItemW> AppendItem(std::tr1::shared_ptr<GeneralTreeItemW> pItem);
+    std::shared_ptr<GeneralTreeItemW> AppendItem(const std::wstring &strKey);
+    std::shared_ptr<GeneralTreeItemW> AppendItem(std::shared_ptr<GeneralTreeItemW> pItem);
 
     std::wstring GenerateXml(int nDepth = 1) const;
     std::string GenerateXmlUtf8(int nDepth = 1) const;
@@ -42,7 +48,7 @@ public:
 private:
     std::wstring m_strKey;
     std::map<std::wstring, std::wstring> m_mapAttributes;
-    std::vector<std::tr1::shared_ptr<GeneralTreeItemW> > m_vectorSubItems;
+    std::vector<std::shared_ptr<GeneralTreeItemW> > m_vectorSubItems;
 };
 
 BOOL AttachToTreeCtrlW(const std::wstring &strXml, HWND hTreeCtrl);

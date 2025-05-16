@@ -7,7 +7,6 @@
 #include <vector>
 
 using namespace std;
-using namespace tr1;
 
 extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 

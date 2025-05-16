@@ -16,7 +16,6 @@
 #include "lib/SlxBase64.hxx"
 
 using namespace std;
-using namespace tr1;
 
 #define NOTIFYWNDCLASS      L"__slxcom_work_ni_notify_wnd"
 #define ICON_COUNT          10

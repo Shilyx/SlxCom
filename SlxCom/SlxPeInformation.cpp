@@ -9,7 +9,6 @@
 #include <map>
 
 using namespace std;
-using namespace tr1;
 
 class PeInformationAnalyzer {
 #define HALT throw __LINE__
