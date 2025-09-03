@@ -24,7 +24,7 @@
 
 extern "C" {
 	typedef int (*POSIX_FUNC)(int);
-	int isblank(int c);
+	int __isblank(int c);
 }
 
 //
@@ -986,11 +986,11 @@ template <class CHART> CPosixElxT <CHART> :: CPosixElxT(const char * posix, int 
 	else if(!strncmp(posix, "space:", 6)) m_posixfun = ::isspace ;
 	else if(!strncmp(posix, "upper:", 6)) m_posixfun = ::isupper ;
 	else if(!strncmp(posix, "xdigit:",7)) m_posixfun = ::isxdigit;
-	else if(!strncmp(posix, "blank:", 6)) m_posixfun =   isblank ;
+	else if(!strncmp(posix, "blank:", 6)) m_posixfun = __isblank ;
 	else                                  m_posixfun = 0         ;
 }
 
-inline int isblank(int c)
+inline int __isblank(int c)
 {
 	return c == 0x20 || c == '\t';
 }
