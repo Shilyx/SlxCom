@@ -97,6 +97,7 @@ enum {
     SYS_DISABLECTRLCOPYINSAMEDIR,
     SYS_DEBUGBREAK,
     SYS_WINDOWMANAGER,
+    SYS_KEYMAPPER,              // 按键映射(改键)
     SYS_SHOWTIMEPALTE_DISABLE,
     SYS_SHOWTIMEPALTE_PER60M,
     SYS_SHOWTIMEPALTE_PER30M,
@@ -602,6 +603,13 @@ public:
                 );
             break;
 
+        case SYS_KEYMAPPER: {
+                LPCWSTR lpHint = L"dbgview 中查看按键虚拟码，配置 DWORD 值在此注册表下，如 165=93 可将右 ALT 改为右键菜单";
+                SHSetValueW(HKEY_CURRENT_USER, L"Software\\Shilyx Studio\\SlxCom\\KeyMapper", L"配置方法", REG_SZ, (LPVOID)lpHint, (lstrlenW(lpHint) + 1) * sizeof(WCHAR));
+                BrowseForRegPath(L"HKEY_CURRENT_USER\\Software\\Shilyx Studio\\SlxCom\\KeyMapper");
+            }
+            break;
+
         case SYS_SHOWTIMEPALTE_DISABLE:
             m_nTimePlageIntervalMinutes = 0;
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_DISABLE, MF_BYCOMMAND);
@@ -693,6 +701,7 @@ public:
         AppendMenuW(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, L"窗口管理器(&W)...");
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)hTimePlateMenu, L"整点报时(&T)");
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
+        AppendMenuW(m_hMenu, MF_POPUP, SYS_KEYMAPPER, L"按键映射(&M)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(m_hMenu, MF_STRING, SYS_RESETEXPLORER, L"重新启动Explorer(&E)");
         if (g_bVistaLater) {

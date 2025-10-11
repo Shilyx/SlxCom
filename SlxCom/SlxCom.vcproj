@@ -399,6 +399,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComKeyMapper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComOverlay.cpp"
 				>
 			</File>
@@ -514,6 +518,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComIconHandler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComKeyMapper.h"
 				>
 			</File>
 			<File

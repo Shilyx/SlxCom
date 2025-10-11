@@ -218,6 +218,7 @@
     <ClCompile Include="SlxComExpandDirFiles.cpp" />
     <ClCompile Include="SlxComFactory.cpp" />
     <ClCompile Include="SlxComIconHandler.cpp" />
+    <ClCompile Include="SlxComKeyMapper.cpp" />
     <ClCompile Include="SlxComOverlay.cpp" />
     <ClCompile Include="SlxComPeTools.cpp" />
     <ClCompile Include="SlxComTools.cpp" />
@@ -270,6 +271,7 @@
     <ClInclude Include="SlxComExpandDirFiles.h" />
     <ClInclude Include="SlxComFactory.h" />
     <ClInclude Include="SlxComIconHandler.h" />
+    <ClInclude Include="SlxComKeyMapper.h" />
     <ClInclude Include="SlxComOverlay.h" />
     <ClInclude Include="SlxComPeTools.h" />
     <ClInclude Include="SlxComTools.h" />
