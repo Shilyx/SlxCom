@@ -99,8 +99,9 @@ private:
 
         if (pDbClickListener != NULL && hwnd == pDbClickListener->m_hShellDll) {
             switch (uMsg) {
-            case WM_LBUTTONDOWN:
-            case WM_RBUTTONDOWN:
+            case WM_LBUTTONDBLCLK:
+            case WM_MBUTTONDBLCLK:
+            case WM_RBUTTONDBLCLK:
             case WM_MBUTTONDOWN:
             case WM_MOUSEHWHEEL:
                 if (!IsWindowVisible(pDbClickListener->m_hListCtrl)) {

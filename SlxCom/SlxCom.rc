@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(中华人民共和国) resources
+// 中文(简体，中国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -34,7 +32,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#include ""winres.h""\r\n"
     "\0"
 END
 
@@ -53,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,2023,917
- PRODUCTVERSION 1,0,2023,917
+ FILEVERSION 1,0,2026,126
+ PRODUCTVERSION 1,0,2026,126
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -71,12 +69,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Shilyx Studio"
             VALUE "FileDescription", "SlxCom是功能丰富的绿色的Explorer便捷插件，通过regsvr32注册后即可使用。2013年11月29日发布。"
-            VALUE "FileVersion", "1.0.1.1481"
+            VALUE "FileVersion", "1.0.2026.126"
             VALUE "InternalName", "SlxCom"
-            VALUE "LegalCopyright", "Copyright Shilyx Studio (C) 2013"
+            VALUE "LegalCopyright", "Copyright Shilyx Studio (C) 2013 - 2026"
             VALUE "OriginalFilename", "SlxCom.dll"
             VALUE "ProductName", "SlxCom"
-            VALUE "ProductVersion", "1.0.1.1481"
+            VALUE "ProductVersion", "1.0.2026.126"
         END
     END
     BLOCK "VarFileInfo"
@@ -92,9 +90,13 @@ END
 //
 
 IDR_ICON                RT_FILE                 "res\\Mark.ico"
+
 IDR_DEFAULTJPG          RT_FILE                 "res\\Default.jpg"
+
 IDR_ABOUT               RT_FILE                 "res\\AboutSlxCom.htm"
+
 IDR_DIGIB_FONT          RT_FILE                 "res\\DS-DIGIB.TTF"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -102,27 +104,49 @@ IDR_DIGIB_FONT          RT_FILE                 "res\\DS-DIGIB.TTF"
 //
 
 IDB_INSTALL             BITMAP                  "res\\Install.bmp"
+
 IDB_UNINSTALL           BITMAP                  "res\\Uninstall.bmp"
+
 IDB_COMBINE             BITMAP                  "res\\Combine.bmp"
+
 IDB_COPYFULLPATH        BITMAP                  "res\\CopyFullPath.bmp"
+
 IDB_ADDTOCOPY           BITMAP                  "res\\AddToCopy.bmp"
+
 IDB_ADDTOCUT            BITMAP                  "res\\AddToCut.bmp"
+
 IDB_TRYRUN              BITMAP                  "res\\TryRun.bmp"
+
 IDB_TRYRUNWITHARGUMENTS BITMAP                  "res\\TryRunWithArguments.bmp"
+
 IDB_RUNCMDHERE          BITMAP                  "res\\RunCmdHere.bmp"
+
 IDB_OPENWITHNOTEPAD     BITMAP                  "res\\OpenWithNotepad.bmp"
+
 IDB_KILLEXPLORER        BITMAP                  "res\\KillExplorer.bmp"
+
 IDB_CHECKSIGNATURE      BITMAP                  "res\\CheckSignature.bmp"
+
 IDB_UNESCAPE            BITMAP                  "res\\Unescape.bmp"
+
 IDB_APPPATH             BITMAP                  "res\\AppPath.bmp"
+
 IDB_DRIVER              BITMAP                  "res\\Driver.bmp"
+
 IDB_UNLOCKFILE          BITMAP                  "res\\UnlockFile.bmp"
+
 IDB_COPY_PICTURE_HTML   BITMAP                  "res\\CopyPictureHtml.bmp"
+
 IDB_ABOUT_LOGO          BITMAP                  "res\\AboutLogo.bmp"
+
 IDB_CREATELINK          BITMAP                  "res\\CreateLink.bmp"
+
 IDB_EDF                 BITMAP                  "res\\Edf.bmp"
+
 IDB_LOCATE              BITMAP                  "res\\Locate.bmp"
+
 IDB_CLIPBOARD           BITMAP                  "res\\Clipboard.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -195,7 +219,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTI
 CAPTION "关于 SlxCom"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         142,IDC_PICTURE,"Static",SS_BITMAP,7,19,52,14
+    CONTROL         IDB_BITMAP1,IDC_PICTURE,"Static",SS_BITMAP,7,19,52,14
     LTEXT           "Static",IDC_BASEINFO,63,7,130,8
     LTEXT           "Static",IDC_COPYRIGHT,63,22,130,8
     LTEXT           "Static",IDC_LINK,63,38,130,8
@@ -229,7 +253,7 @@ BEGIN
     LTEXT           "crc32:",IDC_STATIC,7,193,21,8,NOT WS_VISIBLE
     EDITTEXT        IDC_CRC32_2,51,191,170,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_VISIBLE
     PUSHBUTTON      "",IDC_STOP_2,51,210,85,14,NOT WS_VISIBLE
-    CONTROL         142,IDC_ABOUT,"Static",SS_BITMAP | SS_NOTIFY,155,210,52,14
+    CONTROL         IDB_BITMAP1,IDC_ABOUT,"Static",SS_BITMAP | SS_NOTIFY,155,210,52,14
 END
 
 IDD_FILETIMEPAGE DIALOGEX 0, 0, 228, 231
@@ -250,7 +274,7 @@ BEGIN
     CONTROL         "DateTimePicker3",IDC_DATE_ACCESSED,"SysDateTimePick32",DTS_RIGHTALIGN | DTS_SHOWNONE | DTS_APPCANPARSE | WS_TABSTOP,61,80,69,15
     CONTROL         "DateTimePicker4",IDC_TIME_ACCESSED,"SysDateTimePick32",DTS_RIGHTALIGN | DTS_UPDOWN | DTS_APPCANPARSE | WS_TABSTOP | 0x8,136,80,49,15
     CONTROL         "No&w",IDC_NOW_ACCESSED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,190,83,31,10
-    CONTROL         142,IDC_ABOUT,"Static",SS_BITMAP | SS_NOTIFY,155,103,52,14
+    CONTROL         IDB_BITMAP1,IDC_ABOUT,"Static",SS_BITMAP | SS_NOTIFY,155,103,52,14
     CONTROL         "包含子目录中的文件",IDC_SUBDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,61,105,88,10
 END
 
@@ -276,7 +300,7 @@ IDD_PEINFORMATIONPAGE DIALOGEX 0, 0, 228, 231
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    CONTROL         142,IDC_ABOUT,"Static",SS_BITMAP | SS_NOTIFY,169,209,52,14
+    CONTROL         IDB_BITMAP1,IDC_ABOUT,"Static",SS_BITMAP | SS_NOTIFY,169,209,52,14
     CONTROL         "",IDC_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,7,214,197
 END
 
@@ -287,7 +311,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_RUNWITHARGUMENTS, DIALOG
     BEGIN
@@ -396,16 +420,27 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_CONFIG_ICON         ICON                    "res\\Main.ico"
+
 IDI_BIRD_0              ICON                    "res\\bird\\0.ico"
+
 IDI_BIRD_1              ICON                    "res\\bird\\1.ico"
+
 IDI_BIRD_2              ICON                    "res\\bird\\2.ico"
+
 IDI_BIRD_3              ICON                    "res\\bird\\3.ico"
+
 IDI_BIRD_4              ICON                    "res\\bird\\4.ico"
+
 IDI_BIRD_5              ICON                    "res\\bird\\5.ico"
+
 IDI_BIRD_6              ICON                    "res\\bird\\6.ico"
+
 IDI_BIRD_7              ICON                    "res\\bird\\7.ico"
+
 IDI_BIRD_8              ICON                    "res\\bird\\8.ico"
+
 IDI_BIRD_9              ICON                    "res\\bird\\9.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -414,12 +449,13 @@ IDI_BIRD_9              ICON                    "res\\bird\\9.ico"
 
 123                     RT_MANIFEST             "res\\SlxCom.manifest"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_PAINTMENU MENU 
+IDR_PAINTMENU MENU
 BEGIN
     POPUP "Menu"
     BEGIN
@@ -445,7 +481,7 @@ BEGIN
     END
 END
 
-IDR_CLIPBOARDMENU MENU 
+IDR_CLIPBOARDMENU MENU
 BEGIN
     POPUP "文件(&F)"
     BEGIN
@@ -484,7 +520,7 @@ BEGIN
     END
 END
 
-#endif    // 中文(中华人民共和国) resources
+#endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
