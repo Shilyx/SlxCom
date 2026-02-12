@@ -9,6 +9,7 @@
 #include "SlxComTools.h"
 #include <set>
 #include "SlxComDisableCtrlCopyInSameDir.h"
+#include "SlxComKeyMapper.h"
 
 #ifndef LVS_EX_SNAPTOGRID
 #define LVS_EX_SNAPTOGRID       0x00080000  // Icons automatically snap to grid.
@@ -316,6 +317,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
                     CloseHandle(hOpenLastPathThread);
                 }
             }
+
+            StartKeyMapper();
         }
 
         g_hinstDll = hInstance;

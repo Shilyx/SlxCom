@@ -141,6 +141,9 @@
     <ClCompile Include="lib\SlxBase64.cpp">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="SlxComKeyMapper.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SlxCom.def">
@@ -264,6 +267,9 @@
     </ClInclude>
     <ClInclude Include="lib\SlxBase64.hxx">
       <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="SlxComKeyMapper.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
