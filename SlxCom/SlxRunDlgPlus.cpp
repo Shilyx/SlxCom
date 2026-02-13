@@ -1,5 +1,6 @@
 #include "SlxRunDlgPlus.h"
 #include <Windows.h>
+#include <Shlwapi.h>
 #include "SlxComTools.h"
 #include "SlxElevateBridge.h"
 #include <map>
@@ -13,6 +14,7 @@ extern HINSTANCE g_hinstDll;    // SlxCom.cpp
 class CRunDlgPlus {
     enum {
         ID_ADMIN = 0xf3,
+        ID_FORCE_ASINVOKER,
         ID_ADMIN_BRIDGE,
     };
 public:
@@ -20,7 +22,9 @@ public:
         : m_hDlg(hDlg)
         , m_procOldDlgProc(NULL)
         , m_hRunAdminMode(NULL)
-        , m_hRunAdminModeByBridge(NULL) {
+        , m_hRunAdminModeByBridge(NULL)
+        , m_hAsInvoker(NULL)
+    {
         if (IsWindow(m_hDlg)) {
             SetWindowLongPtr(m_hDlg, GWLP_USERDATA, (LONG_PTR)this);
             m_procOldDlgProc = (WNDPROC)SetWindowLongPtr(m_hDlg, GWLP_WNDPROC, (LONG_PTR)newRunDlgProcPublic);
@@ -101,39 +105,52 @@ private:
             switch (uMsg) {
             case WM_USER:
                 if (wParam == WM_USER + 1 && lParam == WM_USER + 2) {
-                    vector<HWND> vectorButtons = GetButtonsInWindow(m_hDlg);
+                    HWND hCommit = GetDlgItem(hDlg, 1);
+                    HWND hCancel = GetDlgItem(hDlg, 2);
+                    m_hComboBox = FindWindowExW(m_hDlg, NULL, L"ComboBox", NULL);
 
-                    if (vectorButtons.size() >= 3) {
-                        RECT rectButtons[3];
-                        RECT rectNewButton;
-                        vector<HWND>::const_reverse_iterator it = vectorButtons.rbegin();
-                        HWND hCommit = NULL;
-                        m_hComboBox = FindWindowExW(m_hDlg, NULL, L"ComboBox", NULL);
+                    if (IsWindow(hCommit) && IsWindow(hCancel) && IsWindow(m_hComboBox)) {
+                        RECT rectCommit;
+                        RECT rectCancel;
+                        RECT rectRunAdminButton;
 
-                        for (int i = 0; i < 3; ++i, ++it) {
-                            GetWindowRect(*it, rectButtons + i);
-                            hCommit = *it;
-                        }
+                        GetWindowRect(hCommit, &rectCommit);
+                        GetWindowRect(hCancel, &rectCancel);
 
-                        rectNewButton.top = rectButtons[2].top;
-                        rectNewButton.bottom = rectButtons[2].bottom;
-                        rectNewButton.left = rectButtons[2].left * 2 - rectButtons[1].left;
-                        rectNewButton.right = rectButtons[2].right * 2 - rectButtons[1].right;
+                        ScreenToClient(m_hDlg, (LPPOINT)&rectCommit);
+                        ScreenToClient(m_hDlg, (LPPOINT)&rectCommit + 1);
+                        ScreenToClient(m_hDlg, (LPPOINT)&rectCancel);
+                        ScreenToClient(m_hDlg, (LPPOINT)&rectCancel + 1);
 
-                        ScreenToClient(m_hDlg, (LPPOINT)&rectNewButton);
-                        ScreenToClient(m_hDlg, (LPPOINT)&rectNewButton + 1);
+                        rectRunAdminButton.top = rectCommit.top;
+                        rectRunAdminButton.bottom = rectCommit.bottom;
+                        rectRunAdminButton.left = rectCommit.left * 2 - rectCancel.left;
+                        rectRunAdminButton.right = rectCommit.right * 2 - rectCancel.right;
 
                         m_hRunAdminMode = CreateWindowExW(
                             WS_EX_LEFT | WS_EX_LTRREADING,
                             L"BUTTON",
                             L"提权(&R)",
                             WS_CHILDWINDOW | WS_TABSTOP | BS_PUSHBUTTON | BS_TEXT,
-                            rectNewButton.left,
-                            rectNewButton.top,
-                            rectNewButton.right - rectNewButton.left,
-                            rectNewButton.bottom - rectNewButton.top,
+                            rectRunAdminButton.left,
+                            rectRunAdminButton.top,
+                            rectRunAdminButton.right - rectRunAdminButton.left,
+                            rectRunAdminButton.bottom - rectRunAdminButton.top,
                             m_hDlg,
                             (HMENU)ID_ADMIN,
+                            g_hinstDll,
+                            NULL);
+                        m_hAsInvoker = CreateWindowExW(
+                            WS_EX_LEFT | WS_EX_LTRREADING,
+                            L"BUTTON",
+                            L"&AsInvoker",
+                            WS_CHILDWINDOW | WS_TABSTOP | BS_PUSHBUTTON | BS_TEXT,
+                            rectCommit.left,
+                            rectCommit.top,
+                            rectCommit.right - rectCommit.left,
+                            rectCommit.bottom - rectCommit.top,
+                            m_hDlg,
+                            (HMENU)ID_FORCE_ASINVOKER,
                             g_hinstDll,
                             NULL);
                         m_hRunAdminModeByBridge = CreateWindowExW(
@@ -149,12 +166,27 @@ private:
                             (HMENU)ID_ADMIN_BRIDGE,
                             g_hinstDll,
                             NULL);
+                        // 移动ok -> cancel
+                        SetWindowPos(hCommit, NULL, rectCancel.left, rectCancel.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+                        // 移出cancel
+                        SetWindowPos(hCancel, NULL, -220, -220, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 
                         if (IsWindow(m_hRunAdminMode)) {
                             SendMessageW(m_hRunAdminMode, BCM_SETSHIELD, 0, TRUE);
+                            SendMessageW(m_hRunAdminModeByBridge, BCM_SETSHIELD, 0, TRUE);
+
                             SetWindowPos(m_hRunAdminMode, GetWindow(hCommit, GW_HWNDPREV), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                            SendMessageW(m_hRunAdminMode, WM_SETFONT, SendMessageW(*vectorButtons.rbegin(), WM_GETFONT, 0, 0), TRUE);
+                            SetWindowPos(m_hAsInvoker, m_hRunAdminMode, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+                            LRESULT hFont = SendMessageW(hCommit, WM_GETFONT, 0, 0);
+                            SendMessageW(m_hRunAdminMode, WM_SETFONT, hFont, TRUE);
+                            SendMessageW(m_hAsInvoker, WM_SETFONT, hFont, TRUE);
+                            SendMessageW(m_hRunAdminModeByBridge, WM_SETFONT, hFont, TRUE);
+
                             ShowWindow(m_hRunAdminMode, SW_SHOW);
+                            ShowWindow(m_hAsInvoker, SW_SHOW);
+                            ShowWindow(m_hRunAdminModeByBridge, SW_SHOW);
+                            ShowWindow(hCancel, SW_HIDE);
                         }
 
                         PostMessageW(m_hDlg, WM_COMMAND, MAKELONG(0, CBN_EDITCHANGE), (LPARAM)m_hComboBox);
@@ -165,10 +197,11 @@ private:
             case WM_COMMAND:
                 if ((LOWORD(wParam) == ID_ADMIN || LOWORD(wParam) == ID_ADMIN_BRIDGE) &&
                     HIWORD(wParam) == BN_CLICKED &&
-                    IsWindow(m_hComboBox)) {
+                    IsWindow(m_hComboBox))
+                {
                     WCHAR szText[8192] = L"/c start ";
                     int nLength = lstrlenW(szText);
-                    SHELLEXECUTEINFOW si = {sizeof(si)};
+                    SHELLEXECUTEINFOW si = { sizeof(si) };
                     BOOL bSucceed = FALSE;
 
                     GetWindowTextW(m_hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
@@ -186,6 +219,21 @@ private:
                     }
 
                     if (bSucceed) {
+                        PostMessageW(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
+
+                        // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
+                    } else {
+                        SetFocus(m_hComboBox);
+                    }
+                } else if (LOWORD(wParam) == ID_FORCE_ASINVOKER) {
+                    WCHAR szCmd[10240] = L"";
+                    WCHAR szInput[8192] = L"";
+                    extern WCHAR g_szSlxComDllFullPath[];
+
+                    GetWindowTextW(m_hComboBox, szInput, RTL_NUMBER_OF(szInput));
+                    wnsprintfW(szCmd, RTL_NUMBER_OF(szCmd), L"rundll32.exe \"%ls\" StartupForceAsInvoker %ls", g_szSlxComDllFullPath, szInput);
+
+                    if (RunCommand(szCmd)) {
                         PostMessageW(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
 
                         // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
@@ -239,6 +287,7 @@ private:
     WNDPROC m_procOldDlgProc;
     HWND m_hRunAdminMode;
     HWND m_hRunAdminModeByBridge;
+    HWND m_hAsInvoker;
     HWND m_hComboBox;
 };
 
@@ -280,4 +329,20 @@ static DWORD CALLBACK RunDlgPlusMonitorProc(LPVOID lpParam) {
 
 void StartRunDlgPlusMonitor() {
     CloseHandle(CreateThread(NULL, 0, RunDlgPlusMonitorProc, NULL, 0, NULL));
+}
+
+// 褫夺uac权限的申请，如果程序已经是管理员权限了，那么这个函数不会有任何效果；如果程序是被uac限制了权限的，那么这个函数会让程序以被uac限制的权限运行（也就是褫夺uac权限）
+void WINAPI StartupForceAsInvokerW(HWND hwndStub, HINSTANCE hAppInstance, LPCWSTR lpszCmdLine, int nCmdShow) {
+    SHELLEXECUTEINFOW si = { sizeof(si) };
+    WCHAR szCmd[10240] = L"/c start ";
+    
+    SetEnvironmentVariableA("__COMPAT_LAYER", "RUNASINVOKER");
+    StrCatBuffW(szCmd, lpszCmdLine, RTL_NUMBER_OF(szCmd));
+    si.hwnd = hwndStub;
+    si.lpVerb = L"open";
+    si.lpFile = L"cmd.exe";
+    si.lpParameters = szCmd;
+    si.nShow = SW_HIDE;
+
+    ShellExecuteExW(&si);
 }
