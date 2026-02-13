@@ -199,35 +199,35 @@ private:
                     HIWORD(wParam) == BN_CLICKED &&
                     IsWindow(m_hComboBox))
                 {
-                    WCHAR szText[8192] = L"/c start ";
-                    int nLength = lstrlenW(szText);
+                    WCHAR szInput[8192] = L"";
+                    WCHAR szArgumets[10240] = L"/c start ";
                     SHELLEXECUTEINFOW si = { sizeof(si) };
                     BOOL bSucceed = FALSE;
 
-                    GetWindowTextW(m_hComboBox, szText + nLength, RTL_NUMBER_OF(szText) - nLength);
+                    GetWindowTextW(m_hComboBox, szInput, RTL_NUMBER_OF(szInput));
+                    StrCatBuffW(szArgumets, szInput, RTL_NUMBER_OF(szArgumets));
 
                     if (LOWORD(wParam) == ID_ADMIN) {
                         si.hwnd = m_hDlg;
                         si.lpVerb = L"runas";
                         si.lpFile = L"cmd.exe";
-                        si.lpParameters = szText;
+                        si.lpParameters = szArgumets;
                         si.nShow = SW_HIDE;
 
                         bSucceed = ShellExecuteExW(&si);
                     } else if (LOWORD(wParam) == ID_ADMIN_BRIDGE) {
-                        bSucceed = ElevateAndRunW(L"cmd.exe", szText, NULL, SW_HIDE) > 32;
+                        bSucceed = ElevateAndRunW(L"cmd.exe", szArgumets, NULL, SW_HIDE) > 32;
                     }
 
                     if (bSucceed) {
                         PostMessageW(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
-
-                        // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
+                        UpdateRunMRU(szInput);
                     } else {
                         SetFocus(m_hComboBox);
                     }
                 } else if (LOWORD(wParam) == ID_FORCE_ASINVOKER) {
-                    WCHAR szCmd[10240] = L"";
                     WCHAR szInput[8192] = L"";
+                    WCHAR szCmd[10240] = L"";
                     extern WCHAR g_szSlxComDllFullPath[];
 
                     GetWindowTextW(m_hComboBox, szInput, RTL_NUMBER_OF(szInput));
@@ -235,8 +235,7 @@ private:
 
                     if (RunCommand(szCmd)) {
                         PostMessageW(m_hDlg, WM_SYSCOMMAND, SC_CLOSE, 0);
-
-                        // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
+                        UpdateRunMRU(szInput);
                     } else {
                         SetFocus(m_hComboBox);
                     }
@@ -254,6 +253,95 @@ private:
         }
 
         return CallWindowProc(m_procOldDlgProc, hDlg, uMsg, wParam, lParam);
+    }
+
+    // 写入注册表HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
+    static void UpdateRunMRU(LPCWSTR lpInput) {
+        if (lpInput == NULL || *lpInput == L'\0') {
+            return;
+        }
+
+        // RunMRU 存储格式必须以 \1 结尾，否则 Explorer 无法正常解析显示
+        std::wstring formattedInput = lpInput;
+        formattedInput += L"\\1";
+
+        HKEY hKey = NULL;
+        const wchar_t* subKey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU";
+        if (RegOpenKeyExW(HKEY_CURRENT_USER, subKey, 0, KEY_READ | KEY_WRITE, &hKey) != ERROR_SUCCESS) {
+            return;
+        }
+
+        // 读取当前记录列表
+        wchar_t mruList[64] = { 0 };
+        DWORD type = 0;
+        DWORD size = sizeof(mruList);
+        RegQueryValueExW(hKey, L"MRUList", NULL, &type, (LPBYTE)mruList, &size);
+
+        wchar_t targetLetter = 0;
+        size_t mruLen = wcslen(mruList);
+
+        // 查找该命令是否已在现有字母中定义
+        for (size_t i = 0; i < mruLen; ++i) {
+            wchar_t valName[2] = { mruList[i], 0 };
+            wchar_t existingData[MAX_PATH] = { 0 };
+            DWORD dataSize = sizeof(existingData);
+            if (RegQueryValueExW(hKey, valName, NULL, NULL, (LPBYTE)existingData, &dataSize) == ERROR_SUCCESS) {
+                if (_wcsicmp(existingData, formattedInput.c_str()) == 0) {
+                    targetLetter = mruList[i];
+                    break;
+                }
+            }
+        }
+
+        // 如果是新命令，分配未使用的字母；若 26 个字母已满，则重用 MRUList 最后的字母
+        if (targetLetter == 0) {
+            bool used[26] = { false };
+            for (size_t i = 0; i < mruLen; ++i) {
+                if (mruList[i] >= L'a' && mruList[i] <= L'z') {
+                    used[mruList[i] - L'a'] = true;
+                }
+            }
+
+            for (int i = 0; i < 26; ++i) {
+                if (!used[i]) {
+                    targetLetter = L'a' + i;
+                    break;
+                }
+            }
+
+            if (targetLetter == 0) {
+                targetLetter = (mruLen > 0) ? mruList[mruLen - 1] : L'a';
+            }
+        }
+
+        // 写入具体命令内容
+        wchar_t valName[2] = { targetLetter, 0 };
+        RegSetValueExW(
+            hKey,
+            valName,
+            0,
+            REG_SZ,
+            (const BYTE*)formattedInput.c_str(),
+            (DWORD)((formattedInput.length() + 1) * sizeof(wchar_t)));
+
+        // 更新 MRUList：将当前使用的字母移动到字符串首位（最顶层）
+        std::wstring newList;
+        newList += targetLetter;
+        for (size_t i = 0; i < mruLen; ++i) {
+            if (mruList[i] != targetLetter) {
+                newList += mruList[i];
+            }
+        }
+
+        RegSetValueExW(
+            hKey,
+            L"MRUList",
+            0,
+            REG_SZ,
+            (const BYTE*)newList.c_str(),
+            (DWORD)((newList.length() + 1) * sizeof(wchar_t)));
+
+        RegCloseKey(hKey);
     }
 
     static LRESULT CALLBACK newRunDlgProcPublic(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
