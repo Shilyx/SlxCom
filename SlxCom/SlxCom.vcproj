@@ -411,6 +411,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SlxComWndSorter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SlxComWork.cpp"
 				>
 			</File>
@@ -526,6 +530,10 @@
 			</File>
 			<File
 				RelativePath=".\SlxComTools.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SlxComWndSorter.h"
 				>
 			</File>
 			<File

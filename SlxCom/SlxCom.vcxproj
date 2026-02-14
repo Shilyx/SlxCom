@@ -221,6 +221,7 @@
     <ClCompile Include="SlxComOverlay.cpp" />
     <ClCompile Include="SlxComPeTools.cpp" />
     <ClCompile Include="SlxComTools.cpp" />
+    <ClCompile Include="SlxComWndSorter.cpp" />
     <ClCompile Include="SlxComWork.cpp" />
     <ClCompile Include="SlxComWork_lvm.cpp" />
     <ClCompile Include="SlxComWork_ni.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="SlxComOverlay.h" />
     <ClInclude Include="SlxComPeTools.h" />
     <ClInclude Include="SlxComTools.h" />
+    <ClInclude Include="SlxComWndSorter.h" />
     <ClInclude Include="SlxComWork.h" />
     <ClInclude Include="SlxComWork_lvm.h" />
     <ClInclude Include="SlxComWork_ni.h" />

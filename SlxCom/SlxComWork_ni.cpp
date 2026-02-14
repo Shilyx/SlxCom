@@ -11,6 +11,7 @@
 #include "lib/charconv.h"
 #include "SlxComAbout.h"
 #include "SlxComConfigLight.h"
+#include "SlxComWndSorter.h"
 #include "SlxComDisableCtrlCopyInSameDir.h"
 #include "lib/StringMatch.h"
 #include "lib/SlxBase64.hxx"
@@ -97,6 +98,7 @@ enum {
     SYS_DISABLECTRLCOPYINSAMEDIR,
     SYS_DEBUGBREAK,
     SYS_WINDOWMANAGER,
+    SYS_WINDOW_SORTER,
     SYS_SHOWTIMEPALTE_DISABLE,
     SYS_SHOWTIMEPALTE_PER60M,
     SYS_SHOWTIMEPALTE_PER30M,
@@ -602,6 +604,18 @@ public:
                 );
             break;
 
+        case SYS_WINDOW_SORTER:
+            if (WndSorter_IsRunning()) {
+                WndSorter_Op(WNDSORTER_OFF);
+                cfglSetBool(L"WndSorter", FALSE);
+            } else {
+                WndSorter_Op(WNDSORTER_ON);
+                cfglSetBool(L"WndSorter", TRUE);
+            }
+            cfglSetBool(L"MENU_WINDOW_SORTER_ENABLED", !cfglGetBool(L"MENU_WINDOW_SORTER_ENABLED", FALSE));
+            UpdateMenu();
+            break;
+
         case SYS_SHOWTIMEPALTE_DISABLE:
             m_nTimePlageIntervalMinutes = 0;
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_DISABLE, MF_BYCOMMAND);
@@ -691,6 +705,7 @@ public:
 //         AppendMenuW(m_hMenu, MF_STRING, SYS_PAINTVIEW, L"桌面画板(&P)...");
 //         SetMenuDefaultItem(m_hMenu, SYS_PAINTVIEW, MF_BYCOMMAND);
         AppendMenuW(m_hMenu, MF_STRING, SYS_WINDOWMANAGER, L"窗口管理器(&W)...");
+        AppendMenuW(m_hMenu, MF_STRING, SYS_WINDOW_SORTER, L"自动关闭重复的Explorer窗口(&D)");
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)hTimePlateMenu, L"整点报时(&T)");
         AppendMenuW(m_hMenu, MF_POPUP, (UINT)(UINT_PTR)InitRegPathSubMenu(&nMenuId), L"注册表快捷通道(&R)");
         AppendMenuW(m_hMenu, MF_SEPARATOR, 0, NULL);
@@ -729,6 +744,12 @@ public:
         case 1:
             CheckMenuRadioItem(m_hMenu, SYS_SHOWTIMEPALTE_DISABLE, SYS_SHOWTIMEPALTE_PER1M, SYS_SHOWTIMEPALTE_PER1M, MF_BYCOMMAND);
             break;
+        }
+
+        BOOL bWndSorterEnabled = cfglGetBool(L"WndSorter", FALSE);
+        CheckMenuItem(m_hMenu, SYS_WINDOW_SORTER, MF_BYCOMMAND | (bWndSorterEnabled ? MF_CHECKED : MF_UNCHECKED));
+        if (bWndSorterEnabled) {
+            WndSorter_Op(WNDSORTER_ON);
         }
     }
 

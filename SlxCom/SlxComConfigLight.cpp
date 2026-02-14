@@ -30,7 +30,7 @@ bool BuildRegPath(LPCWSTR lpKey, wstring &strPath, wstring &strValue) {
 }
 
 bool cfglGetBool(LPCWSTR lpKey, bool bDefault) {
-    return !!cfglGetLong(lpKey, bDefault);
+    return !!cfglGetLong(lpKey, (DWORD)!!bDefault);
 }
 
 void cfglSetBool(LPCWSTR lpKey, bool bValue) {
