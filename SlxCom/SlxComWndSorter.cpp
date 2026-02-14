@@ -1,6 +1,5 @@
-#include "SlxCom.h"
 #include "SlxComWndSorter.h"
-
+#include "SlxComTools.h"
 #include <Windows.h>
 #include <string>
 #include <set>
