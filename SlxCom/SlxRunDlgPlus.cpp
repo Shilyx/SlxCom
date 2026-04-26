@@ -243,6 +243,7 @@ private:
                     BOOL bShouldEnabled = GetWindowTextLength(m_hComboBox) > 0;
 
                     EnableWindow(m_hRunAdminMode, bShouldEnabled);
+                    EnableWindow(m_hAsInvoker, bShouldEnabled);
                     EnableWindow(m_hRunAdminModeByBridge, bShouldEnabled);
                 }
                 break;
